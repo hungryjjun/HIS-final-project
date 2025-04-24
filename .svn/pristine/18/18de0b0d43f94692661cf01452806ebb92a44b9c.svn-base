@@ -1,0 +1,179 @@
+function loadChatRoomList() {
+	const currentEmpId = sessionStorage.getItem("currentUserId");
+
+	if (!currentEmpId) {
+		alert("로그인 정보가 없습니다.");
+		return;
+	}
+
+	$.ajax({
+		url: "/messenger/chatRoom",
+		type: "GET",
+		data: { empId: currentEmpId },
+		dataType: "json",
+		success: function(chatRooms) {
+			console.log("💬 채팅방 목록 불러오기 성공", chatRooms);
+
+			let html = `
+                <h3>그룹 채팅 생성</h3>
+                <input type="text" id="groupRoomName" placeholder="채팅방 이름 입력" />
+                <div id="empListContainer"></div>
+                <button id="createGroupChatBtn">그룹 채팅방 만들기</button>
+                <hr/>
+                <div id="chatRoomList">
+                    <h4>내 채팅방 목록</h4>
+					<div id ="chatRoomList">
+                    <ul id="chatRoomUl"></ul>
+				</div>
+				</div>
+            `;
+
+			chatRooms.forEach(room => {
+				html += `
+			        <li class="chat-room-item" 
+			            style="margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+			            <div onclick="enterChatRoom(${room.roomId})" style="cursor: pointer;">
+			                <strong>${room.roomName || "채팅방"}</strong><br>
+			                <small>유형: ${room.roomType}</small>
+			            </div>
+			            <button onclick="event.stopPropagation(); leaveRoom(${room.roomId})"
+			                    style="margin-top: 5px; font-size: 12px; background-color: #ff5c5c; color: white; border: none; padding: 3px 8px; border-radius: 3px;">
+			                나가기
+			            </button>
+			        </li>
+			    `;
+			});
+
+			html += `</ul></div>`;
+			$("#contentArea").html(html);
+
+			loadEmployeesForGroupChat();
+
+			// 그룹 채팅방 생성 버튼 이벤트 바인딩
+			$("#createGroupChatBtn").on("click", function() {
+				const roomName = $("#groupRoomName").val();
+				const checkedEmpIds = [];
+
+				$("input[name='groupMember']:checked").each(function() {
+					checkedEmpIds.push($(this).val());
+				});
+
+				const currentUserId = sessionStorage.getItem("currentUserId");
+				if (!checkedEmpIds.includes(currentUserId)) {
+					checkedEmpIds.push(currentUserId);
+				}
+
+				if (!roomName) {
+					alert("채팅방 이름을 입력해주세요.");
+					return;
+				}
+
+				if (checkedEmpIds.length < 2) {
+					alert("참여자는 최소 2명 이상이어야 합니다.");
+					return;
+				}
+
+				const groupRoom = {
+					roomName: roomName,
+					empIdList: checkedEmpIds
+				};
+
+				$.ajax({
+					url: "/messenger/insertGroupChat",
+					type: "POST",
+					contentType: "application/json",
+					data: JSON.stringify(groupRoom),
+					success: function(roomId) {
+						alert("✅ 그룹 채팅방 생성 성공!");
+						window.open("/messenger/room?roomId=" + roomId, "_blank");
+						loadChatRoomList(); // 다시 로딩
+					},
+					error: function() {
+						alert("❌ 채팅방 생성 실패");
+					}
+				});
+			});
+		},
+		error: function() {
+			console.error("❌ 채팅방 목록 불러오기 실패");
+			alert("채팅방 목록을 불러오는 중 오류 발생");
+		}
+	});
+}
+
+function enterChatRoom(roomId) {
+	const popupName = `chatRoom_${roomId}`; // 방 번호 기반 고유 창 이름
+	const popupOptions = "width=600,height=500,left=300,top=100,resizable=yes,scrollbars=yes";
+	window.open(`/messenger/room?roomId=${roomId}`, popupName, popupOptions);
+}
+
+function loadEmployeesForGroupChat() {
+	$.ajax({
+		url: "/messenger/empList",
+		type: "GET",
+		success: function(data) {
+			let html = "<ul>";
+			data.forEach(emp => {
+				html += `
+                    <li>
+                        <label>
+                            <input type="checkbox" name="groupMember" value="${emp.empId}">
+                            ${emp.empName} (${emp.department?.departmentName || "부서 없음"})
+                        </label>
+                    </li>
+                `;
+			});
+			html += "</ul>";
+
+			$("#empListContainer").html(html);
+		},
+		error: function() {
+			alert("직원 목록 로딩 실패");
+		}
+	});
+}
+function leaveRoom(roomId) {
+	const empId = sessionStorage.getItem("currentUserId");
+
+	if (!confirm("채팅방에서 나가겠시습니까?")) return;
+
+
+	$.ajax({
+		url: "/messenger/deleteChatMember",
+		type: "POST",
+		data: { empId: empId, roomId: roomId },
+		success: function(res) {
+			alert("채팅방을 나갔습니다.");
+			loadChatRoomList();
+		},
+		error: function() {
+			alert("채팅방 나가기 실패");
+		}
+	});
+
+	//$.post("/messenger/deleteChatMember", { empId, roomId })
+	//    .done(function (res) {
+	//		console.log("========================================111");
+	//		console.log(res);
+	//        //alert(res);
+	//        //loadChatRoomList(); 
+	//    })
+	//    .fail(function () {
+	//		console.log("========================================222");
+	//		console.log("❌ 채팅방 나가기 실패");
+	//        //alert("❌ 채팅방 나가기 실패");
+	//    });
+}
+
+$(document).ready(function() {
+	console.log("📦 chatRoomList.js 로드됨");
+
+	$("#chatRoomBtn").on("click", function(e) {
+		e.preventDefault();
+		console.log("💬 채팅방 목록 버튼 클릭됨");
+		loadChatRoomList();
+	});
+
+
+	// loadChatRoomList();
+});

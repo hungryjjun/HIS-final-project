@@ -1,0 +1,137 @@
+package kr.or.ddit.account.service;
+
+import java.util.Collection;
+
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.security.sasl.AuthenticationException;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.account.exception.UserNotFoundException;
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.mybatis.mappers.account.AccountMapper;
+import kr.or.ddit.mybatis.mappers.messenger.chatempMapper;
+import kr.or.ddit.security.CustomUserDetailService;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+@Service
+@Transactional
+public class AccountServiceImpl implements AccountService {
+
+   @Autowired
+   private AccountMapper mapper;
+   
+   @Autowired
+   private chatempMapper chatMapper;
+   
+   
+    @Autowired
+   private AuthenticationManagerBuilder builder;
+    
+    @Autowired
+    private PasswordEncoder encoder;
+
+   @Override
+   public List<AccountVO> accountList() {
+      return mapper.accountList();
+   }
+
+   @Override
+   public boolean accountInsert(AccountVO account) {
+      
+//      int accountResult = mapper.accountInsert(account);
+//       log.info("chat여기로 들어와야함++++++++++++++++++++++++++++");  
+//       log.info("teamMember 존재 여부: {}", account.getTeamMember());
+//       log.info("getRank 존재 여부: {}", account.getRank());
+//       log.info("getAccountId 존재 여부: {}", account.getAccountId());
+//      ChatEmpVO chat = new ChatEmpVO();
+//      chat.setEmpId(account.getAccountId());
+//      chat.setDeptId(account.getDepartmentId());
+//        chat.setEmpName(account.getEmpName());
+//        chat.setTeamName(account.getTeamMember().getTeam().getTeamName());
+//        chat.setEmpRank(account.getRank().getRankName());
+//        chat.setStatuString("오프라인"); 
+//        chat.setLastLogin(null);
+        
+        
+//       log.info("chat+++++++++++",chat);
+//        int chatResult = chatMapper.chatInsert(chat);
+      
+      return mapper.accountInsert(account)>0;
+   }
+   
+   @Override
+   public AccountVO readAccount(String accountId) {
+      return mapper.selectAccount(accountId);
+   }
+   
+   @Override
+   public List<AccountVO> unRegisterAccountList() {
+      return mapper.findUnregisteredAccountList();
+   }
+   
+   public AccountVO authenticate(AccountVO account)throws AuthenticationException{
+      
+       //계정 정보 조회
+      AccountVO storedAccount = mapper.selectAccount(account.getAccountId());
+       if (storedAccount == null) {
+           throw new UserNotFoundException("존재하지 않는 계정입니다: " + account.getAccountId());
+       }
+
+       //비밀번호 검증
+       if (!encoder.matches(account.getPassword(), storedAccount.getPassword())) {
+           throw new AuthenticationException("비밀번호가 일치하지 않습니다.") {};
+       }
+      
+      UsernamePasswordAuthenticationToken token =
+            UsernamePasswordAuthenticationToken.unauthenticated(account.getAccountId(), account.getPassword());
+      builder.getObject().authenticate(token);
+      
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(token);
+      SecurityContextHolder.setContext(context);
+      
+      return storedAccount;
+   }
+
+   @Autowired
+   private CustomUserDetailService userDetailService;
+   
+      private void createNewAuthentication() {
+            Authentication beforeAuth = SecurityContextHolder.getContext().getAuthentication();
+            
+            
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            UserDetails principal = userDetailService.loadUserByUsername(beforeAuth.getName());
+             Collection<? extends GrantedAuthority> authorities = principal.getAuthorities();
+            Object details = beforeAuth.getDetails();
+             
+            UsernamePasswordAuthenticationToken newAuthentication = 
+                  UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities);
+            newAuthentication.setDetails(details);
+            
+            context.setAuthentication(newAuthentication);
+            SecurityContextHolder.setContext(context); 
+            
+         }
+
+	@Override
+	public AccountVO selectedUnAccount(String empId) {
+		return mapper.selectedUnAcount(empId);
+	}
+}

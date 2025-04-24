@@ -1,0 +1,84 @@
+package kr.or.ddit.evaluation.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.evaluation.service.EvaluationCandidateService;
+import kr.or.ddit.evaluation.vo.EvaluationCandidateVO;
+
+@Controller
+@RequestMapping("/evaluation")
+public class EvaluationCandidateListController {
+
+	@Autowired
+	private EvaluationCandidateService service;
+	
+	@GetMapping("/evaluationCandidateList")
+	public String readList(Model model) {
+		
+		List<EvaluationCandidateVO> candidateList = service.selectAll(); 
+		
+		model.addAttribute("candidateList",candidateList);
+		
+		return "tiles:evaluation/evaluationCandidateList";
+		
+	}
+	
+	@PostMapping("/evaluationCandidateUpdate")
+	@ResponseBody
+	public String updateEvaluationCandidates(
+			@RequestBody List<EvaluationCandidateVO> candidates
+		) {
+	    
+		service.updateAll(candidates);  // 서비스 호출
+	    
+		return "Success";
+//		return "redirect:/evaluation/evaluationCandidateList";  // 업데이트 완료 후 리디렉션
+	}
+	
+}
+
+//// 평가 대상 업데이트 처리 , AJAX 요청 처리
+//@PostMapping("/evaluationCandidateUpdate")
+//@ResponseBody
+//public String updateEvaluationCandidates(
+//		@RequestBody List<EvaluationCandidateVO> evaluationCandidates
+//	) {
+//    
+//	// 받은 데이터 처리
+//    for (EvaluationCandidateVO candidate : evaluationCandidates) {
+//        String empId = candidate.getEmpId();
+//        String evaluationYear = candidate.getEvaluationYear();
+//        String halfYear = candidate.getHalfYear();
+//        String isTarget = candidate.getIsTarget();
+//        String evaluationStatus = candidate.getEvaluationStatus();
+//
+//        service.updateAll(empId, evaluationYear, halfYear, isTarget, evaluationStatus);
+//    }
+//
+//    return "success"; // 성공 응답 반환
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

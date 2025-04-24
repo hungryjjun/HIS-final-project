@@ -1,0 +1,30 @@
+package kr.or.ddit.salary.vo;
+
+import java.io.Serializable;
+import java.util.List;
+
+import kr.or.ddit.employee.vo.EmployeeVO;
+import lombok.Data;
+import lombok.ToString;
+
+@ToString
+@Data
+public class SalaryVO implements Serializable {
+
+	private String salaryId;
+	private String empId;
+	private String payYear;
+	private String payMonth;
+	private String baseSalary;
+	private String regulatSalary;
+	private String overtimePay;
+	private String totalPay;
+	private String incomeTax;
+	private String localTax;
+	private String insurancFour;
+	private String totalDeduct;
+	private String netSalary;
+	
+	private List<EmployeeVO>employeeList;
+	
+}

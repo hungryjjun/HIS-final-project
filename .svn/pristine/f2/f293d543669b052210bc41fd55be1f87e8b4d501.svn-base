@@ -1,0 +1,42 @@
+package kr.or.ddit.salary.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.salary.service.SalaryService;
+import kr.or.ddit.salary.vo.SalaryVO;
+import lombok.extern.slf4j.Slf4j;
+
+//전 직원리스트
+@Slf4j
+@Controller
+@RequestMapping("/salary")
+public class SalaryReadController {
+	
+	@Autowired
+	private SalaryService service;
+	
+	@GetMapping("list")
+	public String salaryList(Model model){
+		List<SalaryVO>salaryList = service.salaryList();
+		SalaryVO salaryInfo = service.salaryInfo();
+		model.addAttribute("salaryList", salaryList);
+		model.addAttribute("salaryInfo", salaryInfo);
+		return "tiles:salary/salaryList";
+	}
+	
+	@GetMapping("detail/{empId}/{payYear}/{payMonth}")
+	public String salaryDetail(Model model, @PathVariable("empId") String empId,
+			@PathVariable("payYear")int payYear, @PathVariable("payMonth")int payMonth){
+		SalaryVO salarySelected = service.salarySelected(empId,payYear,payMonth);
+		model.addAttribute("salarySelected", salarySelected);
+		return"salary/salarDetail";
+	}
+}

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일               수정자           수정내용
+ *  ============      ============== =======================
+ *  2025. 3. 19.        young            최초 생성
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.salary.SalaryMapper">
+
+<resultMap type="SalaryVO" id="salaryMap" autoMapping="true">
+	<id property="salaryId" column="salary_id"/>
+	<collection property="deductionList" ofType="DeductionVO" autoMapping="true">
+    <id property="deductionId" column="deduction_id"/>
+    <result property="deductionCode" column="deduction_code"/>  
+    <result property="deductionAmount" column="deduction_amount"/>
+    <association property="deductionCodeVO" javaType="DeductionCodeVO">
+        <id property="deductionCode" column="deduction_code"/>
+        <result property="deductionName" column="deduction_name"/>
+        <result property="deductionDesc" column="deduction_desc"/>
+    </association>
+</collection>
+
+<collection property="allowanceList" ofType="AllowanceVO" autoMapping="true">
+    <id property="allowanceId" column="allowance_id"/>
+    <result property="allowanceCode" column="allowance_code"/>  
+    <result property="allowanceAmount" column="allowance_amount"/>
+    <association property="allowanceCodeVO" javaType="AllowanceCodeVO">
+        <id property="allowanceCode" column="allowance_code"/>
+        <result property="allowanceName" column="allowance_name"/>
+        <result property="allowanceDesc" column="allowance_desc"/>
+    </association>
+</collection>
+
+
+	<collection property="employeeList" resultMap="employeeMap"></collection>
+</resultMap>
+
+<resultMap type="EmployeeVO" id="employeeMap" autoMapping="true">
+	<id property="empId" column="emp_id"/>
+	<result property="name" column="name"/>
+	<association property="team" javaType="TeamVO" autoMapping="true"/>
+	<association property="department" javaType="DepartmentVO" autoMapping="true"/>
+	<association property="rank" javaType="RankVO" autoMapping="true"/>
+</resultMap>
+
+<select id="salaryList" resultMap="salaryMap">
+SELECT
+  S.SALARY_ID,
+  S.EMP_ID,
+  S.PAY_YEAR,
+  S.PAY_MONTH,
+  S.BASE_SALARY,
+  S.TOTAL_ALLOWANCE,
+  S.TOTAL_PAY,
+  S.TOTAL_DEDUCTION,
+  S.NET_SALARY,
+  S.PAY_DATE,
+  S.PAY_STATUS,
+  S.PAY_STDAY,
+  S.PAY_ENDDAY,
+  S.PAY_YEAR || '년 ' || S.PAY_MONTH || '월' AS PAY_MONTH,
+  E.EMP_ID,
+  E.NAME,
+  D.DEPARTMENT_NAME,
+  D.DEPARTMENT_ID,
+  T.TEAM_NAME,
+  R.RANK_ID,
+  R.RANK_NAME
+FROM SALARY_MANAGEMENT S
+LEFT JOIN EMPLOYEE E ON S.EMP_ID = E.EMP_ID
+LEFT JOIN DEPARTMENT D ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+LEFT JOIN RANK R ON R.RANK_ID = E.RANK_ID
+LEFT JOIN TEAM T ON T.TEAM_ID = E.TM_ID
+</select>
+
+<select id="salarySelected" resultMap="salaryMap">
+SELECT
+  S.SALARY_ID,
+  S.EMP_ID,
+  S.PAY_YEAR,
+  S.PAY_MONTH,
+  S.BASE_SALARY,
+  S.TOTAL_ALLOWANCE AS 총수당금액,
+  A.ALLOWANCE_AMOUNT AS 수당금액, 
+  A.ALLOWANCE_CODE AS 수당코드,
+  A.ALLOWANCE_ID,
+  AC.ALLOWANCE_NAME,
+  S.TOTAL_DEDUCTION AS 총공제금액,
+  DE.DEDUCTION_AMOUNT AS 공제금액,  
+  DC.DEDUCTION_CODE AS 공제코드,
+  DC.DEDUCTION_NAME,
+  DE.DEDUCTION_ID,
+  S.TOTAL_PAY,
+  S.NET_SALARY,
+  S.PAY_DATE,
+  S.PAY_STATUS,
+  S.PAY_STDAY,
+  S.PAY_ENDDAY,
+  S.PAY_YEAR || '년 ' || S.PAY_MONTH || '월' AS PAY_MONTH,
+  E.EMP_ID,
+  E.NAME,
+  D.DEPARTMENT_NAME,
+  D.DEPARTMENT_ID,
+  T.TEAM_NAME,
+  R.RANK_ID,
+  R.RANK_NAME
+FROM SALARY_MANAGEMENT S
+LEFT JOIN EMPLOYEE E ON S.EMP_ID = E.EMP_ID
+LEFT JOIN DEPARTMENT D ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+LEFT JOIN RANK R ON R.RANK_ID = E.RANK_ID
+LEFT JOIN TEAM T ON E.TM_ID=T.TEAM_ID
+LEFT JOIN DEDUCTION DE ON S.SALARY_ID = DE.SALARY_ID  
+LEFT JOIN DEDUCTION_CODE DC ON DE.DEDUCTION_CODE = DC.DEDUCTION_CODE
+LEFT JOIN ALLOWANCE A ON S.SALARY_ID = A.SALARY_ID 
+LEFT JOIN ALLOWANCE_CODE AC ON AC.ALLOWANCE_CODE = A.ALLOWANCE_CODE
+WHERE E.EMP_ID = #{empId}
+
+</select>
+</mapper>

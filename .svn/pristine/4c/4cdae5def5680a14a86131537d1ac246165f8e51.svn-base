@@ -1,0 +1,58 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<h4>Interview List</h4>
+${interviewList }
+<section class="section">
+	<div class="card">
+		<div class="card-header">DB연동 o</div>
+		<div class="card-body">
+			<table class="table table-striped" id="table1">
+				<thead>
+					<tr>
+						<th>지원자명</th>
+						<th>지원공고</th>
+						<th>면접날짜</th>
+						<th>지원 상세 정보</th>
+						<th>결과</th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:choose>
+						<c:when test="${not empty interviewList }">
+							<c:forEach items="${interviewList }" var="interview">
+								<tr>
+									<td>
+										<a href="${pageContext.request.contextPath }/recruit/applicant/detail?appId=${interview.appId}">
+											${interview.appName }
+										</a>
+									</td>
+									<td>
+										<a href="${pageContext.request.contextPath}/recruit/board/detail?recruitId=${interview.recruitment.recruitId}">
+											${interview.recruitment.recruitTitle }
+										</a>
+									</td>
+									<td>${fn:substringBefore(interview.applicationStatus.interviewDate, ' ')}</td>
+									
+									<td>
+										<button class="btn btn-primary">열람</button>
+									</td>
+									
+									<td>${interview.applicationStatus.currentStatus }</td>
+								</tr>
+							</c:forEach>
+						</c:when>
+						<c:otherwise>
+							<tr>
+								<td colspan="5" class="text-center">면접예정자가 존재하지 않습니다.</td>
+							</tr>
+						</c:otherwise>
+					</c:choose>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</section>
+
+

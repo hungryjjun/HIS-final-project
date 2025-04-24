@@ -1,0 +1,108 @@
+package kr.or.ddit.approval.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.approval.vo.DraftApproverVO;
+import kr.or.ddit.approval.vo.DraftManageMentVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import kr.or.ddit.mybatis.mappers.approval.ApprovalMapper;
+import kr.or.ddit.mybatis.mappers.approval.ApprovalProcessMapper;
+import kr.or.ddit.mybatis.mappers.approval.ApproverMapper;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 18.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 18.     	CHOI	          결재자 관리 
+ *
+ * </pre>
+ */
+@Service
+public class ApproverServiceImpl implements ApproverService {
+	
+	@Inject
+	private ApproverMapper mapper;
+	
+	@Inject
+	private ApprovalProcessMapper aprMapper;
+	
+	@Inject
+	private ApprovalMapper apprMapper;
+	/**
+	 * 결재자가 본인의 결재 상태 정보 (결재 대기 문서)를 볼 때 
+	 * @param aprId 결재자
+	 * @return
+	 */
+	@Override
+	public List<DraftApproverVO> getMyApprovalInfo(String aprId) {
+		return mapper.getMyApprovalInfo(aprId);
+	}
+	
+	
+	/**
+	 * 본인보다 직급이 높은 직원 결재라인 리스트 
+	 * @param empId
+	 * @return
+	 */
+	public List<EmployeeVO> getLineApprovers(String empId){
+		return mapper.getLineApprovers(empId);
+	}
+	
+	/**
+     * 여러 결재라인을 등록합니다.
+     */
+	@Override
+	public List<DraftApproverVO> insertApprovalLine(List<DraftApproverVO> approverList) {
+	    for (DraftApproverVO approver : approverList) {
+	        // (A) 결재자 이름으로 DB에서 emp_id 조회
+	        if (approver.getApproverName() != null && !approver.getApproverName().isEmpty()) {
+	            String foundId = aprMapper.selectEmpIdByName(approver.getApproverName());
+	            approver.setApproverId(foundId);
+	        }
+
+	        // (B) 기본값 세팅
+	        if (approver.getAprYn() == null || approver.getAprYn().trim().isEmpty()) {
+	            approver.setAprYn("N");
+	        }
+	        if (approver.getAprReason() == null || approver.getAprReason().trim().isEmpty()) {
+	            approver.setAprReason("기본 사유");
+	        }
+	        if (approver.getAprStatus() == null || approver.getAprStatus().trim().isEmpty()) {
+	            approver.setAprStatus("대기");
+	        }
+	        
+//	        // (C) 클라이언트에서 전달된 draftId 를 그대로 사용합니다.
+//	        // 만약 draftId 가 null 이라면 예외 처리나 기본값 생성 로직을 추가해야 합니다.
+//	        if(approver.getDraftId() == null || approver.getDraftId()){
+//	            throw new IllegalArgumentException("draftId cannot be null or empty");
+//	        }
+	        
+	        // (D) DB에 insert 실행
+	        aprMapper.insertDraftApprover(approver);
+	    }
+	    return approverList;
+	}
+
+    
+	
+	/**
+	 * 결재 대기 문서 상세 조회 
+	 */
+	@Override
+	public List<DraftApproverVO>  getMyApprovalInfoDetail(Long draftId) {
+		return mapper.getMyApprovalInfoDetail(draftId);
+	}
+}

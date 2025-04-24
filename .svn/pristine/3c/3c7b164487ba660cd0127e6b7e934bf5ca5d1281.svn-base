@@ -1,0 +1,42 @@
+package kr.or.ddit.account.controller.advice;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
+
+import kr.or.ddit.department.service.DepartmentService;
+import kr.or.ddit.department.vo.DepartmentVO;
+import kr.or.ddit.employee.service.EmployeeService;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import kr.or.ddit.team.service.TeamService;
+import kr.or.ddit.team.vo.TeamVO;
+
+@ControllerAdvice(basePackages = {"kr.or.ddit.account.controller", "kr.or.ddit.salary.controller"})
+public class AccountAdviceController {
+	//부서,팀,직급,직책
+	@Autowired
+	private DepartmentService Dservice;
+	@Autowired
+	private TeamService Tservice;
+	@Autowired
+	private EmployeeService Eservice;
+	
+	@ModelAttribute("departmentList")
+	public List<DepartmentVO>departmentList(){
+		return Dservice.getDepartmentList();
+	}
+	
+	@ModelAttribute("teamList")
+	public List<TeamVO>teamList(){
+		return Tservice.teamManageList();
+	}
+	
+	@ModelAttribute("empList")
+	public List<EmployeeVO>empList(){
+		return Eservice.readEmpList();
+	}
+	
+	
+}

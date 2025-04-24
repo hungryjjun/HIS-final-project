@@ -1,0 +1,77 @@
+package kr.or.ddit.team.service;
+
+import java.util.List;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mybatis.mappers.team.TeamMapper;
+import kr.or.ddit.team.vo.TeamMemberVO;
+import kr.or.ddit.team.vo.TeamVO;
+
+@Service
+public class TeamServiceImpl implements TeamService {
+
+	@Autowired
+	private TeamMapper mapper;
+
+	@Override
+	public List<TeamVO> teamManageList() {
+		return mapper.teamManageList();
+	}
+
+	@Override
+	public TeamVO selectTeam(Long teamId) {
+		return mapper.selectTeam(teamId);
+	}
+
+	@Override
+	public void insertTeamItem(TeamVO teamManage) {
+		mapper.insertTeamItem(teamManage);
+	}
+
+	@Override
+	public void updateTeamStatusItem(TeamVO teamManage) {
+		mapper.updateTeamStatusItem(teamManage);
+	}
+
+	@Override
+	public void deleteTeamItem(String teamCode) {
+		mapper.deleteTeamItem(teamCode);
+	}
+
+    @Override
+    @Transactional
+    public void createTeamWithMembers(TeamVO team) {
+        // 1. 팀 등록 (teamId 생성)
+        mapper.insertTeam(team);
+
+        // 2. 팀 멤버들의 tmId가 null인지 체크
+        for (TeamMemberVO member : team.getTeamMembers()) {
+            if (member.getTmId() == null) {
+                throw new IllegalArgumentException("TM_ID는 필수 입력값입니다!");
+            }
+            member.setTeamId(team.getTeamId()); // 팀 ID 설정
+        }
+
+        // 3. 팀 멤버들 등록
+        mapper.insertTeamMembers(team.getTeamMembers());
+    }
+
+    @Override
+    @Transactional
+    public void updateTeamWithMembers(TeamVO team) {
+        // 1. 팀 정보 업데이트
+        mapper.updateTeam(team);
+        // 2. 각 팀 멤버의 팀장 여부 업데이트
+        if (team.getTeamMembers() != null) {
+            for (TeamMemberVO member : team.getTeamMembers()) {
+                // 팀 수정 화면에서 이미 각 팀원 객체에 teamId, tmId, tmHr가 채워져 있음.
+                mapper.updateTeamMember(member);
+            }
+        }
+    }
+
+}

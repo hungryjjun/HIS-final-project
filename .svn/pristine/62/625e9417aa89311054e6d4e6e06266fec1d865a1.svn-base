@@ -1,0 +1,113 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팀 리스트</title>
+</head>
+<body>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Simple Datatable</h5>
+            </div>
+            <script>
+                function navigateToDetail(postId) {
+                    console.log("Navigating to detail with noticeId:", postId); // 로그 추가
+                    window.location.href = "${pageContext.request.contextPath}/team/detail?teamId=" + postId;
+                }
+            </script>
+            <div class="card-body">
+                <div class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-columns">
+                    <div class="dataTable-top">
+                        <div class="dataTable-dropdown">
+                            <select class="dataTable-selector form-select">
+                                <option value="5">5</option>
+                                <option value="10" selected="">10</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
+                                <option value="25">25</option>
+                            </select><label> entries per page</label>
+                        </div>
+                        <div class="dataTable-search">
+                            <input class="dataTable-input" placeholder="Search..." type="text">
+                        </div>
+                    </div>
+                    <div class="dataTable-container">
+                        <table class="table table-striped dataTable-table" id="table1">
+                            <thead>
+                                <tr>
+                                    <th data-sortable="" style="width: 11.7909%;"><a href="#" class="dataTable-sorter">팀번호</a></th>
+                                    <th data-sortable="" style="width: 11.7909%;"><a href="#" class="dataTable-sorter">소속부서명</a></th>
+                                    <th data-sortable="" style="width: 41.8558%;"><a href="#" class="dataTable-sorter">팀명</a></th>
+                                    <th data-sortable="" style="width: 18.8412%;"><a href="#" class="dataTable-sorter">팀장명</a></th>
+                                    <th data-sortable="" style="width: 16.3695%;"><a href="#" class="dataTable-sorter">팀장/팀원 여부</a></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <c:choose>
+
+                                    <c:when test="${not empty teamManageList}">
+									    <c:forEach items="${teamManageList}" var="team">
+									        <tr>
+                                                <td>${team.teamId }</td>
+									            <td>${team.department.departmentName}</td>
+												<td>
+                                                    <a href="javascript:void(0);" onclick="navigateToDetail('${team.teamId}')">${team.teamName}</a>
+                                                </td>
+									            <c:set var="leaderName" value="-" />
+									            <c:set var="leaderTmHr" value="-" />
+
+									            <c:forEach var="teamMember" items="${team.teamMembers}">
+									                <c:if test="${teamMember.tmHr eq '팀장'}">
+									                    <c:forEach var="account" items="${team.accounts}">
+									                        <c:if test="${account.tmId eq teamMember.tmId}">
+									                            <c:set var="leaderName" value="${account.empName}" />
+									                            <c:set var="leaderTmHr" value="${teamMember.tmHr}" />
+									                        </c:if>
+									                    </c:forEach>
+									                </c:if>
+									            </c:forEach>
+
+									            <!-- 팀장 이름 -->
+									            <td>${leaderName}</td>
+
+									            <!-- 팀장 여부 -->
+									            <td>${leaderTmHr}</td>
+									        </tr>
+									    </c:forEach>
+									</c:when>
+
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="6">팀 없음.</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+
+                        <a href="${pageContext.request.contextPath}/team/register" class="btn btn-primary">등록</a>
+                    </div>
+                    <div class="dataTable-bottom">
+                        <div class="dataTable-info">Showing 1 to 10 of 26 entries</div>
+                        <nav class="dataTable-pagination">
+                            <ul class="dataTable-pagination-list pagination pagination-primary">
+                                <li class="active page-item"><a href="#" data-page="1" class="page-link">1</a></li>
+                                <li class="page-item"><a href="#" data-page="2" class="page-link">2</a></li>
+                                <li class="page-item"><a href="#" data-page="3" class="page-link">3</a></li>
+                                <li class="pager page-item"><a href="#" data-page="2" class="page-link">›</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="${pageContext.request.contextPath}/resources/template/dist/assets/extensions/simple-datatables/umd/simple-datatables.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/template/dist/assets/static/js/pages/simple-datatables.js"></script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 13.     	KHS            최초 생성
+ *
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.team.TeamMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap type="kr.or.ddit.team.vo.TeamVO" id="teamMap">
+        <id property="teamId" column="TEAM_ID"/>
+        <result property="teamName" column="TEAM_NAME"/>
+        <result property="teamStatus" column="TEAM_STATUS"/>
+        <result property="departmentId" column="DEPARTMENT_ID"/>
+
+	    <association property="department" javaType="kr.or.ddit.department.vo.DepartmentVO">
+	        <result property="departmentId" column="DEPARTMENT_ID"/>
+	        <result property="departmentName" column="DEPARTMENT_NAME"/>
+	    </association>
+
+<!-- 	    <association property="teamMembers" javaType="kr.or.ddit.team.vo.TeamVO"> -->
+<!-- 	        <result property="tmId" column="TM_ID"/> -->
+<!-- 	        <result property="tmHr" column="TM_HR"/> -->
+<!-- 	        <result property="teamId" column="TEAM_ID"/> -->
+<!-- 	    </association> -->
+
+	   <collection property="teamMembers" ofType="TeamMemberVO">
+<!--         <association property="team" javaType="TeamVO" autoMapping="true"/> -->
+        <id property="tmId" column="TM_ID"/>
+        <result property="tmHr" column="TM_HR"/>
+        <result property="teamId" column="TEAM_ID"/>
+      </collection>
+
+    <collection property="accounts" ofType="kr.or.ddit.account.vo.AccountVO" autoMapping="true">
+    </collection>
+    </resultMap>
+
+<!--     <select id="getTeamList" resultMap="teamMap"> -->
+<!--     	SELECT TEAM_NAME, -->
+<!--     </select> -->
+
+    <!-- 팀 목록 가져오기 -->
+    <select id="teamManageList" resultMap="teamMap" >
+	    SELECT
+	        D.DEPARTMENT_ID,
+	        D.DEPARTMENT_NAME,
+	        T.TEAM_ID,
+	        T.TEAM_NAME,
+	        T.TEAM_STATUS,
+	        TM.TM_HR,
+	        A.EMP_NAME
+	    FROM
+	        TEAM T
+	    LEFT JOIN TEAM_MEMBER TM ON T.TEAM_ID = TM.TEAM_ID
+	    LEFT JOIN ACCOUNT A ON A.TM_ID = TM.TM_ID
+	    LEFT JOIN DEPARTMENT D ON D.DEPARTMENT_ID = T.DEPARTMENT_ID
+	    ORDER BY
+	        T.TEAM_ID ASC
+    </select>
+
+    <!-- 팀 항목 추가 -->
+    <insert id="insertTeamItem" parameterType="kr.or.ddit.team.vo.TeamVO" >
+        INSERT INTO TEAM (
+       	  TEAM_ID
+       	, DEPARTMENT_ID
+       	, TEAM_NAME
+       	, TEAM_EMP
+       	, TEAM_HR
+       	, TEAM_STATUS
+        ) VALUES (
+
+          TEAM_seq.NEXTVAL
+        , #{departmentId}
+        , #{teamName}
+        , #{teamEmp}
+        , #{teamHr}
+        , #{teamStatus}
+        )
+    </insert>
+
+    <!-- 팀 항목 수정 -->
+    <update id="updateTeamStatusItem" >
+        UPDATE TEAM
+        SET TEAM_NAME = #{teamName}
+            , TEAM_EMP = #{teamEmp}
+            , TEAM_HR = #{teamHr}
+            , TEAM_STATUS = #{teamStatus}
+        WHERE TEAM_NAME = #{teamName}
+    </update>
+
+    <!-- 팀 항목 삭제 -->
+	<delete id="deleteTeamItem">
+		DELETE FROM TEAM
+ 	    WHERE TEAM_NAME = #{teamName}
+	</delete>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

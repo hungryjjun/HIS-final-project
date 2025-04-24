@@ -1,0 +1,21 @@
+package kr.or.ddit.approval.vo;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+/**
+ * 기안결재자 관리
+ */
+@Data
+public class DraftApproverVO implements Serializable{
+	private Long aprId; // 결재선 순번(PK)
+	private Long draftId; // 기안관리ID
+	private String approverId; // 결재자ID
+	private Long aprSeq; // 결재 순서
+	private String aprYn; //결재여부 Y/N 디폴트값: N 
+	private String aprDate; // 기본값 SYSDATE
+	private String aprStatus; // 결재상태는(승인/반려/보류)
+	private String aprReason; // 결재상태에 대한 사유내용
+	private String empSid; // 결재자가 부재중인경우 대결자 설정가능
+}

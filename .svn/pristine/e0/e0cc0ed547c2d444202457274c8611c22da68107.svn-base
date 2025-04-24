@@ -1,0 +1,32 @@
+package kr.or.ddit.annual.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.annual.service.AnnualService;
+
+@Controller
+public class AnnualReadController {
+
+	@Autowired
+	private AnnualService service;
+	
+	@GetMapping("/annualList")
+	public String annualList(Model model){
+		model.addAttribute("annualList",service.annualList());
+		return "tiles:annual/annualList";
+	}
+	
+	@GetMapping("/annualDetail")
+	public String annualDetail(Model model, @RequestParam("empId") String empId){
+		model.addAttribute("annualDetail",service.annualDetail(empId));
+		return "/annual/annualDetail";
+	}
+
+		
+	
+	
+}

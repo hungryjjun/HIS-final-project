@@ -1,0 +1,21 @@
+package kr.or.ddit.evaluation.vo;
+
+import kr.or.ddit.employee.vo.EmployeeVO;
+import lombok.Data;
+
+@Data
+public class EvaluationTypeVO {
+
+	private Long evaluaTypeId;
+	private String evaluaName;
+	private String evaluaType;
+	private String evaluaCriteria;
+	private String evaluaComment;
+	private Long   evaluaWeight;
+	private String evaluaUse;
+
+	private EmployeeVO employee;
+	
+	
+	
+}

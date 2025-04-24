@@ -1,0 +1,54 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script>
+        // QR 코드 스캔 성공 시 호출되는 함수
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log("QR 코드 스캔 성공: ", decodedText);
+            
+            // 서버로 QR 코드 데이터를 전송
+            fetch("/qrqr?token=" + decodedText)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // 서버에서 받은 데이터를 처리
+                    // 이곳에서 스캔 후 처리를 추가할 수 있음
+                })
+                .catch(error => console.error("서버 호출 에러:", error));
+        }
+
+        // QR 코드 스캔 오류 시 호출되는 함수
+        function onScanError(errorMessage) {
+            console.error("QR 코드 스캔 오류:", errorMessage);
+        }
+
+        // HTML5QRCode 초기화
+        const html5QrCode = new Html5Qrcode("reader");
+
+        // 카메라 설정 및 QR 코드 스캔 시작
+        html5QrCode.start(
+            { facingMode: "environment" },  // 모바일에서 후면 카메라 사용
+            {
+                fps: 10,    // 초당 프레임 수 (FPS)
+                qrbox: { width: 250, height: 250 } // QR 코드 인식 영역 크기 설정
+            },
+            onScanSuccess,    // 스캔 성공 시 호출되는 함수
+            onScanError       // 스캔 오류 시 호출되는 함수
+        ).catch(err => {
+            console.error("QR 코드 스캔 시작 오류:", err);
+        });
+    </script>
+</head>
+
+<body>
+    <!-- QR 코드 이미지를 표시 -->
+<%--     <img id="qrCodeImage" src="${qrCode}" alt="QR Code" /> --%>
+    
+    <!-- QR 코드 스캔을 위한 카메라 영역 -->
+    <img id="reader" src="${qrCode}" style="width: 300px; height: 300px; border: 1px solid black; margin-top: 20px;"></img>
+</body>
+
+</html>

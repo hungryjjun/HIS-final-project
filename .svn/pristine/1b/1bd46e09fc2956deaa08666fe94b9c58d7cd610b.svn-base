@@ -1,0 +1,205 @@
+<%@page import="java.time.LocalDate"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.summary-box {
+	display: flex;
+	gap: 30px;
+	margin-bottom: 30px;
+}
+
+.summary-box div {
+	background: #f5f5f5;
+	padding: 20px;
+	border-radius: 10px;
+	min-width: 150px;
+	text-align: center;
+}
+
+.chart-container {
+	display: flex;
+	justify-content: space-between;
+	gap: 40px;
+	margin-bottom: 40px;
+}
+
+.chart-box {
+	flex: 1;
+	max-width: 48%;
+}
+
+canvas {
+	width: 100% !important;
+	height: 300px !important;
+}
+</style>
+
+<%
+int currentYear = LocalDate.now().getYear();
+int cuurentMonth = LocalDate.now().getMonthValue();
+%>
+
+
+<td><%=currentYear%>년 <%=cuurentMonth%>월</td>
+
+<div class="summary-box">
+	<h4>직원수 :${salaryInfo.totalemp }명</h4>
+	<h4>급여등록 :${salaryInfo.totalSalaryCount }명</h4>
+	<h4>급여미등록 :${salaryInfo.notSalaryInsert }명</h4>
+	조회
+</div>
+
+<div>
+	<form action="/salary/final/list">
+		<h4>확정 :${salaryInfo.confirmedCount }명</h4>
+		<button type="submit" class="btn btn-sm btn-outline-primary">조회</button>
+	</form>
+</div>
+
+<div>
+	<h4>총 급여 :${salaryInfo.totalNetSalary }원</h4>
+</div>
+
+<!--  그래프: 부서별 + 직급별 평균 급여 -->
+<div class="chart-container">
+	<div class="chart-box">
+		<h4>📊 부서별 평균 급여</h4>
+		<canvas id="deptChart"></canvas>
+	</div>
+	<div class="chart-box">
+		<h4>📊 직급별 평균 급여</h4>
+		<canvas id="rankChart"></canvas>
+	</div>
+</div>
+
+
+
+<table class="table" id="table1">
+	<thead>
+		<tr>
+			<th>귀속연월</th>
+			<th>사원번호</th>
+			<th>사원명</th>
+			<th>부서</th>
+			<th>팀</th>
+			<th>직급</th>
+			<th>기본급</th>
+			<th>지급총액</th>
+			<th>공제총액</th>
+			<th>실지급액</th>
+			<th>급여상세</th>
+			<th>급여확정</th>
+			<th>확정일</th>
+		</tr>
+	</thead>
+	<tbody>
+		<c:if test="${not empty salaryList }">
+			<c:forEach items="${salaryList }" var="salaryVO">
+				<tr>
+					<td>${salaryVO.payYear }년${salaryVO.payMonth }월</td>
+					<td data-salaryid="${salaryVO.salaryId }">${salaryVO.empId }</td>
+					<c:forEach items="${salaryVO.employeeList }" var="employeeVO">
+						<td>${employeeVO.name }</td>
+						<td>${employeeVO.department.departmentName }</td>
+						<td>${employeeVO.team.teamName }</td>
+						<td>${employeeVO.rank.rankName }</td>
+					</c:forEach>
+					<td>${salaryVO.baseSalary }</td>
+					<td>${salaryVO.totalPay }</td>
+					<td>${salaryVO.totalDeduction }</td>
+					<td>${salaryVO.netSalary}</td>
+					<td><a href="/salary/detail/${salaryVO.empId} ">보기</a></td>
+					<td><button type="button" class="btn btn-primary" onclick="salaryFix(this)">확정</button></td>
+					<td>2025-05-09</td>
+				</tr>
+			</c:forEach>
+		</c:if>
+	</tbody>
+</table>
+<script>
+    const deptChart = new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+        data: {
+            labels: ['인사팀', '개발팀', '영업팀', '재무팀'],
+            datasets: [{
+                label: '평균 급여(만원)',
+                data: [420, 510, 380, 460],
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    const rankChart = new Chart(document.getElementById('rankChart'), {
+        type: 'bar',
+        data: {
+            labels: ['사원', '대리', '과장', '차장', '부장'],
+            datasets: [{
+                label: '평균 급여(만원)',
+                data: [320, 400, 480, 550, 620],
+                backgroundColor: 'rgba(255, 99, 132, 0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+    
+    function salaryFix(button){
+    	  const tr = button.closest("tr"); // 버튼이 포함된 행 찾기
+    	  const empId = tr.children[1].textContent.trim(); // 두 번째 <td>가 empId
+    	  const salaryId = tr.children[1].dataset.salaryid;
+//     	  console.log("salaryId:",salaryId);
+//     	  console.log("사원번호:", empId);
+	    $.ajax({
+	        url: "/salary/update/salaryfix", 
+	        type: "post",
+	        data: {
+	        	empId : empId,
+	        	salaryId : salaryId
+	        },
+	        dataType: "json",
+	        success: function(data) {
+	            alert(data)
+	            salary2(data)
+
+	        },
+	        error: function() {
+	            alert("데이터를 불러오는 중 오류가 발생했습니다.");
+	        }
+	    });
+    }
+    function salary2(data){
+    	 var tableBody = $("#table1 tbody");
+         tableBody.empty(); // 기존 데이터 삭제
+
+         if (data.length === 0) {
+             tableBody.append("<tr><td class='text-center' colspan='8'>데이터가 없습니다.</td></tr>");
+             return;
+         }
+
+         $.each(data, function(index, x) {
+             var row = "<tr>" +
+                 "<td>" + (x.employee.department ? x.employee.department.departmentName : "-") + "</td>" +
+                 "<td>" + (x.employee.team ? x.employee.team.teamName : "-") + "</td>" +
+                 "<td><a href='/check/Detail?empId=" + x.empId + "'>" + x.employee.name + "</a></td>" +
+                 "<td>" + x.employee.phoneNumber + "</td>" +
+                 "<td>" + x.workDate + "</td>" +
+                 "<td>" + x.workStartTime + "</td>" +
+                 "<td>" + x.workEndTime + "</td>" +
+                 "<td>" + x.attendanceStatus + "</td>" +
+                 "</tr>";
+             tableBody.append(row);
+         });
+    }
+</script>
+

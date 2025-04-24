@@ -1,0 +1,17 @@
+package kr.or.ddit.mybatis.mappers.employee;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.employee.vo.EmployeeVO;
+
+@Mapper
+public interface EmployeeMapper {
+
+	public List<EmployeeVO> selectEmpList();
+	public EmployeeVO selectEmp(String empId);
+	public int insertEmp(EmployeeVO emp);
+	public int updateEmp(EmployeeVO emp);
+	
+}

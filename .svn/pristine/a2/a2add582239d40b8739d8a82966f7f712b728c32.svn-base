@@ -1,0 +1,370 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<style>
+thead th {
+    text-align: center !important;
+}
+.modal-title {
+	color: white !important;
+    flex-grow: 1; /* 제목이 가운데 정렬될 수 있도록 설정 */
+    text-align: center;
+}
+.modal-header .btn-close {
+    filter: invert(1); /* 아이콘 색 반전 (검정 → 흰색) */
+    opacity: 1; /* 기본 부트스트랩 스타일보다 더 뚜렷하게 표시 */
+}
+.modal-body strong {
+    display: inline-block;
+    width: 120px; /* 라벨 너비 통일 */
+    font-weight: bold;
+    color: #333;
+}
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translateY(-10px);
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+</style>
+
+<div class="page-heading">
+	<div class="page-title">
+		<div class="row">
+			<div class="col-12 col-md-6 order-md-1 order-last">
+				<h3>채용공고 목록</h3>
+${recruitBoardList }
+				<p class="text-subtitle text-muted">DB연결 테스트용</p>
+			</div>
+			<div class="col-12 col-md-6 order-md-2 order-first">
+				<nav aria-label="breadcrumb"
+					class="breadcrumb-header float-start float-lg-end">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+						<li class="breadcrumb-item active" aria-current="page">DataTable</li>
+					</ol>
+				</nav>
+			</div>
+		</div>
+	</div>
+	<section class="section">
+		<div class="card">
+			<div class="card-header">Simple Datatable.DB연동 O</div>
+			<div class="card-body">
+				<table class="table table-striped text-center" id="table1">
+					<thead>
+						<tr>
+							<th>제목</th>
+							<th>고용형태</th>
+							<th>마감일</th>
+							<th>지원현황</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:choose>
+							<c:when test="${not empty recruitBoardList }">
+								<c:forEach items="${recruitBoardList }" var="recruitBoard">
+									<tr>
+										<td>
+										<!-- 상세조회 모달창 띄우는 제목 -->
+											<a class="recruit-detail-link" data-recruit-id="${recruitBoard.recruitId}" style="cursor: pointer;"
+<%-- 											href="${pageContext.request.contextPath}/recruit/board/detail?recruitId=${recruitBoard.recruitId}" --%>
+											>
+												${recruitBoard.recruitTitle}
+											</a>
+										</td>	
+										<td>${recruitBoard.recruitHiretype }</td>
+										<!-- 포맷팅 사용하기 위해 JSTL 태그 라이브러리를 선언, documentVO 에서 타입을 String -> Date 로 변환 -->
+										<td>
+											<fmt:formatDate value="${recruitBoard.recruitEnddate }" pattern="yyyy년MM월dd일" />
+										</td>
+										<td>
+											${recruitBoard.recruitId}
+											<button class="apply-button btn btn-outline-primary" data-recruit-id="${recruitBoard.recruitId}">
+												지원자보기
+											</button>
+										</td>
+									</tr>
+								</c:forEach>
+							</c:when>
+							<c:otherwise>
+								<tr>
+									<td colspan="4">공고가 존재하지 않습니다.</td>
+								</tr>
+							</c:otherwise>
+						</c:choose>
+					</tbody>
+				</table>
+				<button class="btn btn-success" id="registerModal">모달창 등록 버튼</button>
+			</div>
+		</div>
+	</section>
+</div>	
+
+<!-- 채용공고 등록 모달 -->
+<div class="modal fade" id="recruitModal" tabindex="-1"	aria-labelledby="registerModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header bg-primary">
+				<h5 class="modal-title" id="registerModalLabel">채용공고 작성</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"	aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="insert-form">
+					<div class="mb-3">
+						<label for="recruitTitle" class="form-label"><strong>제목</strong></label>
+						<input type="text" class="form-control" id="recruitTitle"
+							name="recruitTitle" placeholder="YYYY 부서(팀)명 직무명 채용">
+					</div>
+					<div class="mb-3">
+						<label for="recruitWorkplace" class="form-label"><strong>근무지</strong></label>
+						<input type="text" class="form-control" id="recruitWorkplace"
+							name="recruitWorkplace">
+					</div>
+					<div class="mb-3">
+						<label for="recruitHiretype" class="form-label"><strong>고용형태</strong></label>
+						<select class="form-control" id="recruitHiretype"
+							name="recruitHiretype">
+							<option value="정규직">정규직</option>
+							<option value="계약직">계약직</option>
+						</select>
+					</div>
+					<div class="mb-3">
+						<label for="recruitSalary" class="form-label"><strong>급여</strong></label>
+						<input type="text" class="form-control" id="recruitSalary"
+							name="recruitSalary">
+					</div>
+					<div class="mb-3">
+						<label for="recruitWorkdetail" class="form-label"><strong>업무내용</strong></label>
+						<input type="text" class="form-control" id="recruitWorkdetail"
+							name="recruitWorkdetail">
+					</div>
+					<div class="mb-3">
+						<label for="recruitPq" class="form-label"><strong>우대사항</strong></label>
+						<input type="text" class="form-control" id="recruitPq"
+							name="recruitPq">
+					</div>
+					<div class="mb-3">
+						<label for="recruitEnddate" class="form-label"><strong>마감일</strong></label>
+						<input type="date" class="form-control" id="recruitEnddate"
+							name="recruitEnddate">
+					</div>
+					<div class="mb-3">
+						<label for="recruitContact" class="form-label"><strong>문의처</strong></label>
+						<input type="text" class="form-control" id="recruitContact"
+							name="recruitContact">
+					</div>
+					<button type="button" class="btn btn-primary" id="submitRecruit">등록</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeRecruitModal">
+						닫기
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 채용공고 상세조회 모달 -->
+<div class="modal fade" id="recruitDetailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title" id="detailModalLabel">채용공고 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <tr>
+                    	<th><strong>제목</strong></th>
+                    	<td id="modalRecruitTitle"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>근무지</strong></th>
+                    	<td id="modalRecruitWorkplace"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>고용형태</strong></th>
+                    	<td id="modalRecruitHiretype"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>급여</strong></th>
+                    	<td id="modalRecruitSalary"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>업무내용</strong></th>
+                    	<td id="modalRecruitWorkdetail"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>우대사항</strong></strong></th>
+                    	<td id="modalRecruitPq"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>마감일</strong></th>
+                    	<td id="modalRecruitEnddate"></td>
+                    </tr>
+                    <tr>
+                    	<th><strong>문의처</strong></th>
+                    	<td id="modalRecruitContact"></td>
+                    </tr>
+                </table>
+                <button type="button" class="btn btn-primary" id="updateRecruitBtn">수정</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeRecruitModal">
+					닫기
+				</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 폼에 recruitId 숨겨서 전송하는 방법 -->
+<form id="recruitForm" action="${pageContext.request.contextPath }/recruit/applicant/list" method="get" style="display:none;">
+    <input type="hidden" name="recruitId" id="recruitId">
+</form>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currentDate = new Date();  // 현재 날짜
+    const contextPath = '${pageContext.request.contextPath}';
+
+    // 버튼에 대한 이벤트 델리게이션 설정
+    document.body.addEventListener('click', function(event) {
+        // '지원자보기' 버튼이 클릭된 경우
+        if (event.target && event.target.classList.contains('apply-button')) {
+            const button = event.target;
+            const recruitId = button.getAttribute('data-recruit-id');
+            const deadlineText = button.closest('tr').querySelector('td:nth-child(3)').textContent.trim();
+            
+            // 'yyyy년MM월dd일' 형식의 문자열을 'yyyy-MM-dd' 형식으로 변환
+            const deadlineDateString = deadlineText.replace(/(\d{4})년(\d{2})월(\d{2})일/, '$1-$2-$3');
+            const deadlineDate = new Date(deadlineDateString);
+            
+            // 마감일이 지나면 '채용마감'으로 버튼 변경 및 비활성화
+            if (currentDate > deadlineDate) {
+                button.textContent = '채용마감';
+                button.disabled = true; // 버튼 비활성화
+            } else {
+            	// 폼을 이용해 파라미터를 전송
+                const form = document.getElementById('recruitForm');
+                const recruitIdInput = document.getElementById('recruitId');
+                recruitIdInput.value = recruitId;
+                form.submit();
+            }
+        }
+    });
+
+    // 페이지 로딩 시 버튼 상태 설정 (마감일 비교 후 '채용마감' 처리)
+    const buttons = document.querySelectorAll('.apply-button');
+    buttons.forEach(button => {
+        const deadlineText = button.closest('tr').querySelector('td:nth-child(3)').textContent.trim();
+        const deadlineDateString = deadlineText.replace(/(\d{4})년(\d{2})월(\d{2})일/, '$1-$2-$3');
+        const deadlineDate = new Date(deadlineDateString);
+
+        // 마감일이 지나면 '채용마감' 버튼으로 비활성화
+        if (currentDate > deadlineDate) {
+            button.textContent = '채용마감';
+            button.disabled = true; // 버튼 비활성화
+        } else {
+            button.textContent = '지원자보기';
+            button.disabled = false; // 버튼 활성화
+        }
+    });
+    
+    
+//등록 모달 & 비동기  
+	// 부트스트랩 모달 객체 생성
+    const recruitModal = new bootstrap.Modal(document.getElementById("recruitModal"));
+
+ 	// 등록 버튼 클릭 시 모달창 띄우기
+    document.getElementById("registerModal").addEventListener("click", function() {
+        recruitModal.show();
+    });
+
+ 	// 등록 처리 (비동기)
+    document.getElementById("submitRecruit").addEventListener("click", function() {
+    	
+        const recruitData = {
+            recruitTitle: document.getElementById("recruitTitle").value,
+            recruitWorkplace: document.getElementById("recruitWorkplace").value,
+            recruitHiretype: document.getElementById("recruitHiretype").value,
+            recruitSalary: document.getElementById("recruitSalary").value,
+            recruitWorkdetail: document.getElementById("recruitWorkdetail").value,
+            recruitPq: document.getElementById("recruitPq").value,
+            recruitEnddate: document.getElementById("recruitEnddate").value,
+            recruitContact: document.getElementById("recruitContact").value
+        };
+
+        axios.post("/recruit/board/registerProcess", recruitData)
+            .then(response => {
+                if (response.data.success) {
+                    alert("채용공고가 성공적으로 등록되었습니다!");
+                    recruitModal.hide();
+                    location.reload(); // 새로고침하여 리스트 반영
+                } else {
+                    alert("등록 실패! " + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error("등록 오류:", error);
+                alert("등록 중 오류가 발생했습니다.");
+            });
+    });
+ 	
+//상세 조회 모달 & 비동기 
+    const recruitDetailModal = new bootstrap.Modal(document.getElementById("recruitDetailModal"));
+    document.body.addEventListener("click", function(event) {
+        if (event.target && event.target.classList.contains("recruit-detail-link")) {
+            event.preventDefault();
+            const recruitId = event.target.getAttribute("data-recruit-id");
+            
+            console.log("클릭한 공고 ID:", recruitId);//////////////////////////////
+            
+            axios.get("/recruit/board/detail?recruitId=" + recruitId)
+            	.then(response => {
+            		
+            		console.log("서버 응답 데이터:", response.data); /////////////////
+            		
+            		const data = response.data.recruitBoardDetail;
+            		document.getElementById("modalRecruitTitle").textContent = data.recruitTitle;
+                    document.getElementById("modalRecruitWorkplace").textContent = data.recruitWorkplace;
+                    document.getElementById("modalRecruitHiretype").textContent = data.recruitHiretype;
+                    document.getElementById("modalRecruitSalary").textContent = `월 \${data.recruitSalary} 만원`;
+                    document.getElementById("modalRecruitWorkdetail").textContent = data.recruitWorkdetail;
+                    document.getElementById("modalRecruitPq").textContent = data.recruitPq;
+                    document.getElementById("modalRecruitEnddate").textContent = new Date(data.recruitEnddate).toLocaleDateString();
+                    document.getElementById("modalRecruitContact").textContent = data.recruitContact;
+                    
+                    recruitDetailModal.show();
+           		})
+           		.catch(error => {
+                    console.error("채용공고 상세 조회 오류:", error);
+                    alert("채용공고를 불러오는 데 실패했습니다.");
+                });
+        }
+    });
+    
+//수정 페이지로 이동    
+    document.getElementById("updateRecruitBtn").addEventListener("click", function() {
+        const recruitId = document.querySelector(".recruit-detail-link").getAttribute("data-recruit-id");
+        // 수정 페이지로 이동
+        window.location.href = `/recruit/board/updateUI?recruitId=\${recruitId}`;
+    });
+    
+});
+
+
+</script>
+	
+
+	
+	
+	
+	
+	
+	
+	
+	

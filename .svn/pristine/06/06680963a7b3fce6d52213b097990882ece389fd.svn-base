@@ -1,0 +1,53 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 20.     	CHOI            결재 문서에 대한 승인/반려 기능 
+ *
+ * </pre>
+ */
+// 페이지 로드 될 때 이벤트 리스너
+document.addEventListener("DOMContentLoaded",function(){
+	console.log("결재 승인/반려 기능 로드 완료");
+	
+	//결재 승인 버튼 리스너 추가
+	document.querySelector("#approveDraftBtn")?.addEventListener("click",() => handleApproval("승인"));
+	
+	
+	//결재 반려 버튼 리스너 추가 
+	document.querySelector("#rejectDraftBtn")?.addEventListener("click",() => handleApproval("반려"));
+	
+});
+/*
+	결재 승인/반려 처리 
+*/
+function handleApproval(status){
+	let draftId = document.querySelector("#draftId").value;
+	let approverId = document.querySelector("#empId").value;//로그인한 결재자
+	let aprReson = document.querySelector("#aprReason")?.value || "";
+	
+	if(!draftId || !approverId){
+		alert("결재 문서 선택..");
+		return;
+	}
+	
+	let approvalData = {
+		draftId : draftId,
+		approverId : approverId,
+		aprStatus : status,
+		aprReson : aprReson
+	};
+	axios.post(status === "승인" ? "/approval/draft/approve" : "/approval/draft/reject", approvalData)
+		.then(resp => {
+			alert(`문서가 ${status}되었습니다.`);
+			location.reload();
+		})
+		.catch(error => {
+			console.error(`문서 ${status} 실패 :`, error);
+			alert(`문서 ${status} 실패하였습니다.`);
+		});
+}
+
+

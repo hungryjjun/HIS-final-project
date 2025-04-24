@@ -1,0 +1,54 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+	<style type="text/css">
+    #inputGroupFile02{
+    	width: 40%;
+    	max-width: 300px;
+    }
+    
+    </style>
+    <title>결재 문서 작성</title>
+
+</head>
+
+<body>
+
+    <!-- 콘텐츠를 담을 컨테이너 -->
+    <div class="content-container" id="content-container">
+    
+    </div>
+    
+    <div class="input-group">
+	  <input type="file" class="form-control" id="inputGroupFile02">
+	  <label class="input-group-text" for="inputGroupFile02">파일 업로드</label>
+	</div>
+	
+    <div>
+		<a class="btn btn-primary" href="${pageContext.request.contextPath }/approval/writeApprover2" role="button">결재승인</a>
+		<button type="button" class="btn btn-primary">결재반려</button>
+		<button type="button" class="btn btn-primary">결재보류</button>
+    </div>
+    <script>
+        // HTML 파일을 동적으로 로드하여 페이지에 삽입하는 함수
+        function loadContent() {
+            fetch('${pageContext.request.contextPath}/resources/html/approval/approval1_2.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('content-container').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading HTML file:', error);
+                });
+        }
+
+        // 페이지가 로드될 때 HTML 파일을 불러옴
+        window.onload = loadContent;
+    </script>
+	<script type="text/javascript"></script>
+</body>
+</html>

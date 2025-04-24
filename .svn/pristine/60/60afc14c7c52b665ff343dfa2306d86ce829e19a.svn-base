@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- * == 개정이력(Modification Information) == * * 수정일 수정자 수정내용 * ============ 
+	============== ======================= * 2025. 3. 12. 정태우 최초 생성 * -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.mybatis.mappers.attendance.attendanceMapper">
+
+	<resultMap type="attendanceVO" id="attendanceResultMap"
+		autoMapping="true">
+		<id property="attendanceId" column="attendance_id" />
+		<association property="employee" javaType="employeeVO" autoMapping="true">
+			<id property="empId" column="emp_id" />
+			<association property="department"
+				javaType="DepartmentVO" autoMapping="true" />
+			<association property="team" javaType="TeamVO"
+				autoMapping="true" />
+		</association>
+	</resultMap>
+	<resultMap type="EmployeeVO" id="employeeResultMap" autoMapping="true">
+		<id property="empId" column="emp_id"/>
+		<association property="department" javaType="DepartmentVO" autoMapping="true"/>
+		<association property="team" javaType="TeamVO" autoMapping="true"/>
+		<association property="rank" javaType="RankVO" autoMapping="true"/>
+	</resultMap>
+
+	<select id="attendanceList" resultMap="attendanceResultMap">
+		SELECT
+		  a.attendance_Id
+		, to_char(a.work_date, 'yyyy-MM-dd') work_date
+		, to_char(a.work_startTime, 'HH24:mi:ss') work_start_time
+		, to_char(a.work_endTime, 'HH24:mi:ss') work_end_time
+		, a.attendance_status
+		, e.emp_id
+		, e.name
+		, e.phone_number
+		, d.department_id
+		, d.department_name
+		, t.team_name
+		, t.team_id
+		FROM attendance a
+		left JOIN employee e ON a.emp_id = e.emp_id
+		left JOIN department d ON e.department_id = d.department_id
+		left JOIN team_member tm on e.TM_id = tm.TM_id
+		left JOIN team t ON t.Team_id = tm.team_id
+		WHERE 1=1
+		<choose>
+			<when test="date != null and date != ''">
+				AND a.work_date = #{date}
+			</when>
+			<otherwise>
+				AND a.work_date = TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+			</otherwise>
+		</choose>
+		<if test="departmentId != null and departmentId != ''">
+			AND d.department_id = #{departmentId}
+		</if>
+		<if test="teamId != null and teamId != ''">
+			AND t.team_id = #{teamId}
+		</if>
+	</select>
+
+	<select id="departmentList" resultType="DepartmentVO">
+		SELECT
+		  department_id
+		, department_name
+		FROM department
+	</select>
+	<select id="teamList" resultType="TeamVO">
+		SELECT
+	      team_id
+		, team_name
+		, department_id
+		FROM team
+	</select>
+	<select id="Employee" resultMap="employeeResultMap">
+		SELECT
+	      e.emp_id
+		, e.name
+		, e.phone_number
+		, d.department_name
+		, t.team_name
+		, r.rank_name
+		FROM employee e
+		left JOIN department d ON e.department_id = d.department_id
+		JOIN team_member tm on e.TM_id = tm.TM_id
+		JOIN team t ON t.Team_id = tm.team_id
+		join rank r on r.rank_id = e.rank_id
+		where e.emp_id = #{empId}
+	</select>
+
+	<select id="attendanceDetail" resultMap="attendanceResultMap">
+		SELECT
+		  a.attendance_id
+		, a.emp_id
+		, e.name
+		, t.team_name
+		, d.DEPARTMENT_NAME
+		, to_char(a.work_date,'yyyy-MM-dd') work_date
+		, to_char(a.work_startTime, 'HH24:mi:ss') work_start_time
+		, to_char(a.work_endTime, 'HH24:mi:ss') work_end_time
+		, a.attendance_status
+		FROM attendance a
+		left JOIN employee e ON a.emp_id = e.emp_id
+		left JOIN department d ON e.department_id = d.department_id
+		JOIN team_member tm on e.TM_id = tm.TM_id
+		JOIN team t ON t.Team_id = tm.team_id
+		WHERE a.emp_id = #{empId}
+		<choose>
+		    <when test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+		        AND a.work_date BETWEEN TO_DATE(#{startDate}, 'YYYY-MM-DD') AND TO_DATE(#{endDate}, 'YYYY-MM-DD')
+		    </when>
+		    <when test="startDate != null and startDate != ''">
+		        AND a.work_date &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+		    </when>
+		    <when test="endDate != null and endDate != ''">
+		        AND a.work_date &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD')
+		    </when>
+		</choose>
+	</select>
+
+	<select id="findTodayAttendance" resultType="AttendanceVO">
+		SELECT *
+		FROM
+		attendance
+		WHERE
+		emp_id = #{empId}
+		AND
+		TO_CHAR(work_date, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+	</select>
+
+	<insert id="attendanceInsert">
+		<selectKey order="BEFORE" keyProperty="attendanceId"
+			resultType="long">
+			SELECT NVL(MAX(attendance_id), 0) + 1 FROM attendance
+		</selectKey>
+	INSERT
+    INTO attendance (
+          attendance_id
+        , emp_id
+        , work_date
+        , work_starttime
+        , work_endtime
+        , working_hours
+        , latitude
+        , longtitude
+        , attendance_status
+        , work_type
+        , status_id
+    ) VALUES (
+		#{attendanceId,jdbcType=NUMERIC}
+		, #{empId,jdbcType=VARCHAR}
+		, TO_DATE(#{workDate,jdbcType=DATE}, 'YYYY-MM-DD ')
+		, TO_DATE(#{workStartTime,jdbcType=DATE}, 'HH24:MI:SS')
+		, TO_DATE(#{workEndTime,jdbcType=DATE}, 'HH24:MI:SS')
+		, #{workingHours,jdbcType=NUMERIC}
+		, #{latitude,jdbcType=VARCHAR}
+		, #{longtitude,jdbcType=VARCHAR}
+		, #{attendanceStatus,jdbcType=VARCHAR}
+		, #{workType,jdbcType=VARCHAR}
+		, #{statusId,jdbcType=VARCHAR}
+	)
+	</insert>
+
+	<update id="updateWorkEnd">
+		UPDATE
+			attendance
+		SET
+			work_endTime = TO_DATE(#{workEndTime,jdbcType=VARCHAR}, 'HH24:MI:SS')
+		WHERE
+			emp_id = #{empId}
+		AND
+			TO_CHAR(work_Date, 'yyyy-MM-DD') = TO_CHAR(SYSDATE, 'yyyy-MM-DD')
+		AND
+			work_endTime IS NULL
+	</update>
+
+</mapper>

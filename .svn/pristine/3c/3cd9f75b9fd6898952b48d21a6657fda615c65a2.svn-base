@@ -1,0 +1,46 @@
+package kr.or.ddit.empRecordCard.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.empRecordCard.exception.RecordNotFoundException;
+import kr.or.ddit.empRecordCard.vo.RecordCardVO;
+import kr.or.ddit.mybatis.mappers.empRecord.RecordCardMapper;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class RecordCardServiceImpl implements RecordCardService {
+
+	private final RecordCardMapper dao;
+
+	@Override
+	public List<RecordCardVO> readRecordList() {
+		return dao.selectRecordList();
+	}
+
+	@Override
+	public RecordCardVO readRecord(String cardId) throws RecordNotFoundException {
+		RecordCardVO record = dao.selectRecord(cardId);
+		if(record==null) {
+			throw new RecordNotFoundException(cardId);			
+		}
+		return record;
+	}
+
+	@Override
+	public boolean createRecord(String record) {
+		int rowcnt = dao.insertRecord(record);
+		return rowcnt > 0;
+	}
+
+	@Override
+	public boolean modifyRecord(String record) {
+		int rowcnt = dao.updateRecord(record);
+		return rowcnt > 0;
+	}
+	
+	
+
+}

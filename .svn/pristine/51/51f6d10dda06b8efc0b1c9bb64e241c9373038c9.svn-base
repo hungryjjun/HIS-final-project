@@ -1,0 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+<form:form method="post" modelAttribute="appointment">
+
+<div class="row mb-3"><label for="appId" class="col-sm-2 col-form-label">				인사발령고유번호</label><div class="col-sm-10"><input type="number" class="form-control" name="appId" id="appId" 					value="${appointment.appId}"><form:errors path="appId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="empId" class="col-sm-2 col-form-label">				사번</label><div class="col-sm-10"><input type="text" class="form-control" name="empId" id="empId" 								value="${appointment.empId}"><form:errors path="empId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="name" class="col-sm-2 col-form-label">				이름</label><div class="col-sm-10"><input type="text" class="form-control" name="name" id="name" 								value="${appointment.employee.name}"><form:errors path="empId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="appDate" class="col-sm-2 col-form-label">				발령일자</label><div class="col-sm-10"><input type="date" class="form-control" name="appDate" id="appDate" 						value="${appointment.appDate}"><form:errors path="appDate" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="appType" class="col-sm-2 col-form-label">				발령구분</label><div class="col-sm-10"><input type="text" class="form-control" name="appType" id="appType" 						value="${appointment.appType}"><form:errors path="appType" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="appReason" class="col-sm-2 col-form-label">			발령사유</label><div class="col-sm-10"><input type="text" class="form-control" name="appReason" id="appReason" 					value="${appointment.appReason}"><form:errors path="appReason" class="text-danger" element="span" /></div></div>
+
+<div class="row mb-3"><label for="prevTeamId" class="col-sm-2 col-form-label">			발령 전 팀</label><div class="col-sm-10"><input type="text" class="form-control" name="prevTeamId" id="prevTeamId" 				value="${appointment.prevTeamName}"><form:errors path="prevTeamId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="prevJobId" class="col-sm-2 col-form-label">			발령 전 직책</label><div class="col-sm-10"><input type="text" class="form-control" name="prevJobId" id="prevJobId" 				value="${appointment.prevJobName}"><form:errors path="prevJobId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="prevRankId" class="col-sm-2 col-form-label">			발령 전 직급</label><div class="col-sm-10"><input type="text" class="form-control" name="prevRankId" id="prevRankId" 				value="${appointment.prevRankName}"><form:errors path="prevRankId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="prevDepartmentId" class="col-sm-2 col-form-label">	발령 전 부서</label><div class="col-sm-10"><input type="text" class="form-control" name="prevDepartmentId" id="prevDepartmentId" 	value="${appointment.prevDepartmentName}"><form:errors path="prevDepartmentId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="prevPositionId" class="col-sm-2 col-form-label">		발령 전 직무</label><div class="col-sm-10"><input type="text" class="form-control" name="prevPositionId" id="prevPositionId" 		value="${appointment.prevPositionName}"><form:errors path="prevPositionId" class="text-danger" element="span" /></div></div>
+
+<div class="row mb-3"><label for="newTeamId" class="col-sm-2 col-form-label">			발령 후 팀</label><div class="col-sm-10"><input type="text" class="form-control" name="newTeamId" id="newTeamId" 					value="${appointment.newTeamName}"><form:errors path="newTeamId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="newJobId" class="col-sm-2 col-form-label">			발령 후 직책</label><div class="col-sm-10"><input type="text" class="form-control" name="newJobId" id="newJobId" 					value="${appointment.newJobName}"><form:errors path="newJobId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="newRankId" class="col-sm-2 col-form-label">			발령 후 직급</label><div class="col-sm-10"><input type="text" class="form-control" name="newRankId" id="newRankId" 				value="${appointment.newRankName}"><form:errors path="newRankId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="newDepartmentId" class="col-sm-2 col-form-label">		발령 후 부서</label><div class="col-sm-10"><input type="text" class="form-control" name="newDepartmentId" id="newDepartmentId" 	value="${appointment.newDepartmentName}"><form:errors path="newDepartmentId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="newPositionId" class="col-sm-2 col-form-label">		발령 후 직무</label><div class="col-sm-10"><input type="text" class="form-control" name="newPositionId" id="newPositionId" 		value="${appointment.newPositionName}"><form:errors path="newPositionId" class="text-danger" element="span" /></div></div>
+<div class="row mb-3"><label for="hireDrte" class="col-sm-2 col-form-label">			입사일자</label><div class="col-sm-10"><input type="date" class="form-control" name="hireDrte" id="hireDrte" 							value="${appointment.hireDrte}"><span class="text-danger">${errors.hireDrte}</span></div></div>
+</form:form>

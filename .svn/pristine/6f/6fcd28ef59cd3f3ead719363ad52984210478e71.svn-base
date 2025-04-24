@@ -1,0 +1,16 @@
+package kr.or.ddit.salary.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+//수당조회
+@Controller
+@RequestMapping("/Allowance")
+public class AllowanceReadController {
+
+	@GetMapping("list")
+	public String AllowanceList() {
+		return "tiles:salary/AllowanceForm";
+	}
+}

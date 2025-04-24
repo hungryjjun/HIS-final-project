@@ -1,0 +1,182 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<div class="page-heading">
+	<div class="page-title">
+		<div class="row">
+			<div class="col-12 col-md-6 order-md-1 order-last">
+				<h3>채용공고 목록</h3>
+${recruitBoardList }
+				<p class="text-subtitle text-muted">DB연결 테스트용</p>
+			</div>
+			<div class="col-12 col-md-6 order-md-2 order-first">
+				<nav aria-label="breadcrumb"
+					class="breadcrumb-header float-start float-lg-end">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+						<li class="breadcrumb-item active" aria-current="page">DataTable</li>
+					</ol>
+				</nav>
+			</div>
+		</div>
+	</div>
+	<section class="section">
+		<div class="card">
+			<div class="card-header">Simple Datatable.DB연동 O</div>
+			<div class="card-body">
+				<table class="table table-striped" id="table1">
+					<thead>
+						<tr>
+							<th>제목</th>
+							<th>고용형태</th>
+							<th>마감일</th>
+							<th>지원현황</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:choose>
+							<c:when test="${not empty recruitBoardList }">
+								<c:forEach items="${recruitBoardList }" var="recruitBoard">
+									<tr>
+										<td>
+											<a href="${pageContext.request.contextPath}/recruit/board/detail?recruitId=${recruitBoard.recruitId}">
+												${recruitBoard.recruitTitle}
+											</a>
+										</td>	
+										<td>${recruitBoard.recruitHiretype }</td>
+										<!-- 포맷팅 사용하기 위해 JSTL 태그 라이브러리를 선언, documentVO 에서 타입을 String -> Date 로 변환 -->
+										<td>
+											<fmt:formatDate value="${recruitBoard.recruitEnddate }" pattern="yyyy년MM월dd일" />
+										</td>
+										<td>
+											${recruitBoard.recruitId}
+											<button class="apply-button btn btn-outline-primary" data-recruit-id="${recruitBoard.recruitId}">
+												지원자보기
+											</button>
+										</td>
+									</tr>
+								</c:forEach>
+							</c:when>
+							<c:otherwise>
+								<tr>
+									<td colspan="4">공고가 존재하지 않습니다.</td>
+								</tr>
+							</c:otherwise>
+						</c:choose>
+					</tbody>
+				</table>
+				<a href="${pageContext.request.contextPath }/recruit/board/registerUI">
+					<button class="btn btn-primary">등록</button>
+				</a>
+			</div>
+		</div>
+	</section>
+</div>	
+
+<!-- 폼에 recruitId 숨겨서 전송하는 방법 -->
+<form id="recruitForm" action="${pageContext.request.contextPath }/recruit/applicant/list" method="get" style="display:none;">
+    <input type="hidden" name="recruitId" id="recruitId">
+</form>
+
+
+
+<!-- 원래 쓰던 방식인데 버튼 클릭이벤트가 동작하지 않음....
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 현재 날짜 가져오기
+    const currentDate = new Date();
+    const contextPath = '${pageContext.request.contextPath}';
+    
+    // 모든 버튼 선택
+    const buttons = document.querySelectorAll('.apply-button');
+    
+    // 마감일에 따른 상태 변경
+    buttons.forEach(button => {
+        const deadlineText = button.closest('tr').querySelector('td:nth-child(3)').textContent.trim();
+        
+        // 'yyyy년MM월dd일' 형식의 문자열을 'yyyy-MM-dd' 형식으로 변환
+        const deadlineDateString = deadlineText.replace(/(\d{4})년(\d{2})월(\d{2})일/, '$1-$2-$3');
+        
+        // 변환된 날짜 문자열을 Date 객체로 변환
+        const deadlineDate = new Date(deadlineDateString);
+        
+        // currentDate가 deadlineDate보다 작거나 같은 경우에만 "지원자보기" 버튼 활성화
+        if (currentDate <= deadlineDate) {
+            button.textContent = '지원자보기';
+            button.disabled = false; // 버튼 활성화
+            
+            // '지원자보기' 버튼 클릭 시, recruitId를 파라미터로 받아서 이동
+            button.addEventListener('click', function() {
+                const recruitId = button.getAttribute('data-recruit-id');
+                window.location.href = `${contextPath}/recruit/applicant/list?recruitId=${recruitId}`;
+            });
+        } else {
+            button.textContent = '채용마감';
+            button.disabled = true; // 버튼 비활성화
+        }
+    });
+});
+</script>
+ -->
+<script>
+// DOM이 준비된 후 실행
+document.addEventListener('DOMContentLoaded', function() {
+    const currentDate = new Date();  // 현재 날짜
+    const contextPath = '${pageContext.request.contextPath}';
+
+    // 버튼에 대한 이벤트 델리게이션 설정
+    document.body.addEventListener('click', function(event) {
+        // '지원자보기' 버튼이 클릭된 경우
+        if (event.target && event.target.classList.contains('apply-button')) {
+            const button = event.target;
+            const recruitId = button.getAttribute('data-recruit-id');
+            const deadlineText = button.closest('tr').querySelector('td:nth-child(3)').textContent.trim();
+            
+            // 'yyyy년MM월dd일' 형식의 문자열을 'yyyy-MM-dd' 형식으로 변환
+            const deadlineDateString = deadlineText.replace(/(\d{4})년(\d{2})월(\d{2})일/, '$1-$2-$3');
+            const deadlineDate = new Date(deadlineDateString);
+            
+            // 마감일이 지나면 '채용마감'으로 버튼 변경 및 비활성화
+            if (currentDate > deadlineDate) {
+                button.textContent = '채용마감';
+                button.disabled = true; // 버튼 비활성화
+            } else {
+                //window.location.href = `${contextPath}/recruit/applicant/list?recruitId=${recruitId}`;
+            	// 폼을 이용해 파라미터를 전송
+                const form = document.getElementById('recruitForm');
+                const recruitIdInput = document.getElementById('recruitId');
+                recruitIdInput.value = recruitId;
+                form.submit();
+            }
+        }
+    });
+
+    // 페이지 로딩 시 버튼 상태 설정 (마감일 비교 후 '채용마감' 처리)
+    const buttons = document.querySelectorAll('.apply-button');
+    buttons.forEach(button => {
+        const deadlineText = button.closest('tr').querySelector('td:nth-child(3)').textContent.trim();
+        const deadlineDateString = deadlineText.replace(/(\d{4})년(\d{2})월(\d{2})일/, '$1-$2-$3');
+        const deadlineDate = new Date(deadlineDateString);
+
+        // 마감일이 지나면 '채용마감' 버튼으로 비활성화
+        if (currentDate > deadlineDate) {
+            button.textContent = '채용마감';
+            button.disabled = true; // 버튼 비활성화
+        } else {
+            button.textContent = '지원자보기';
+            button.disabled = false; // 버튼 활성화
+        }
+    });
+});
+</script>
+	
+
+	
+	
+	
+	
+	
+	
+	
+	

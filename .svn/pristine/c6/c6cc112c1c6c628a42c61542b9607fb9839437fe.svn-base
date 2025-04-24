@@ -1,0 +1,27 @@
+package kr.or.ddit.salary.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mybatis.mappers.salary.SalaryMapper;
+import kr.or.ddit.salary.vo.SalaryVO;
+
+@Service
+public class SalaryServiceImpl implements SalaryService {
+
+	@Autowired
+	private SalaryMapper mapper;
+	
+	@Override
+	public List<SalaryVO> salaryList() {
+		return mapper.salaryList();
+	}
+
+	@Override
+	public SalaryVO salarySelected(String empId) {
+		return mapper.salarySelected(empId);
+	}
+
+}

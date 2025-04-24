@@ -1,0 +1,27 @@
+package kr.or.ddit.messenger.vo;
+
+
+/**
+ * 메신저 알림관리 VO
+ */
+import java.io.Serializable;
+
+import java.time.LocalDate;
+
+import javax.validation.constraints.NotBlank;
+
+import lombok.Data;
+@Data
+public class ChatNotificationVO implements Serializable{
+   @NotBlank
+   private long notifyId;
+   @NotBlank
+   private long receiverId;
+   @NotBlank
+   private long roomId;
+   @NotBlank
+   private long messageId;
+   private String isRead;
+   private LocalDate createAt;
+   
+}

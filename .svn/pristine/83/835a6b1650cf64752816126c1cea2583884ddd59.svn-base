@@ -1,0 +1,215 @@
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 11.     	 KHS           최초 생성
+ *
+-->
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부서 관리</title>
+
+    <style>
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 페이지네이션 전체 컨테이너 정렬 */
+		.dataTable-pagination {
+		    display: flex !important;
+		    justify-content: center;
+		    align-items: center;
+		    margin-top: 15px;
+		    gap: 5px; /* 버튼 간격 조정 */
+		}
+
+		/* 페이지네이션 리스트 (ul 요소) */
+		.dataTable-pagination-list {
+		    display: flex !important;
+		    list-style: none;
+		    padding: 0;
+		    margin: 0;
+		}
+
+		/* 페이지네이션 버튼 기본 스타일 */
+		.dataTable-pagination-list li {
+		    display: inline-block;
+		}
+
+		/* 페이지네이션 버튼 디자인 */
+		.dataTable-pagination-list li a {
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    padding: 8px 12px;
+		    font-size: 14px;
+		    border-radius: 5px;
+		    background-color: #007bff;
+		    color: white;
+		    text-decoration: none;
+		    transition: 0.3s;
+		}
+
+		/* 현재 선택된 페이지 */
+		.dataTable-pagination-list li.active a {
+		    background-color: #0056b3;
+		}
+
+		/* hover 효과 */
+		.dataTable-pagination-list li a:hover {
+		    background-color: #0056b3;
+		}
+
+		/* 비활성 버튼 */
+		.dataTable-pagination-list li.pager a {
+		    background-color: #ccc;
+		    cursor: not-allowed;
+		}
+
+    </style>
+</head>
+
+
+<!-- <div style="position: absolute;top:10px;left: 600px;"> -->
+<%-- 	${pageContext.request.requestURL}<br/> --%>
+<%-- 	${pageContext.request}<br/> --%>
+<%-- 	${pageContext.request.contextPath}<br/> --%>
+<!-- </div> -->
+
+
+	<div class="page-title">
+        <h3>조직관리</h3>
+    </div>
+
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">부서관리</h5>
+            </div>
+            <script>
+                function navigateToDetail(postId) {
+                    console.log("Navigating to detail with noticeId:", postId); // 로그 추가
+                    window.location.href = "${pageContext.request.contextPath}/department/update?departmentId=" + postId;
+                }
+            </script>
+            <div class="card-body">
+                <div class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-columns">
+                    <div class="dataTable-container">
+                        <table id="table1" class="table table-striped datatable">
+                            <thead>
+                                <tr>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">삭제</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">부서ID</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">부서 이름</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">부서 위치</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">전화번호</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">팩스번호</a></th>
+<!--                                     <th data-sortable="" style="width: 11.1426%;"><a href="#" class="dataTable-sorter">번호 타입</a></th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty departmentList}">
+                                        <c:forEach items="${departmentList}" var="dept">
+                                            <tr>
+                                            	<td><input type="checkbox" class="selectDept" value="${dept.departmentId}"></td>
+                                                <td>${dept.departmentId}</td>
+                                                <td>
+                                                    <a href="javascript:void(0);" onclick="navigateToDetail('${dept.departmentId}')">${dept.departmentName}</a>
+                                                </td>
+                                                <td>${dept.departmentLocation}</td>
+                                                <td>${dept.departmentPhonenumber}</td>
+                                                <td>${dept.departmentFaxnumber}</td>
+<%--                                                 <td>${dept.numberType}</td> --%>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="6">부서 없음.</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+
+                        <!-- 버튼을 오른쪽에 정렬하기 위한 스타일 -->
+						<div class="button-container" style="display: flex; justify-content: flex-end; gap: 10px;">
+						    <a href="${pageContext.request.contextPath}/department/register" class="btn btn-primary">부서추가</a>
+						    <button class="btn btn-danger" id="deleteSelected">부서삭제</button>
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 데이터테이블 처리 스크립트 일단 적용안함-->
+	<script type="text/javascript" src="${pageContext.request.contextPath}/resources/js/approval/approvalDelete.js"></script>
+
+
+   	<script>
+
+ // 데이터 테이블 검색 및 페이지 수 조절
+   	document.addEventListener("DOMContentLoaded", function () {
+   	    const dataTable = new simpleDatatables.DataTable("#deptTable", {  //테이블 이름 정의 부분
+   	        searchable: true,
+   	        fixedHeight: false,
+   	        perPage: 10, // 처음부터 한 페이지에 50개 항목 표시
+   	        perPageSelect: [5, 10, 15],
+   	    });
+
+   	    // 페이지 수 조절
+   	    document.getElementById("entriesPerPage").addEventListener("change", function () {
+   	        dataTable.perPage = parseInt(this.value);
+   	        dataTable.refresh();
+   	    });
+
+   	    // 검색 기능
+   	    document.getElementById("searchBox").addEventListener("input", function () {
+   	        dataTable.search(this.value);
+   	    });
+   	});
+
+
+   	document.getElementById("deleteSelected").addEventListener("click", function () {
+   	    let selectedIds = [];
+   	    document.querySelectorAll(".selectDept:checked").forEach((checkbox) => {
+   	        selectedIds.push(checkbox.value);
+   	    });
+
+   	    if (selectedIds.length === 0) {
+   	        alert("삭제할 부서를 선택하세요.");
+   	        return;
+   	    }
+
+   	    if (!confirm("선택한 부서를 삭제하시겠습니까?")) {
+   	        return;
+   	    }
+
+   	    fetch("${pageContext.request.contextPath}/department/delete", {
+   	        method: "POST",
+   	        headers: {
+   	            "Content-Type": "application/json",
+   	        },
+   	        body: JSON.stringify(selectedIds), // 배열로 전송
+   	    })
+   	    .then((response) => response.json())
+   	    .then((data) => {
+   	        if (data.success) {
+   	            alert("삭제가 완료되었습니다.");
+   	            location.reload(); // 페이지 새로고침하여 반영
+   	        } else {
+   	            alert("삭제 중 오류가 발생했습니다.");
+   	        }
+   	    })
+   	    .catch((error) => console.error("Error:", error));
+   	});
+
+
+   	</script>

@@ -1,0 +1,40 @@
+package kr.or.ddit.approval.vo;
+
+import java.io.Serializable;
+import java.util.List;
+
+import kr.or.ddit.annual.vo.AnnualHistoryVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import lombok.Data;
+
+/**
+ * 기안관리 
+ */
+@Data
+public class DraftManageMentVO implements Serializable{
+	private Long draftId; // 기안관리ID
+	private Long templateId; // 기안양식 ID(PK)
+	private String empId; // 직원 정보를 저장하는 테이블
+	private String draftTitle; // 기안 제목
+	private String draftContent; // 기안 내용
+	private String draftFile; // 첨부파일 테이블 값을 입력 첨부파일ID
+	private String draftDate; // 기안일시
+	private String draftUrgent; // 긴급여부 (Y,N)
+	private Long departmentId; // 부서 ID
+	private String draftStatus; // 문서상태(대기,결재중,완료) ,기본값 : 대기
+	private String finalApprover; // 마지막 결재자 
+	private boolean hasAttachment;
+	// 직원 1 : 1 매핑 
+	private EmployeeVO employee;
+	
+	// 문서함 목록 (1:N)
+	private List<DraftBoxVO> draftBoxList;
+	
+	// 결재자 목록 (1:N)
+	private List<DraftApproverVO> draftapproverList;
+	// 연차 폼에 넣을 데이터 
+	private AnnualHistoryVO annualHistory;
+	// 참조자 목록 (1:N)
+	private List<DraftParVO> draftParList;
+	
+}

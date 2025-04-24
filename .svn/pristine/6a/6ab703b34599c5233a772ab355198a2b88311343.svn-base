@@ -1,0 +1,40 @@
+package kr.or.ddit.mybatis.mappers.salary;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.salary.vo.SalaryVO;
+
+/**
+ * 
+ * @author youngjun
+ * @since 2025. 3. 18.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 18.     	youngjun	          최초 생성
+ *
+ * </pre>
+ */
+@Mapper
+public interface SalaryMapper {
+	
+	/**
+	 * 직원의 급여리스트 조회
+	 * @return
+	 */
+	public List<SalaryVO>salaryList();
+	
+	/**
+	 * 선택한 직원의 급여 상세조회
+	 * @param salary
+	 * @return
+	 */
+	public SalaryVO salarySelected(String empId);
+
+}

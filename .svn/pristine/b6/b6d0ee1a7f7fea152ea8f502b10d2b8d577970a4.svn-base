@@ -1,0 +1,66 @@
+package kr.or.ddit.attendance.controller;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.attendance.service.AttendanceService;
+import kr.or.ddit.employee.service.EmployeeService;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 정태우
+ * @since 2025. 3. 12.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 12.     	정태우	          최초 생성
+ *
+ * </pre>
+ */
+@RequestMapping("/")
+@Controller
+@Slf4j
+public class AttendanceReadController {
+	
+	@Autowired
+	AttendanceService service;
+	@Autowired
+	EmployeeService empservice;
+	
+	@GetMapping("attendance/list")
+	public String AttendanceList() {
+		return "tiles:attendance/attendanceList";
+		
+	}
+	
+	@GetMapping("attendance/Detail")
+	public String AttendanceDetail() {
+		return "tiles:attendance/attendanceDetail";
+		
+	}
+	
+	@GetMapping("check/list")
+	public String CheckList(Model model,HttpSession session) {
+		model.addAttribute("attendanceList",service.attendanceList());
+		return "tiles:attendance/checkInOut";
+		
+	}
+	@GetMapping("check/Detail")
+	public String CheckDetail(Model model,
+		@RequestParam("empId") String empId
+	) {
+		model.addAttribute("employee",empservice.readEmp(empId)); 
+		return "tiles:attendance/checkInOutDetail";
+		
+	}
+}

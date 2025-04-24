@@ -1,0 +1,53 @@
+package kr.or.ddit.approval.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.approval.vo.DraftTemplateVO;
+import kr.or.ddit.mybatis.mappers.approval.ApprovalMapper;
+
+@Service
+public class ApprovalServiceImpl implements ApprovalService {
+	
+	@Autowired
+	private ApprovalMapper mapper;
+	
+	
+	
+	public List<DraftTemplateVO> draftTemplateList(){
+		return mapper.DraftTemplateList();
+		
+	}
+	
+	public DraftTemplateVO draftTemplateDetail(Long templateId) {
+		return mapper.draftTemplateDetail(templateId);	
+	}
+
+
+	
+	/**
+	 * 결재 양식 파일 정보 저장
+	 * @param paramMap
+	 */
+	@Override
+	public void insertDraftTemplateFile(Map<String, Object> paramMap) {
+		mapper.insertDraftTemplateFile(paramMap);
+	}
+
+	
+	@Override
+	public void insertDraftTemplate(DraftTemplateVO draftTemplate, List<Long> fileIds) {
+		mapper.insertDraftTemplate(draftTemplate);
+		
+	}
+
+	@Override
+	public void updateDraftTemplate(DraftTemplateVO draftTemplateVO) {
+		mapper.updateDraftTemplate(draftTemplateVO);
+	}
+	
+	
+}

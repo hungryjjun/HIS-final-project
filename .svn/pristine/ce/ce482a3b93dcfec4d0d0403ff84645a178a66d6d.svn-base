@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.salary.SalaryMapper">
+
+<resultMap type="SalaryVO" id="salaryMap" autoMapping="true">
+		<id property="salaryId" column="salary_id"/>
+	<collection property="employeeList" ofType="EmployeeVO">
+		<id property="empId" column="emp_id"/>
+	</collection>
+</resultMap>
+
+<select id="salaryList">
+	SELECT
+  S.PAY_YEAR
+  ,S.PAY_MONTH
+  ,E.EMP_ID
+  ,E.NAME
+  ,D.DEPARTMENT_NAME
+  ,T.TEAM_NAME
+  ,R.RANK_NAME
+  ,S.BASE_SALARY
+  ,S.TOTAL_PAY	
+  ,S.TOTAL_DEDUCT
+  ,S.NET_SALARY
+  ,S.PAY_ENDDAY
+  ,S.PAY_STATUS
+ FROM EMPLOYEE E
+ INNER JOIN SALARY_MANAGEMENT S ON S.EMP_ID=E.EMP_ID
+ INNER JOIN DEPARTMENT D ON D.DEPARTMENT_ID=E.DEPARTMENT_ID
+ INNER JOIN RANK R ON R.RANK_ID=E.RANK_ID
+ INNER JOIN TEAM T ON T.TEAM_ID=E.TM_ID
+</select>
+</mapper>

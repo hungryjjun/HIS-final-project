@@ -1,0 +1,46 @@
+package kr.or.ddit.empAppointment.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.empAppointment.exception.AppointNotFoundException;
+import kr.or.ddit.empAppointment.vo.AppointmentVO;
+import kr.or.ddit.mybatis.mappers.empAppoint.AppointmentMapper;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AppointmentServiceImpl implements AppointmentService {
+	
+	private final AppointmentMapper dao;
+	
+	@Override
+	public List<AppointmentVO> readAppointList() {
+		return dao.selectApppointList();
+	}
+
+	@Override
+	public AppointmentVO readApppoint(String appId) throws AppointNotFoundException {
+		AppointmentVO appoint = dao.selectAppoint(appId);
+		if(appoint==null) {
+			throw new AppointNotFoundException(appId);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean createAppoint(AppointmentVO appoint) {
+		int rowcnt = dao.insertAppoint(appoint);
+		return rowcnt > 0;
+	}
+
+	@Override
+	public boolean modifyAppoint(AppointmentVO appoint) {
+		int rowcnt = dao.updateAppoint(appoint);
+		return rowcnt > 0 ;
+	}
+
+		
+
+}

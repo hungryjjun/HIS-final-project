@@ -1,0 +1,274 @@
+package kr.or.ddit.file.service;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.file.vo.FileDetailVO;
+import kr.or.ddit.file.vo.FileInfoVO;
+import kr.or.ddit.file.vo.FileVO;
+import kr.or.ddit.mybatis.mappers.file.FileMapper;
+
+@Service
+public class FileInfoService {
+
+    @Autowired
+    private FileMapper mapper;
+    
+    @Autowired
+    private FileInfoVO fileInfoVO; // FileInfoVO 주입
+
+    @Autowired
+    public FileInfoService(FileMapper mapper, FileInfoVO fileInfoVO) {
+        this.mapper = mapper;
+        this.fileInfoVO = fileInfoVO;
+    }
+
+    
+    /**
+    * 파일 그룹 (FILE_ID) 생성
+    */
+   @Transactional
+   public Long createFileGroup() {
+       FileVO fileVO = new FileVO();
+       fileVO.setFileDel("N");  // 삭제 여부 기본값
+       mapper.insertFile(fileVO); // 새 FILE_ID 생성
+       return fileVO.getFileId(); // 생성된 FILE_ID 반환
+   }
+    
+   
+   /**
+    * 기존 파일 그룹 (FILE_ID)에 파일 업데이트 또는 추가 (파일 교체 가능)
+    */
+   @Transactional
+   public List<Long> updateFileGroup(Long fileId, MultipartFile[] files) throws IOException {
+       if (fileId == null) {
+           throw new IllegalArgumentException("파일 그룹 ID가 필요합니다.");
+       }
+
+       List<Long> detailIds = new ArrayList<>();
+       Path uploadPath = Paths.get(fileInfoVO.getFileImages());
+
+       // 📌 업로드 디렉토리 확인 및 생성
+       if (!Files.exists(uploadPath)) {
+           Files.createDirectories(uploadPath);
+       }
+
+       long totalRequestSize = 0;
+
+       // 📌 기존 파일 삭제 (기존 파일을 유지하면서 추가할 경우, 이 부분 제거 가능)
+       List<FileDetailVO> existingFiles = mapper.getFileDetailsByFileId(fileId);
+       for (FileDetailVO fileDetail : existingFiles) {
+           if (fileDetail != null && fileDetail.getFilePath() != null) {
+               Path existingFilePath = Paths.get(fileDetail.getFilePath());
+               try {
+                   Files.deleteIfExists(existingFilePath); // 실제 파일 삭제
+               } catch (IOException e) {
+                   throw new RuntimeException("파일 삭제 실패: " + existingFilePath, e);
+               }
+               mapper.deleteFile(fileDetail.getDetailId());  // DB에서 개별 파일 삭제
+           }
+       }
+
+       //새로운 파일 업로드
+       for (MultipartFile file : files) {
+           if (file == null || file.isEmpty()) {
+               continue; // 빈 파일은 무시
+           }
+
+           long fileSize = file.getSize();
+
+           // 파일 크기 검증
+           if (fileSize > fileInfoVO.getMaxFileSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("파일 크기가 너무 큽니다.");
+           }
+
+           totalRequestSize += fileSize;
+           if (totalRequestSize > fileInfoVO.getMaxRequestSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("전체 요청 크기가 너무 큽니다.");
+           }
+
+           String originalFileName = file.getOriginalFilename();
+           String uuidFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+           Path filePath = uploadPath.resolve(uuidFileName);
+
+           try {
+               Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+               FileDetailVO fileDetail = new FileDetailVO();
+               fileDetail.setFileId(fileId);
+               fileDetail.setFileName(originalFileName);
+               fileDetail.setFileSavename(uuidFileName);
+               fileDetail.setFilePath(filePath.toString());
+               fileDetail.setFileSize(fileSize);
+               fileDetail.setFileType(file.getContentType());
+
+               mapper.insertFileDetail(fileDetail);
+               detailIds.add(fileDetail.getDetailId());
+
+           } catch (IOException e) {
+               throw new IOException("파일 저장 실패: " + filePath, e);
+           }
+       }
+
+       return detailIds;
+   }
+
+   
+   
+   
+    
+   
+   @Transactional
+   public List<Long> saveFiles(MultipartFile[] files) throws Exception {
+       List<Long> detailIds = new ArrayList<>();
+       Path uploadPath = Paths.get(fileInfoVO.getFileImages());
+
+       // 디렉토리 존재 여부 확인 및 생성
+       if (!Files.exists(uploadPath)) {
+           Files.createDirectories(uploadPath);
+       }
+
+       long totalRequestSize = 0;
+       
+       //  1️ 한 번만 'FILE_ID' 생성
+       FileVO fileVO = new FileVO();
+       fileVO.setFileDel("N");  // 삭제 여부 기본값
+       mapper.insertFile(fileVO);  // FILE 테이블에 삽입
+       Long fileId = fileVO.getFileId();  // 생성된 FILE_ID를 저장
+
+       // 파일을 하나씩 저장
+       for (MultipartFile file : files) {
+           long fileSize = file.getSize();
+
+           // 개별 파일 크기 제한 검사
+           if (fileSize > fileInfoVO.getMaxFileSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("파일 크기가 너무 큽니다.");
+           }
+
+           totalRequestSize += fileSize;
+           if (totalRequestSize > fileInfoVO.getMaxRequestSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("전체 요청 크기가 너무 큽니다.");
+           }
+
+           String originalFileName = file.getOriginalFilename();
+           String uuidFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+           Path filePath = uploadPath.resolve(uuidFileName);
+
+           try {
+               Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+               // 2️ 동일한 'FILE_ID'를 사용하여 파일 상세 정보 삽입
+               FileDetailVO fileDetail = new FileDetailVO();
+               fileDetail.setFileId(fileId); // 그룹화된 'FILE_ID' 사용
+               fileDetail.setFileName(originalFileName);
+               fileDetail.setFileSavename(uuidFileName);
+               fileDetail.setFilePath(filePath.toString());
+               fileDetail.setFileSize(fileSize);
+               fileDetail.setFileType(file.getContentType());
+
+               // 자식 테이블에 삽입
+               mapper.insertFileDetail(fileDetail);
+               detailIds.add(fileDetail.getDetailId()); // 삽입된 DETAIL_ID 추가
+
+           } catch (IOException e) {
+               throw new IOException("파일 저장 실패: " + filePath, e);
+           }
+       }
+
+       return detailIds;
+   }
+
+
+
+    // 파일 ID로 파일 정보 조회
+    public FileDetailVO getFileById(Long detailId) {
+        return mapper.getFileById(detailId); // fileId를 사용
+    }
+
+    // 파일 삭제
+    @Transactional
+    public void deleteFile(Long fileId) {
+        FileDetailVO fileDetail = mapper.getFileById(fileId);
+        if (fileDetail != null) {
+            Path filePath = Paths.get(fileDetail.getFilePath());
+
+            try {
+                Files.deleteIfExists(filePath); // 파일 시스템에서 파일 삭제
+            } catch (IOException e) {
+                throw new RuntimeException("파일 삭제 실패: " + filePath, e);
+            }
+
+            // DB에서 논리적 삭제 (상태 변경)
+            mapper.deleteFile(fileId); // fileId를 사용
+        }
+    }
+
+    /**
+     * 모든 파일 목록 조회
+     */
+    public List<FileDetailVO> getAllFiles() {
+        return mapper.getAllFiles();
+    }
+
+
+    /**
+     * 파일을 특정 FILE_ID에 저장
+     */
+    @Transactional
+    public Long saveFileWithGroup(MultipartFile file, Long fileId) throws IOException {
+        // 파일이 null이거나 비어 있으면 예외 발생
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드된 파일이 비어 있습니다.");
+        }
+
+        // 업로드 폴더 지정
+        Path uploadPath = Paths.get("uploads");
+
+        // 폴더가 없으면 생성
+        if (!Files.exists(uploadPath)) {
+            try {
+                Files.createDirectories(uploadPath);
+            } catch (IOException e) {
+                throw new IOException("파일 저장 경로 생성 실패: " + uploadPath, e);
+            }
+        }
+
+        // 파일명 생성 (UUID 추가하여 중복 방지)
+        String originalFileName = file.getOriginalFilename();
+        String uuidFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+        Path filePath = uploadPath.resolve(uuidFileName);
+
+        try {
+            // 파일 저장
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new IOException("파일 저장 실패: " + filePath + " - " + e.getMessage(), e);
+        }
+
+        // 파일 상세 정보 생성
+        FileDetailVO fileDetail = new FileDetailVO();
+        fileDetail.setFileId(fileId);  // 기존 그룹 ID 사용
+        fileDetail.setFileName(originalFileName);
+        fileDetail.setFileSavename(uuidFileName);
+        fileDetail.setFilePath(filePath.toString());
+        fileDetail.setFileSize(file.getSize());
+        fileDetail.setFileType(file.getContentType());
+
+        // DB에 파일 정보 저장
+        mapper.insertFileDetail(fileDetail);
+
+        return fileDetail.getDetailId(); // 삽입된 DETAIL_ID 반환
+    }
+
+
+
+}
+

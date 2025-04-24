@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 15.     	LJW            최초 생성
+ *
+-->
+
+<!-- 
+<resultMap>은 SQL 조회 결과를 자바 객체로 변환하는 역할을 함.
+id="EmployeeResultMap" → EmployeeVO 객체와 매핑될 resultMap의 고유한 식별자.
+type="EmployeeVO" → 조회된 데이터를 매핑할 대상이 EmployeeVO임.
+autoMapping="true" → 컬럼과 VO의 프로퍼티가 자동으로 매핑되도록 설정.
+ -->
+
+<mapper namespace="kr.or.ddit.mybatis.mappers.empAppoint.AppointmentMapper" >
+	
+	<resultMap type="AppointmentVO" id="AppointmentResultMap" autoMapping="true">
+		<id property="appId" column="app_id"/>
+		<association property="department" javaType="DepartmentVO">
+			<id property="departmentId" column="department_id" />
+		</association>
+		<association property="team" javaType="TeamVO">
+			<id property="teamId" column="team_id" />
+		</association>
+		<association property="position" javaType="PositionVO">
+			<id property="positionId" column="position_id" />
+		</association>
+		<association property="job" javaType="JobVO">
+			<id property="jobId" column="position_id" />
+		</association>
+		<association property="rank" javaType="RankVO">
+			<id property="rankId" column="rank_id" />
+		</association>
+		
+	</resultMap>
+	
+	<select id="selectAppointList" resultMap="AppointmentResultMap">
+		SELECT 
+		    HA.APP_ID,
+		    HA.EMP_ID,
+		    HA.APP_DATE,
+		    HA.APP_TYPE,
+		    HA.APP_REASON,
+		    HA.PREV_JOB_ID,
+		    HA.PREV_RANK_ID,
+		    HA.PREV_DEPARTMENT_ID,
+		    HA.NEW_JOB_ID,
+		    HA.NEW_RANK_ID,
+		    HA.NEW_DEPARTMENT_ID,
+		    HA.HIRE_DRTE,
+		    HA.SERVICE_YEAR,
+		    	
+		    E.NAME AS EMPLOYEE_NAME,
+		    E.POSITION_ID,
+		    E.RANK_ID,
+		    E.SALARY,
+		    E.EMAIL,
+		    E.PHONE_NUMBER,
+		    
+		    PREV_JOB.JOB_NAME AS PREV_JOB_NAME,
+		    NEW_JOB.JOB_NAME AS NEW_JOB_NAME,
+		    
+		    PREV_RANK.RANK_NAME AS PREV_RANK_NAME,
+		    NEW_RANK.RANK_NAME AS NEW_RANK_NAME,
+		    
+		    PREV_DEPT.DEPARTMENT_NAME AS PREV_DEPARTMENT_NAME,
+		    NEW_DEPT.DEPARTMENT_NAME AS NEW_DEPARTMENT_NAME
+		
+		FROM 
+		    HR_APPOINTMENT HA
+		
+		LEFT JOIN 
+		    EMPLOYEE E ON HA.EMP_ID = E.EMP_ID
+		
+		LEFT JOIN 
+		    JOB PREV_JOB ON HA.PREV_JOB_ID = PREV_JOB.JOB_ID
+		LEFT JOIN 
+		    JOB NEW_JOB ON HA.NEW_JOB_ID = NEW_JOB.JOB_ID
+		
+		LEFT JOIN 
+		    RANK PREV_RANK ON HA.PREV_RANK_ID = PREV_RANK.RANK_ID
+		LEFT JOIN 
+		    RANK NEW_RANK ON HA.NEW_RANK_ID = NEW_RANK.RANK_ID
+		
+		LEFT JOIN 
+		    DEPARTMENT PREV_DEPT ON HA.PREV_DEPARTMENT_ID = PREV_DEPT.DEPARTMENT_ID
+		LEFT JOIN 
+		    DEPARTMENT NEW_DEPT ON HA.NEW_DEPARTMENT_ID = NEW_DEPT.DEPARTMENT_ID
+	</select>
+	
+	
+</mapper>

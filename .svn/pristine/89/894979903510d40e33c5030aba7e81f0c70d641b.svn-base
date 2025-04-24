@@ -1,0 +1,61 @@
+package kr.or.ddit.approval.vo;
+
+import java.io.Serializable;
+import java.util.List;
+
+import kr.or.ddit.annual.vo.AnnualHistoryVO;
+import kr.or.ddit.annual.vo.AnnualManageVO;
+import lombok.Data;
+
+/**
+ * 기안결재자 관리
+ */
+@Data
+public class DraftApproverVO implements Serializable{
+	private Long aprId; // 결재선 순번(PK)
+	private Long draftId; // 기안관리ID
+	private String approverId; // 결재자ID
+	private Long aprSeq; // 결재 순서
+	private String aprYn; //결재여부 Y/N 디폴트값: N 
+	private String aprDate; // 기본값 SYSDATE
+	private String aprStatus; // 결재상태는(승인/반려/보류)
+	private String aprReason; // 결재상태에 대한 사유내용
+	private String empSid; // 결재자가 부재중인경우 대결자 설정가능
+	private String approverName; // 결재자 이름
+	
+	
+	
+	 // 추가된 필드 (Mapper와 매칭됨)
+    private String draftTitle; // 문서 제목
+    private String draftDate; // 기안일
+    private String draftStatus; // 문서 상태
+    private String draftEmpName; // 기안자 이름
+    private String draftDepartment; // 기안자 부서코드
+    private String draftDepartmentName; // 기안자 부서명
+	
+	private AnnualHistoryVO annualHistory; // 연차 이력 
+	private AnnualManageVO annualType; // 연차 타입 
+	
+	// 연차 이력에 포함되는 필드들
+    private String leaveDate; // 연차 시작일
+    private String leaveEndDate; // 연차 종료일
+    private String reason; // 연차 신청 사유
+    private String annualCode; // 연차 코드
+    private String annualName; // 연차 명칭
+    
+    
+    // 다중 결재자 목록
+    private List<DraftApproverVO> draftApproverList;
+	
+    
+    // 파일 정보 필드 추가
+    private Long detailId; //첨부파일의 상세 아디
+    private Long fileId;           // 파일 ID
+    private String fileName;       // 실제 파일명
+    private String fileSavename;   // 저장된 파일명
+    private String filePath;       // 파일 경로
+    private Long fileSize;         // 파일 크기
+    private String fileType;       // 파일 타입(MIME)
+    private String fileUploadDate; // 파일 업로드 날짜(문자열 or Date/LocalDateTime)
+	
+}

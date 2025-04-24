@@ -1,0 +1,51 @@
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 14.     	young           최초 생성
+ *
+-->
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<div class="summary-box">
+   <h4>직원수 :150 </h4>
+   <h4>급여대상자 :150 </h4>
+   <h4>확정 :140 </h4>
+<form action="/salary/transfer/request">
+   <h4>이체요청 :128 </h4><button type="submit" class="btn btn-sm btn-outline-primary">조회</button>
+</form>
+   <h4>요청대기 :12 </h4>
+</div>
+
+<table class="table">
+	<thead>
+		<th>귀속연월</th>
+		<th>급여확정일</th>
+		<th>사원번호</th>
+		<th>사원명</th>
+		<th>부서</th>
+		<th>팀</th>
+		<th>직급</th>
+		<th>확정지급액</th>
+		<th>이체요청</th>
+	</thead>
+	    <tbody>
+        <tr>
+            <td>2025년 06월</td>
+            <td>2025-06-28</td>
+            <td>20250509-02</td>
+            <td>일지매</td>
+            <td>경영지원부</td>
+            
+            <td>인사팀</td>
+            <td>부장</td>
+            <td>2,800,000</td>
+            <td>
+            	<button type="button" class="btn btn-primary">요청</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+

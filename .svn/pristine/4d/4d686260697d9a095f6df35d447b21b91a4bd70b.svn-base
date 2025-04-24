@@ -1,0 +1,111 @@
+package kr.or.ddit.mybatis.mappers.approval;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import kr.or.ddit.approval.vo.DraftApproverVO;
+import kr.or.ddit.approval.vo.DraftBoxVO;
+import kr.or.ddit.approval.vo.DraftManageMentVO;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 18.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 18.     	CHOI	          전자결재 진행 Mapper
+ *
+ * </pre>
+ */
+@Mapper
+public interface ApprovalProcessMapper {
+
+	/**
+	 * 기안자가 본인의 기안자 정보, 문서 카테고리, 최종 결재자, 첨부 파일 여부 볼 수 있음
+	 * @param empId 기안자 
+	 * @return
+	 */
+	public List<DraftManageMentVO> writeDraftMangeMent(@Param("empId") String empId);
+	
+	
+	
+	
+	
+	/**
+	 * 기안자가 결재 문서  전체 목록 조회 -> 기안된 문서 리스트 조회, 기안자 정보, 문서 카테고리 확인, 최종 결재자 확인, 첨부파일 확인
+	 * @return
+	 */
+	public List<DraftManageMentVO> writeDraftMangeMentList();
+	
+	
+	
+	
+	/**
+	 * 기안 문서 등록
+	 * @param draft 
+	 */
+	public void insertDraftManagement(DraftManageMentVO draft);
+	
+	/**
+	 * 템플릿 제목 가져오기 
+	 * @param templateId
+	 * @return
+	 */
+	public String selectTemplateTitle(Long templateId);
+	
+	
+	/**
+	 * 결재자 이름 가져오기 
+	 * @param approverName
+	 * @return
+	 */
+	public DraftApproverVO selectApproverName(String approverName);
+	
+	/**
+	 * 결재자 정보 등록
+	 * @param approver
+	 */
+	public void insertDraftApprover(DraftApproverVO approver);
+
+	/**
+	 * 문서함 등록
+	 * @param draftBox
+	 */
+	public void insertDraftBox(DraftBoxVO draftBox);
+
+	/**
+	 * 결재 승인/반려 처리
+	 * @param approver
+	 */
+	public void updateDraftApprover(DraftApproverVO approver);
+
+	/**
+	 * 남은 결재자 수 확인 (마지막 결재자인지 체크)
+	 * @param draftId
+	 * @return
+	 */
+	public int countPendingApprovals(@Param("draftId") Long draftId);
+
+	/**
+	 * 문서 상태 업데이트 (최종 승인/반려)
+	 * @param draftId
+	 * @param draftStatus
+	 */
+	public void updateDraftManagementStatus(@Param("draftId") Long draftId, @Param("draftStatus") String draftStatus);
+
+	/**
+	 * 문서함 상태 업데이트
+	 * @param draftId
+	 * @param docStatus
+	 */
+	public void updateDraftBoxStatus(@Param("draftId") Long draftId, @Param("docStatus") String docStatus);
+	
+
+}

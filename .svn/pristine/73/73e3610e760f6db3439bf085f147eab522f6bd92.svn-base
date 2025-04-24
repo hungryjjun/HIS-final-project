@@ -1,0 +1,40 @@
+package kr.or.ddit.messenger.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.mybatis.mappers.messenger.chatempMapper;
+
+@RestController
+@RequestMapping(value="/messenger", produces = MediaType.APPLICATION_JSON_VALUE)
+public class MessengerRestController {
+	@Autowired
+	private chatempMapper dao;
+	
+	//직원 목록
+	@GetMapping("empList")
+	public List<ChatEmpVO> chatemplist(){
+		return dao.chatempList();
+	}
+	
+	// 직원 상태 업데이트(온라인/오프라인)
+	@PostMapping("updateStatus")
+	public String updateEmpStatus(@RequestParam("empId")String empId,
+								  @RequestParam("status")String status) {
+		int result =dao.updateEmpStatus(empId, status);
+		if(result>0) {
+			return "상태 업데이트 성공";
+					
+		}else {
+			return "상태 업데이트 실패";
+		}
+	}
+}

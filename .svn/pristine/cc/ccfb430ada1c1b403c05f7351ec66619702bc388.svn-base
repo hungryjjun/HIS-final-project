@@ -1,0 +1,355 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<style>
+thead th {
+    text-align: center !important;
+}
+.modal-title {
+    color: white !important;
+    flex-grow: 1; /* 제목이 가운데 정렬될 수 있도록 설정 */
+    text-align: center;
+}
+.modal-header .btn-close {
+    filter: invert(1); /* 아이콘 색 반전 (검정 → 흰색) */
+    opacity: 1; /* 기본 부트스트랩 스타일보다 더 뚜렷하게 표시 */
+}
+.modal-body .list-group-item {
+    border: none;  /* 테두리 제거 */
+    padding: 10px 15px;
+    background-color: #f9f9f9; /* 연한 배경색 */
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+.modal-body strong {
+    display: inline-block;
+    width: 120px; /* 라벨 너비 통일 */
+    font-weight: bold;
+    color: #333;
+}
+.radio-label {
+        margin-right: 20px; /* 라디오 버튼 간격 조정 */
+}
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translateY(-10px);
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+</style>
+
+<h4>Interview List</h4>
+${interviewList }
+<section class="section">
+	<div class="card">
+		<div class="card-header">DB연동 o</div>
+		<div class="card-body">
+ORDER BY RECRUIT_ID(지원공고) DESC, INTERVIEW_DATE(면접날짜) DESC<br>
+			<table class="table table-striped text-center" id="table1">
+				<thead class="text-center">
+					<tr>
+						<th>지원공고</th>
+						<th>지원자</th>
+						<th>면접날짜</th>
+						<th>지원서</th>
+						<th>평가</th>
+						<th>결과</th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:choose>
+						<c:when test="${not empty interviewList }">
+							<c:forEach items="${interviewList }" var="interview">
+interview.appId: ${interview.appId}
+								<tr>
+									<td>
+										<a href="#" data-bs-toggle="modal" data-bs-target="#recruitModal-${interview.recruitment.recruitId}">
+									        ${interview.recruitment.recruitTitle}
+									    </a>
+									</td>
+									<td>
+										appId:${interview.appId},${interview.appName}
+									</td>
+									<td>${fn:substringBefore(interview.applicationStatus.interviewDate, ' ')}</td>
+									<td>
+										<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#applicationModal-${interview.appId}">
+											열람
+										</button>
+									</td>
+									<td>
+                                        <button class="btn ${interview.applicationStatus.currentStatus == '면접예정' ? 'btn-primary' : 'btn-secondary'} btn-sm"
+										    data-bs-toggle="modal" data-bs-target="#evaluationModal-${interview.appId}">
+										    ${interview.applicationStatus.currentStatus == '면접예정' ? '평가하기' : '평가완료'}
+										</button>
+									</td>
+									<td id="status-${interview.appId}">
+										${interview.applicationStatus.currentStatus }
+									</td>
+								</tr>
+							</c:forEach>
+						</c:when>
+						<c:otherwise>
+							<tr>
+								<td colspan="5" class="text-center">면접예정자가 존재하지 않습니다.</td>
+							</tr>
+						</c:otherwise>
+					</c:choose>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</section>
+<!-- 지원서 상세 모달창 -->
+<c:forEach items="${interviewList}" var="interview">
+    <div class="modal fade" id="applicationModal-${interview.appId}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title">지원서 상세 정보</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <div class="container">
+                <div class="card">
+                <div class="card-body">
+                    <ul class="list-group">
+					    <li class="list-group-item"><strong>이름</strong> ${interview.appName}</li>
+					    <li class="list-group-item"><strong>성별</strong> ${interview.appGender}</li>
+					    <li class="list-group-item"><strong>생년월일</strong> 
+					        ${fn:substring(interview.appYeardate, 0, 4)}-${fn:substring(interview.appYeardate, 4, 6)}-${fn:substring(interview.appYeardate, 6, 8)}
+					    </li>
+					    <li class="list-group-item"><strong>이메일</strong> ${interview.appEmail}</li>
+					    <li class="list-group-item"><strong>학력</strong> ${interview.appGrade}</li>
+					    <li class="list-group-item"><strong>경력</strong> 
+						    <span style="white-space: pre-line; display: block;">${interview.appCareer}</span>
+						</li>
+					    <li class="list-group-item"><strong>자기소개서</strong> 
+						    <span style="white-space: pre-line; display: block;">${interview.appPl}</span>
+						</li>
+					</ul>
+                </div>
+                </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
+<!-- 채용 공고 상세 모달창 -->
+<c:forEach items="${interviewList}" var="interview">
+    <div class="modal fade" id="recruitModal-${interview.recruitment.recruitId}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title">채용 공고 상세 정보</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <div class="container">
+                <div class="card">
+                <div class="card-body">
+                    <ul class="list-group">
+					    <li class="list-group-item"><strong>공고제목</strong> ${interview.recruitment.recruitTitle}</li>
+					    <li class="list-group-item"><strong>근무지</strong> ${interview.recruitment.recruitWorkplace}</li>
+					    <li class="list-group-item"><strong>고용형태</strong> ${interview.recruitment.recruitHiretype}</li>
+					    <li class="list-group-item"><strong>급여</strong> ${interview.recruitment.recruitSalary}</li>
+					    <li class="list-group-item"><strong>업무내용</strong> ${interview.recruitment.recruitWorkdetail}</li>
+					    <li class="list-group-item"><strong>우대사항</strong> ${interview.recruitment.recruitPq}</li>
+					    <li class="list-group-item"><strong>마감일</strong> 
+					        <fmt:formatDate value="${interview.recruitment.recruitEnddate}" pattern="yyyy-MM-dd" />
+					    </li>
+					    <li class="list-group-item"><strong>문의처</strong> ${interview.recruitment.recruitContact}</li>
+					</ul>
+                </div>
+                </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
+<!-- 평가 모달창 -->
+<c:forEach items="${interviewList}" var="interview">
+    <div class="modal fade" id="evaluationModal-${interview.appId}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">면접 평가 - ${interview.appName}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="evaluationForm-${interview.appId}">
+App ID: ${interview.appId}
+Status ID: ${interview.applicationStatus.statusId}
+                        <ul class="list-group">
+						    <li class="list-group-item">
+							    <label class="form-label"><strong>전문지식</strong></label>
+							    <div>
+							        <input type="radio" name="evalKnow" value="미흡" ${interview.applicationStatus.evalKnow == '미흡' ? 'checked' : ''}>미흡&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalKnow" value="보통" ${interview.applicationStatus.evalKnow == '보통' ? 'checked' : ''}>보통&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalKnow" value="우수" ${interview.applicationStatus.evalKnow == '우수' ? 'checked' : ''}>우수&nbsp;&nbsp;&nbsp;
+							    </div>
+							</li>
+						    <li class="list-group-item">
+							    <label class="form-label"><strong>기술역량</strong></label>
+							    <div>
+							        <input type="radio" name="evalSkill" value="미흡" ${interview.applicationStatus.evalSkill == '미흡' ? 'checked' : ''}>미흡&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalSkill" value="보통" ${interview.applicationStatus.evalSkill == '보통' ? 'checked' : ''}>보통&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalSkill" value="우수" ${interview.applicationStatus.evalSkill == '우수' ? 'checked' : ''}>우수&nbsp;&nbsp;&nbsp;
+							    </div>
+							</li>
+						    <li class="list-group-item">
+							    <label class="form-label"><strong>태도</strong></label>
+							    <div>
+							        <input type="radio" name="evalAtti" value="미흡" ${interview.applicationStatus.evalAtti == '미흡' ? 'checked' : ''}>미흡&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalAtti" value="보통" ${interview.applicationStatus.evalAtti == '보통' ? 'checked' : ''}>보통&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalAtti" value="우수" ${interview.applicationStatus.evalAtti == '우수' ? 'checked' : ''}>우수&nbsp;&nbsp;&nbsp;
+							    </div>
+							</li>
+						    <li class="list-group-item">
+							    <label class="form-label"><strong>커뮤니케이션</strong></label>
+							    <div>
+							        <input type="radio" name="evalCommu" value="미흡" ${interview.applicationStatus.evalCommu == '미흡' ? 'checked' : ''}>미흡&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalCommu" value="보통" ${interview.applicationStatus.evalCommu == '보통' ? 'checked' : ''}>보통&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalCommu" value="우수" ${interview.applicationStatus.evalCommu == '우수' ? 'checked' : ''}>우수&nbsp;&nbsp;&nbsp;
+							    </div>
+							</li>
+						    <li class="list-group-item">
+							    <label class="form-label"><strong>경험</strong></label>
+							    <div>
+							        <input type="radio" name="evalExperi" value="미흡" ${interview.applicationStatus.evalExperi == '미흡' ? 'checked' : ''}>미흡&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalExperi" value="보통" ${interview.applicationStatus.evalExperi == '보통' ? 'checked' : ''}>보통&nbsp;&nbsp;&nbsp;
+							        <input type="radio" name="evalExperi" value="우수" ${interview.applicationStatus.evalExperi == '우수' ? 'checked' : ''}>우수&nbsp;&nbsp;&nbsp;
+							    </div>
+							</li>
+						</ul>
+                        <div class="mt-3">
+						    <label class="form-label"><strong>면접 결과:</strong></label>
+						    <div>
+						        <input type="radio" name="currentStatus" value="합격"
+						            ${interview.applicationStatus.currentStatus == '합격' ? 'checked' : ''}>합격&nbsp;&nbsp;&nbsp;
+						        <input type="radio" name="currentStatus" value="불합격"
+						            ${interview.applicationStatus.currentStatus == '불합격' ? 'checked' : ''}>불합격&nbsp;&nbsp;&nbsp;
+						    </div>
+						</div>
+                        <div class="d-flex justify-content-center">
+	                        <button type="button" class="btn btn-primary ms-2" id="submitEvaluation-${interview.appId}"
+							    onclick="submitEvaluation('${interview.appId}', '${interview.applicationStatus.statusId}')"
+							    ${interview.applicationStatus.currentStatus == '합격' || interview.applicationStatus.currentStatus == '불합격' ? 'disabled' : ''}>
+							    <c:choose>
+							        <c:when test="${interview.applicationStatus.currentStatus == '합격' || interview.applicationStatus.currentStatus == '불합격'}">
+							            평가 완료
+							        </c:when>
+							        <c:otherwise>
+							            평가 제출
+							        </c:otherwise>
+							    </c:choose>
+							</button>
+	                        <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal" aria-label="Close">
+	                            닫기
+	                        </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
+<script>
+async function submitEvaluation(appId, statusId) {
+    try {
+    	// 현재 모달 내에서만 라디오 버튼 값 찾기
+        const modal = document.querySelector("#evaluationModal-" + appId);
+
+        if (!modal) {
+            alert("모달을 찾을 수 없습니다.");
+            return;
+        }
+    	
+    	// 선택된 라디오 버튼의 값 가져오기(선택하지 않으면 null)
+        const getCheckedValue = (name) => {
+            return modal.querySelector("input[name='" + name + "']:checked")?.value || null;
+        };
+        
+     	// 필수 평가 항목 목록
+        const requiredFields = ["evalKnow", "evalSkill", "evalAtti", "evalCommu", "evalExperi", "currentStatus"];
+        
+        // 모든 항목이 선택되었는지 확인
+        for (let field of requiredFields) {
+            if (!getCheckedValue(field)) {
+                alert("모든 항목을 선택해야 제출 가능합니다.");
+                return; // 제출 중단
+            }
+        }
+        
+    	// 사용자에게 제출 확인 메시지 표시
+        const isConfirmed = confirm("제출한 평가는 수정할 수 없습니다. 제출하시겠습니까?");
+        if (!isConfirmed) {
+            return; // 사용자가 취소하면 함수 종료
+        }
+        
+        // 평가 데이터
+        const evaluationData = {
+                appId: appId,
+                statusId: statusId,
+                evalKnow: getCheckedValue("evalKnow"),
+                evalSkill: getCheckedValue("evalSkill"),
+                evalAtti: getCheckedValue("evalAtti"),
+                evalCommu: getCheckedValue("evalCommu"),
+                evalExperi: getCheckedValue("evalExperi"),
+                currentStatus: getCheckedValue("currentStatus")
+            };
+        console.log("Evaluation Data: ", evaluationData);
+        
+
+        // 서버에 평가 데이터 전송
+        let response = await axios.post('/recruit/interview/update', evaluationData);
+		console.log("Server Response: ", response.data);
+        
+        if (response.data.success) {
+			console.log("Update successful, updating UI...");
+
+            // 모달 요소 찾기
+            let modalElement = document.getElementById("evaluationModal-" + appId);
+			console.log("Modal Element: ", modalElement);
+            
+            // 결과 갱신
+		    let statusElement = document.getElementById("status-" + appId);
+			console.log("Status Element: ", statusElement)
+
+		    if (statusElement) {
+		        statusElement.innerText = evaluationData.currentStatus;
+		        console.log("Status updated to: " + evaluationData.currentStatus);
+		    } else {
+		    	console.error("Status element not found for appId: " + appId);
+       		}
+			
+			// 평가 버튼 갱신 ******************************************************
+			let evalButton = document.querySelector("#table1 button[data-bs-target='#evaluationModal-" + appId + "']");
+			if (evalButton) {
+			    // 평가 버튼을 '평가완료'로 변경
+			    evalButton.innerText = "평가완료";
+			    evalButton.classList.remove("btn-primary");
+			    evalButton.classList.add("btn-secondary");
+			} else {
+			    console.error("Evaluation button not found for appId: " + appId);
+			}
+			
+            alert("평가 결과가 제출되었습니다.");
+			
+        } else {
+            alert("제출 실패: " + response.data.message);
+        }
+        
+    } catch (error) {
+        console.error("Error occurred: ", error);
+        alert("오류 발생");
+    }
+}
+
+</script>
+

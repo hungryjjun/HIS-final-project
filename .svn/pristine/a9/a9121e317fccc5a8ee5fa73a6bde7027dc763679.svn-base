@@ -1,0 +1,43 @@
+package kr.or.ddit.tasks;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+
+import kr.or.ddit.qr.controller.QrWebSocket;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+public class PrintCurrentTimeTask {
+	
+	@Autowired
+	private QrWebSocket qrWebSocket;
+	 
+	@Scheduled(cron = "0 50 12 * * ?")
+	public void sendDailyAlarm() {
+		 qrWebSocket.broadcastMessage("점심은 먹고 합시다 아우 배고파");
+	}
+	@Scheduled(cron = "00 40 17 * * ?")
+	public void leaveWork() {
+		 qrWebSocket.broadcastMessage("집에 갑시다 집에 응? 좀 가 ");
+	}
+	
+//	하나의 작업이 끝나면 2초뒤에 시작
+//	@Scheduled(initialDelay = 3000, fixedDelay = 2000)
+//	Delete 처리할 때 -> 회원 탈퇴 할 떄 유용
+//	@Scheduled(cron = "0 0 3 ? * MON")
+//	@Scheduled(cron = "0/5 * * * * *")
+//	public void printCurrentTime() {
+//		LocalDateTime current = LocalDateTime.now();
+//		log.info("------------------> {} ", current);
+//		service.updateYear(empId);
+//	}
+//}
+}

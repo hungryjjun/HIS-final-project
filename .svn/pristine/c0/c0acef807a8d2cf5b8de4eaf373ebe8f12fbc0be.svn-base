@@ -1,0 +1,24 @@
+package kr.or.ddit.evaluation.vo;
+
+import kr.or.ddit.department.vo.DepartmentVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import kr.or.ddit.rank.vo.RankVO;
+import kr.or.ddit.team.vo.TeamVO;
+import lombok.Data;
+
+@Data
+public class EvaluationCandidateVO {
+	
+	private String empId;
+	private String evaluationYear;
+	private String halfYear;
+	private String isTarget;
+	private String evaluationStatus;
+	
+	private EmployeeVO employee;
+	private DepartmentVO department;
+	private TeamVO team;
+	private RankVO rank;
+
+	private boolean selected;
+}

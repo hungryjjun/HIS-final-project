@@ -1,0 +1,362 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+.container {
+	margin-top: 30px;
+}
+
+.card {
+	margin-bottom: 20px;
+}
+
+.card-header {
+	font-size: 1.25rem;
+	font-weight: bold;
+}
+
+.form-group {
+	margin-bottom: 20px;
+}
+
+.table th, .table td {
+	vertical-align: middle;
+}
+
+.table th {
+	background-color: #f8f9fa;
+}
+
+.table td {
+	background-color: #ffffff;
+}
+
+.btn-group button {
+	margin-right: 10px;
+}
+
+.filter-section select {
+	width: 200px;
+}
+</style>
+<h3>근태현황</h3> 
+<div class="container">
+	<div class="card-body">
+		<div id="chart-profile-visit"></div>
+	</div>
+	<div class="card">
+		<div class="card-header"></div>
+		<div class="card-body">
+			<div class="form-row">
+				<div class="col-md-3 form-group">
+					<label for="department">부서</label> <select id="department"
+						class="form-control" onchange="filterTeams()">
+						<option value="">전체</option>
+						<c:forEach items="${departmentList}" var="departmentVO">
+							<option value="${departmentVO.departmentId}"
+								label="${departmentVO.departmentName}" />
+						</c:forEach>
+					</select>
+				</div>
+
+				<div class="col-md-3 form-group">
+					<label for="team">팀</label> <select id="team" class="form-control">
+						<option value="">전체</option>
+						<c:forEach items="${teamList}" var="teamVO">
+							<option value="${teamVO.teamId}"
+								data-departmentId="${teamVO.departmentId}" class="team-option"
+								label="${teamVO.teamName}" />
+						</c:forEach>
+					</select>
+				</div>
+				<div class="col-md-3 form-group">
+					<label for="date">날짜 선택</label> <input type="date" id="date"
+						name="date" class="form-control" class="form-control">
+				</div>
+				<div class="col-md-3 form-group btn-group">
+					<button class="btn btn-outline-success" onclick="downloadExcel()">엑셀
+						다운로드</button>
+					<button class="btn btn-outline-danger" onclick="exportPDF()">PDF
+						다운로드</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="card">
+		<div class="card-body">
+			<table class="table table-striped" id="table1">
+				<thead>
+					<tr>
+						<th>부서</th>
+						<th>팀</th>
+						<th>이름</th>
+						<th>출근시간</th>
+						<th>퇴근시간</th>
+						<th>기본근로시간</th>
+						<th>연장근로시간</th>
+						<th>야간근로시간</th>
+						<th>근태상태</th>
+					</tr>
+				</thead>
+				<c:forEach items="${attendanceList}" var="x">
+					<tbody>
+						<tr>
+							<td>${x.employee.department.departmentName }</td>
+							<td>${x.employee.team.teamName }</td>
+							<td><a href="/check/Detail?empId=${x.empId}">${x.employee.name }</a></td>
+							<td>${x.workStartTime }</td>
+							<td>${x.workEndTime }</td>
+							<td><c:if test="${not empty x.workingHours }">${x.workingHours }시간 ${x.workingMinutes }분</c:if>
+							</td>
+							<td><c:if test="${not empty x.overtimeHours }">${x.overtimeHours }시간 ${x.overtimeHours }분</c:if>
+							</td>
+							<td><c:if test="${not empty x.nightWorkHours }">${x.nightWorkHours }시간 ${x.nightWorkHours }분</c:if>
+							</td>
+							<td>${x.attendanceStatus }</td>
+						</tr>
+					</tbody>
+				</c:forEach>
+			</table>
+		</div>
+	</div>
+</div>
+
+
+<script>
+    // PDF 다운로드
+    function exportPDF() {
+        const element = document.getElementById("table1");
+
+        const opt = {
+            margin : 1,
+            filename : '출퇴현황.pdf',
+            html2canvas : { scale : 2 },
+            jsPDF : { unit : 'mm', format : 'a4', orientation : 'portrait' }
+        };
+
+        html2pdf().from(element).set(opt).save();
+    }
+
+    // Excel 다운로드
+    function downloadExcel() {
+        var table = document.getElementById("table1");
+        var wb = XLSX.utils.table_to_book(table, { sheet : "출퇴현황" });
+        XLSX.writeFile(wb, "출퇴현황.xlsx");
+    }
+
+    // 현재 날짜를 YYYY-MM-DD 형식으로 설정
+    var today = new Date();
+    var day = ("0" + today.getDate()).slice(-2);
+    var month = ("0" + (today.getMonth() + 1)).slice(-2);
+    var year = today.getFullYear();
+
+    document.getElementById('date').value = year + "-" + month + "-" + day;
+
+ // 부서에 하위 팀만 보여주는 함수
+    function filterTeams() {
+        var selectedDept = document.getElementById("department").value;
+        var teamSelect = document.getElementById("team");  // 팀 셀렉트 박스
+        var teamOptions = document.querySelectorAll(".team-option");
+        
+        // 팀 셀렉트를 "전체"로 리셋
+        teamSelect.value = "";
+        teamOptions.forEach(function(option) {
+            if (selectedDept === "" || option.dataset.departmentid === selectedDept) {
+                option.style.display = "block";
+            } else {
+                option.style.display = "none";
+            }
+        });
+
+        fetchFilteredData(); // 부서가 변경되었을 때 필터링된 데이터 가져오기
+    }
+
+    // 팀 변경 시 필터링된 데이터를 가져오는 함수
+    $("#team").change(function() {
+        fetchFilteredData(); // 팀 선택 시 필터링된 데이터 새로 불러오기
+    });
+
+    // 날짜 변경 시 필터링된 데이터를 가져오는 함수
+    $("#date").change(function() {
+        fetchFilteredData(); // 날짜 변경 시 데이터 새로 불러오기
+    });
+
+    // 필터링된 데이터를 가져오는 함수
+    function fetchFilteredData() {
+        var departmentId = $("#department").val();
+        var teamId = $("#team").val();
+        var date = $("#date").val();
+
+        $.ajax({
+            url: "/filter", 
+            type: "GET",
+            data: {
+                departmentId: departmentId,
+                teamId: teamId,
+                date: date
+            },
+            dataType: "json",
+            success: function(data) {
+            	console.log(data)
+                updateTable(data.attendanceList);
+                updateChart(data);  // 차트 업데이트 추가
+            },
+            error: function() {
+                alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            }
+        });
+    }
+
+    // 테이블 업데이트
+    function updateTable(data) {
+        var tableBody = $("#table1 tbody");
+        tableBody.empty(); // 기존 데이터 삭제
+
+        if (data.length === 0) {
+            tableBody.append("<tr><td class='text-center' colspan='9'>데이터가 없습니다.</td></tr>");
+            return;
+        }
+
+        $.each(data, function(index, x) {
+            var row = 
+            	"<tr>" +
+	                "<td>" + (x.employee.department ? x.employee.department.departmentName : "-") + "</td>" +
+	                "<td>" + (x.employee.team ? x.employee.team.teamName : "-") + "</td>" +
+	                "<td><a href='/check/Detail?empId=" + x.empId + "'>" + x.employee.name + "</a></td>" +
+	                "<td>" + x.workStartTime + "</td>" +
+	                "<td>" + (x.workEndTime ? x.workEndTime : "") + "</td>" +
+	                "<td>" + 
+		                (x.workingHours !== null && x.workingHours !== "" ? x.workingHours + "시간 " : "0시간 ") + 
+		                (x.workingMinutes !== null && x.workingMinutes !== "" ? x.workingMinutes + "분" : "0분") + 
+	           		"</td>"+
+	                "<td>" + "" + "</td>" +
+	                "<td>" + "" + "</td>" +
+	                "<td>" + x.attendanceStatus + "</td>" +
+                "</tr>";
+            tableBody.append(row);
+        });
+    }
+    
+    var departmentList = [
+        <c:forEach items="${departmentList}" var="x">
+            {
+                "departmentName": "${x.departmentName}",
+                "departmentId": "${x.departmentId}",
+                "employeeCount": "${x.departmentEmployeeCount}" // 부서별 인원수
+            } <c:if test="${not empty x}">,</c:if>
+        </c:forEach>
+    ];
+    var departmentAliveCount = [
+    	<c:forEach items="${todayAlive}" var="x">
+        {
+            "AliveemployeeCount": "${x.departmentArrivedEmployeeCount}" //부서별 출근한 인원수
+        } <c:if test="${not empty x}">,</c:if>
+	 	</c:forEach>
+];
+    
+    var dpList = departmentList;
+    var dac = departmentAliveCount;
+	
+ // 차트 업데이트 함수
+    function updateChart(data) {
+        console.log("===== updateChart 실행 =====");
+        console.log(data.TodayAlive);
+
+        var departmentAliveCount1 = (data.TodayAlive || []).map(function(x) {
+            return {
+                AliveemployeeCount: x.departmentArrivedEmployeeCount
+            };
+        });
+
+        // 출근 인원 데이터 업데이트
+      dac = departmentAliveCount1;
+
+	console.log(dpList)
+	console.log("오늘날짜 출근 원수",dac)
+	console.log(data.TodayAlive)
+	console.log("============")
+	
+        var updatedDepartmentList = dpList.map(function(department) {
+            return {
+                departmentName: department.departmentName,
+                employeeCount: department.employeeCount
+            };
+        });
+
+        var updatedAliveCount = dac.map(function(department) {
+            return department.AliveemployeeCount;
+        });
+        console.log("업데이트된 부서 리스트:", updatedDepartmentList);
+        console.log("업데이트된 출근 인원 수:", updatedAliveCount);
+
+        // 차트 데이터 업데이트
+        chartProfileVisit.updateOptions({
+            xaxis: {
+                categories: updatedDepartmentList.map(function(department) {
+                    return `\${department.departmentName} / 총 \${department.employeeCount}명`;
+                })
+            }
+        });
+        // 출근 인원 데이터 업데이트 (기존 차트 유지)
+        chartProfileVisit.updateSeries([{
+            name: "출근",
+            data: updatedAliveCount
+        }]);
+    }
+
+    // 차트 옵션 설정
+    var optionsProfileVisit = {
+        annotations: {
+            position: "back",
+        },
+        dataLabels: {
+            enabled: true, 
+            formatter: function (val) {
+                return `출근 인원: \${val}명`;  // 여기에서만 "명" 추가
+            },
+            style: {
+                fontSize: '12px',
+                fontWeight: 'bold',
+                colors: ['#ffffff'],
+            },
+            offsetY: -10,
+        },
+        chart: {
+            type: "bar",
+            height: 300,
+        },
+        fill: {
+            opacity: 1,
+        },
+        series: [{
+            name: "출근",
+            data: dac.map(function(todayAlive) {
+                return todayAlive.AliveemployeeCount; // 숫자로 저장
+            }),
+        }],
+        colors: ["#435ebe"],
+        xaxis: {
+            categories: dpList.map(function(department) {
+                return `\${department.departmentName} / 총 \${department.employeeCount}명`;
+            }),
+        },
+        yaxis: {
+            min: 0,
+            max: 60, // 총 인원보다 큰 최대값 설정
+        },
+    };
+
+    // ApexCharts 차트 생성
+    var chartProfileVisit = new ApexCharts(
+        document.querySelector("#chart-profile-visit"),
+        optionsProfileVisit
+    );
+
+    // 차트 렌더링
+    chartProfileVisit.render();
+
+</script>
+

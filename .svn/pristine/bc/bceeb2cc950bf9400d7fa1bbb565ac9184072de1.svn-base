@@ -1,0 +1,55 @@
+package kr.or.ddit.application.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.application.service.ApplicationService;
+import kr.or.ddit.application.vo.ApplicationVO;
+
+/**
+ * 지원자 등록
+ */
+@Controller
+@RequestMapping("/recruit/applicant")
+public class ApplicationInsertController {
+	
+	@Autowired
+	private ApplicationService service;
+	
+	// 등록 UI
+	@GetMapping("registerUI")
+	public String recruitApplicantForm(
+		@RequestParam("recruitId") Long recruitId
+		, Model model
+	) {
+		ApplicationVO application = new ApplicationVO();
+	    application.setRecruitId(recruitId);
+		
+		model.addAttribute("application", application);
+		return "tiles:recruitment/recruitApplicantFormUI";
+	}
+	
+	
+	// 등록 process
+	@PostMapping("registerProcess")
+	public String registerApplication(
+		@ModelAttribute ApplicationVO application
+	    , Model model
+	) {
+		boolean isRegistered = service.createApplication(application);
+	    if (isRegistered) {
+	    	// 지원서 성공 시 채용공고 목록으로
+	    	return "redirect:/recruit/board/list";
+	    }else {
+	    	// 실패 시 폼으로
+	    	return "redirect:/recruit/applicant/registerUI?recruitId=" + application.getRecruitId();
+	    }
+		
+	}
+}

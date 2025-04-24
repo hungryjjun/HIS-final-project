@@ -1,0 +1,133 @@
+function connectWebSocket() {
+	console.log("🔌 WebSocket 연결 시도...");
+
+	let socket = new SockJS('/wss');  // 서버와의 연결
+	stompClient = Stomp.over(socket);
+
+	stompClient.connect({}, function(frame) {
+		console.log("✅ WebSocket 연결 성공: " + frame);
+
+		// 상태 변경 메시지 수신 시
+		stompClient.subscribe('/topic/onlineStatus', function(message) {
+			let statusUpdate = message.body;
+			console.log("🔄 상태 업데이트 수신: ", statusUpdate);
+
+			// 직원 목록 다시 불러오기
+			loadEmployeeList();
+		});
+	}, function(error) {
+		console.error("❌ WebSocket 연결 실패", error);
+	});
+}
+
+function loadEmployeeList() {
+	console.log("📥 직원 목록 요청");
+
+	$.ajax({
+		url: "/messenger/empList",
+		type: "GET",
+		dataType: "json",
+		success: function(data) {
+			console.log("📋 직원 목록 수신 완료", data);
+
+			// 1. 데이터를 트리 구조로 변환
+			const treeData = {};
+
+			data.forEach(emp => {
+				const dept = emp.department?.departmentName || "미지정 부서";
+				const team = emp.teamName || "미지정 팀";
+
+				if (!treeData[dept]) treeData[dept] = {};
+				if (!treeData[dept][team]) treeData[dept][team] = [];
+
+				treeData[dept][team].push(emp);
+			});
+
+			//트리 HTML 생성
+			let html = `<h3>직원 목록</h3><div id="empListWrapper"><ul id="orgTree">`;
+
+			for (const deptName in treeData) {
+				html += `<li><span class="toggle"><i class="fas fa-building" style="margin-right: 5px;"></i>${deptName}</span><ul style="display:none;">`;
+
+				for (const teamName in treeData[deptName]) {
+					html += `<li><span class="toggle"><i class="fas fa-users" style="margin-right: 5px;"></i>${teamName}</span><ul style="display:none;">`;
+
+					treeData[deptName][teamName].forEach(emp => {
+						html += `
+						<li class="employee-item" data-emp-id="${emp.empId}" style="cursor: pointer;">
+						    <i class="fas fa-user"></i> ${emp.empName} (${emp.rankName || 'N/A'}) 
+						    - ${emp.status === '온라인' ? '🟢' : '⚪'} ${emp.status}
+						</li>
+
+                        `;
+					});
+
+					html += `</ul></li>`; // end team
+				}
+
+				html += `</ul></li>`; // end dept
+			}
+
+			html += `</ul></div>`; // end tree, wrapper
+			$("#contentArea").html(html);
+
+			//토글 기능 연결
+			$(document).off("click", ".toggle").on("click", ".toggle", function() {
+				$(this).siblings("ul").slideToggle();
+				$(this).toggleClass("open");
+			});
+			//클릭 시 채팅방 열기
+			$(".employee-item").on("click", function() {
+				const empId = $(this).data("emp-id");
+				openChatWith(empId);
+			});
+		},
+		error: function() {
+			alert("❌ 직원 목록을 불러오는 중 오류 발생");
+		}
+	});
+}
+
+
+
+function openChatWith(targetEmpId) {
+	const currentEmpId = sessionStorage.getItem("currentUserId");
+	console.log("✅ currentUserId: ", currentEmpId);
+	console.log("🎯 targetEmpId: ", targetEmpId);
+
+	if (!currentEmpId || !targetEmpId) {
+		alert("로그인 정보가 없습니다.");
+		return;
+	}
+
+	$.ajax({
+		url: "/messenger/selectOrInsertRoom",
+		method: "POST",
+		data: {
+			empId1: currentEmpId,
+			empId2: targetEmpId
+		},
+		success: function(roomId) {
+			console.log("✅ 채팅방 생성 or 조회 성공, ROOM_ID: ", roomId);
+			const popupName = `chatRoom_${roomId}`;
+			const popupOptions = "width=600,height=500,left=300,top=100,resizable=yes,scrollbars=yes";
+
+			window.open(`/messenger/room?roomId=${roomId}`, popupName, popupOptions);
+		},
+		error: function() {
+			alert("❌ 채팅방 생성에 실패했습니다.");
+		}
+	});
+}
+$(document).ready(function() {
+	console.log("📦 chatempList.js 로드됨");
+
+	connectWebSocket();
+	loadEmployeeList();
+
+	$("#empListBtn").on("click", function(e) {
+		e.preventDefault();
+		console.log("👆 직원 목록 버튼 클릭됨");
+		loadEmployeeList();
+	});
+});

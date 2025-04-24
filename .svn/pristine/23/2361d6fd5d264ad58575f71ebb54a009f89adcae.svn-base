@@ -1,0 +1,52 @@
+package kr.or.ddit.approval.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 전자결재 화면정의서용 -> 코딩 시작하면 갈을거임
+ */
+@RequestMapping("/approval")
+@Controller
+public class ApprovalReadController {
+
+	/**
+	 * 결재 문서 작성 
+	 * @return
+	 */
+	@GetMapping("write")
+	public String ApprovalDocWrite() {
+		return "tiles:approval/approvalwrite";
+	}
+	
+	
+    /**
+     * 결재 진행 승인자1
+     * @return
+     */
+    @GetMapping("writeApprover1")
+    public String ApprovalDocWrite2() {
+        return "tiles:approval/approvalwrite2";
+    }
+
+    /**
+     * 결재 승인자2
+     * @return
+     */
+    @GetMapping("writeApprover2")
+    public String ApprovalDocWrite3() {
+        return "tiles:approval/approvalwrite3";
+    }
+
+    /**
+     * 결재 최종승인자
+     * @return
+     */
+    @GetMapping("writeFinalApprover")
+    public String ApprovalDocWrite4() {
+        return "tiles:approval/approvalwrite4";
+    }
+
+   
+}

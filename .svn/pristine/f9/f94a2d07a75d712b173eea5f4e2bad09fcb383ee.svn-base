@@ -1,0 +1,50 @@
+package kr.or.ddit.workstatus.controller;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.workstatus.service.WorkStatusService;
+import kr.or.ddit.workstatus.vo.WorkstautsVO;
+
+@Controller
+@RequestMapping("/workstauts")
+public class WorkstatusController {
+	
+	@Autowired
+	WorkStatusService service;
+	
+	@GetMapping("list")
+	public String WorkStatusList(Model model) {
+		model.addAttribute("workStatusManageList",service.workStatusManageList()); 
+		return "tiles:workstatus/workstatusMange";
+	}
+	
+	@PostMapping("Insert")
+	@ResponseBody
+	public void workStatusManageInsert(@RequestBody WorkstautsVO workstautsManage) {
+		service.insertWorkStatusItem(workstautsManage);
+	}
+	
+	@PostMapping("Update")
+	@ResponseBody
+	public void workStatusManageUpdate(@RequestBody WorkstautsVO workstautsManage) {
+		service.updateWorkStatusItemStatus(workstautsManage);
+	}
+	
+	@PostMapping("Delete")
+	@ResponseBody
+	public ResponseEntity<String> workStatusManageDelete(@RequestBody Map<String, String>  workstautsCodeMap) {
+		String workstautsCode = workstautsCodeMap.get("statusId");
+	    service.deleteWorkStatusItem(workstautsCode);
+	    return ResponseEntity.ok("삭제 완료");
+	}
+}

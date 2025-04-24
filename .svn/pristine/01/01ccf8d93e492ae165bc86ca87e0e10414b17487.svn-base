@@ -1,0 +1,6 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<script src="${pageContext.request.contextPath}/resources/js/qr/qr.js"></script>
+    <h1>QR 출근 체크 중...</h1>
+    <h2>현재 시간 : ${checkInTime }</h2>
+<!--     <div id="debug-info"></div> 디버깅 메시지 출력할 영역 -->

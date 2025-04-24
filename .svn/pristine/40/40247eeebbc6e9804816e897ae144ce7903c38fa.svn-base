@@ -1,0 +1,13 @@
+package kr.or.ddit.attendance.service;
+
+import java.util.List;
+
+import kr.or.ddit.attendance.vo.AttendanceVO;
+
+public interface AttendanceService {
+	public List<AttendanceVO> attendanceList();
+	public List<AttendanceVO> attendanceDetail(String empId);
+	public void attendanceInsert(AttendanceVO attendance);
+	public AttendanceVO findTodayAttendance(String empId);
+	public void updateWorkEnd(AttendanceVO attendance);
+}

@@ -1,0 +1,128 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 20.     	CHOI           결재 문서 상신(기안자가 결재 요청)
+ *
+ * </pre>
+ */
+
+
+// 결재자 동적 추가 기능
+document.addEventListener("DOMContentLoaded", function () {
+    console.log(" 페이지 로드 완료!");
+
+    //  로그인한 사용자의 empId 자동 입력
+    axios.get("/approval/draft/getEmpId")
+        .then(response => {
+            console.log("기안자 ID:", response.data);
+            document.querySelector("#empId").value = response.data;
+        })
+        .catch(error => {
+            console.error("기안자 ID 가져오기 실패:", error);
+            alert("기안자 정보를 가져오는 데 실패했습니다.");
+        });
+
+    // 버튼 이벤트 리스너 등록
+	
+    document.querySelector("#submitApprovalBtn").addEventListener("click", submitApproval);
+    document.querySelector("#addApproverBtn").addEventListener("click", addApprover);
+    document.querySelector("#searchDraftBtn").addEventListener("click", getDraftsByEmpId);
+});
+
+/**
+ *  결재자 동적 추가 기능
+ */
+function addApprover() {
+    let table = document.getElementById("approverTable");
+    let row = table.insertRow();
+    row.classList.add("approverRow");
+
+    let cell1 = row.insertCell(0);
+    let cell2 = row.insertCell(1);
+    let cell3 = row.insertCell(2);
+    let cell4 = row.insertCell(3);
+    let cell5 = row.insertCell(4);
+	
+	cell1.innerHTML = `<input type="text" class="aprId" placeholder="결재선순번ID">`; 
+    cell2.innerHTML = `<input type="text" class="approverId" placeholder="결재자 ID">`;
+    cell3.innerHTML = `<input type="number" class="aprSeq" placeholder="순서">`;
+    cell4.innerHTML = `<input type="text" class="aprStatus" value="기안요청" readonly>`;
+    cell5.innerHTML = `<input type="text" class="aprReason" value="결재상태내용">`;
+}
+
+/**
+ * 기안 문서 상신
+ */
+function submitApproval() {
+    let draftData = {
+        draftId: document.querySelector("#draftId")?.value || "",
+        templateId: document.querySelector("#templateId")?.value || "",
+        empId: document.querySelector("#empId").value,
+        draftTitle: document.querySelector("#draftTitle").value,
+        draftContent: document.querySelector("#draftContent").value,
+        draftUrgent: document.querySelector("#draftUrgent").checked ? "Y" : "N",
+        departmentId: document.querySelector("#departmentId").value,
+        draftStatus: "대기",
+        draftapproverList: [],
+        draftBoxList: []
+    };
+
+    // 결재자 정보 수집
+    document.querySelectorAll(".approverRow").forEach(row => {
+        let approver = {
+			aprId: row.querySelector(".aprId")?.value || "",
+            draftId: draftData.draftId,
+            approverId: row.querySelector(".approverId").value,
+            aprSeq: row.querySelector(".aprSeq").value,
+            aprYn: "N",
+            aprStatus: "대기",
+			aprReason: row.querySelector(".aprReason").value 
+        };
+        draftData.draftapproverList.push(approver);
+    });
+
+    axios.post("/approval/draft/submit", draftData)
+        .then(resp => {
+            alert(resp.data);
+            location.reload();
+        })
+        .catch(error => {
+            console.error("결재 상신 실패:", error);
+            alert("결재 상신 실패하였습니다.");
+        });
+}
+
+function getDraftsByEmpId() {
+    let empId = document.querySelector("#searchEmpId").value;
+    axios.get(`/approval/draft/my?empId=${empId}`)
+        .then(resp => {
+            let draftList = resp.data;
+            let draftTable = document.querySelector("#draftTableBody");
+            draftTable.innerHTML = ""; // 기존 데이터 삭제
+
+            if (draftList.length === 0) {
+                alert("해당 직원의 문서가 없습니다.");
+                return;
+            }
+
+            draftList.forEach(draft => {
+                let row = draftTable.insertRow();
+                row.innerHTML = `
+                    <td>${draft.draftId}</td>
+                    <td>${draft.draftTitle}</td>
+                    <td>${draft.draftDate}</td>
+                    <td>${draft.draftStatus}</td>
+                    <td>${draft.finalApprover || "미확인"}</td>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error("문서 조회 실패:", error);
+            alert("문서 조회 실패하였습니다.");
+        });
+}
+
+

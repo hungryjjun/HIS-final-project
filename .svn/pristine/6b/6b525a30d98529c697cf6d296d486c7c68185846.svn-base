@@ -1,0 +1,71 @@
+package kr.or.ddit.account.controller;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.account.service.AccountService;
+import kr.or.ddit.account.service.AccountServiceImpl;
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.messenger.service.ChatEmpService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 
+ * @author youngjun
+ * @since 2025. 3. 12.
+ * @see
+ *
+ *      <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일               수정자           수정내용
+ *  -----------      -------------    ---------------------------
+ *  2025. 3. 12.        youngjun             최초 생성
+ *  2025. 3. 14.        태우                     로그인 후 컨텐츠 안에서 동적인 현재 시간 받아오기 위함
+ *  2025. 3. 14.        규				  로그인 후 실시간 ChatEmp 상태 온라인 설정
+ *      </pre>
+ */
+@Slf4j
+@Controller
+@RequestMapping("/account/login")
+@RequiredArgsConstructor
+public class AccountLoginController {
+
+   @Autowired
+   private AccountService service;
+   @Autowired
+   private ChatEmpService cservice;
+   private final SimpMessagingTemplate msgTemplate;
+
+   @GetMapping
+   public String accountLoginForm() {
+         return "tiles:mazer/content";
+   }
+
+   @GetMapping("/home")
+   public String accountLogin() {
+	   
+      return "tiles:mazer/content";
+   }
+   
+   @GetMapping("/")
+   public String accountLogout() {
+	   return "redirect:/account/accountLoginForm";
+   }
+}
+
+
+

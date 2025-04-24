@@ -1,0 +1,61 @@
+package kr.or.ddit.empAppointment.vo;
+
+import kr.or.ddit.department.vo.DepartmentVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import kr.or.ddit.job.vo.JobVO;
+import kr.or.ddit.position.vo.PositionVO;
+import kr.or.ddit.rank.vo.RankVO;
+import kr.or.ddit.team.vo.TeamMemberVO;
+import kr.or.ddit.team.vo.TeamVO;
+import lombok.Data;
+
+
+@Data
+public class AppointmentVO {
+    private Long appId;
+    private String empId;
+    private String appDate;
+    private String appType;
+    private String appReason;
+    private String prevJobId;
+    private String prevRankId;
+    private String prevDepartmentId;
+    private String newJobId;
+    private String newRankId;
+    private String newDepartmentId;
+    private String hireDrte;
+    private Long serviceYear;
+    private String prevTeamId;
+    private String prevPositionId;
+    private String newTeamId;
+    private String newPositionId;
+
+    private String prevRankName;  // 추가: 발령 전 직급
+    private String newRankName;  // 추가: 발령 후 직급
+    private String prevPositionName;  // 추가: 발령 전 직책
+    private String newPositionName;  // 추가: 발령 후 직책
+    private String prevDepartmentName;  // 추가: 발령 전 부서
+    private String newDepartmentName;  // 추가: 발령 후 부서
+    private String prevJobName;  // 추가: 발령 전 직무
+    private String newJobName;  // 추가: 발령 후 직무
+    private String prevTeamName;  // 추가: 발령 전 팀
+    private String newTeamName;  // 추가: 발령 후 팀
+
+    private DepartmentVO prevDepartment;
+    private DepartmentVO newDepartment;
+    private DepartmentVO department;
+    private TeamVO prevTeam;
+    private TeamVO newTeam;
+    private TeamVO team;
+    private TeamMemberVO teamMember;
+    private PositionVO prevPosition;
+    private PositionVO newPosition;
+    private PositionVO position;
+    private JobVO prevJob;
+    private JobVO newJob;
+    private JobVO job;
+    private RankVO prevRank;
+    private RankVO newRank;
+    private RankVO rank;
+    private EmployeeVO employee;
+}

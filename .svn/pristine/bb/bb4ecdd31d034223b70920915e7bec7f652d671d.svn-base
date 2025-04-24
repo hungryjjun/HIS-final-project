@@ -1,0 +1,36 @@
+package kr.or.ddit.team.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.team.service.TeamService;
+import kr.or.ddit.team.vo.TeamVO;
+
+@Controller
+@RequestMapping("/team")
+public class TeamDetailController {
+
+	@Inject
+	private TeamService service;
+
+	@GetMapping("detail")
+	public String TeamDetail(
+		    @RequestParam("teamId") Long teamId,
+            Model model) {
+
+        // model 확보(logic 사용)
+        TeamVO team = service.selectTeam(teamId);
+        System.out.println("--------------------------------------------------------------");
+        System.out.println("--------------------" + team);
+        System.out.println("--------------------------------------------------------------");
+        // scope 에 저장 : team (attribute name)
+        model.addAttribute("team", team);
+
+		return "tiles:team/teamDetail";
+	}
+}

@@ -1,0 +1,34 @@
+package kr.or.ddit.evaluation.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.evaluation.service.EvaluationTypeService;
+import kr.or.ddit.evaluation.vo.EvaluationTypeVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping
+public class EvaluationTypeReadController {
+
+	@Autowired
+	private EvaluationTypeService service;
+	
+	@GetMapping("/evaluation/evaluationTypeList")
+	public String readEvaluType(Model model) {
+
+		List<EvaluationTypeVO> evaluTypeList = service.evaluTypeList();
+		log.info("{}============================",evaluTypeList);		
+		model.addAttribute("evaluTypeList",evaluTypeList);
+		
+		return "tiles:evaluation/evaluationTypeList";
+	}
+	
+	
+}

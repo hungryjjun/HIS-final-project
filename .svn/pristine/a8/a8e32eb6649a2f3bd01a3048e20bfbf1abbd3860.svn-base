@@ -1,0 +1,38 @@
+<div class="attend_contents_wrap2">						<p class="txt"> 2025년 3월 31일 (월) <span class="time" id=
+"timelineGadgetTime">19:01:29</span></p>                                                  <div class="ehr_stat_data summary">
+                             <p class="stat_tit">3<b>h</b> 37<b>m</b></p>                             <div class=
+"type_flexible_summary">                                 <div class="wrap_progress">                                     <div 
+class="time min" title="주간 근무시간은 40h입니다." style="left:76%">최소 40h</div>                                     <div class=
+"bar" style="left:76%"></div>                                     <div class="time max" title="최대 근무시간은 52h입니다.">최대 52h
+</div>                                     <div class="progress">                                         <div class=
+"part_default" title="선택근무" style="width:6%"></div>                                         <div class="part_overtime" title=
+"초과근무(연장)" style="width:0%"></div>                                     </div>                                 </div>
+                             </div>                         </div>
+                                                  							<div class="log_view_wrap">
+								<ul class="log_view">									<li>
+                                     <
+dl>                                         <dt>출근시간</dt>  	                                     <dd id="workInTime">06:43:27
+</dd>                                     </dl>									</li>									<li>
+                                     <dl>                                         <dt>퇴근시간</dt>
+                                         <dd id="workOutTime">09:26:53</dd>                                     <dl>
+									</dl></dl></li>                                 								</ul>
+							</div>							<div class="vertical_bar"></div>								<
+section class="function function_attend">							    <div class="function_btn_wrap">
+								    <a id="workIn" class="btn_function btn_function_s off" data-bypass="true">
+									    <span class="txt">출근하기</span>								    </a>
+								    <a id="workOut" class="btn_function btn_function_s off" data-bypass="true">
+									    <span class="txt">퇴근하기</span>								    </a>
+							    </div>							    <div class="works_state">                                 <a
+ class="btn_function" id="changeStatus" data-bypass="true">                                     <span class="txt" id="myStatus">
+출장&nbsp;&nbsp;<span class="ic_side ic_show_down"></span></span>                                 </a>
+							    </div>									<div class="layer_transition" id="layer_transition" 
+style=
+"z-index: 100;display: none;">									<div class="ui-menu-container container">
+										<div class="content">											<div class="row_wrap 
+menuitem my-todo-list foldable">												<ul class="submenu-list statusList"><li class=
+"timelineStatus"><span class="txt " data-code="3">업무</span></li><li class="timelineStatus"><span class="txt " data-code="4">
+업무종료</span></li><li class="timelineStatus"><span class="txt " data-code="5">외근</span></li><li class="timelineStatus"><span 
+class="txt " data-code="6">출장</span></li><li class="timelineStatus"><span class="txt " data-code="30">반차</span></li></ul>
+											</div>											<hr>
+										</div>									</div>                                 </div>
+							</section>							</div>

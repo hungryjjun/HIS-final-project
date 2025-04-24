@@ -1,0 +1,18 @@
+package kr.or.ddit.organization.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 직원 조직도
+ */
+@Controller
+@RequestMapping("/employee")
+public class OrgReadController {
+	
+	@GetMapping("organization")
+	public String EmpChart() {
+		return "tiles:organization/organizationList";
+	}
+}

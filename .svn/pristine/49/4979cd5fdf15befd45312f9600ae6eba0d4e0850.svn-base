@@ -1,0 +1,50 @@
+/**
+ * 
+ */let mainStompClient = null;
+const currentUserId = sessionStorage.getItem("currentUserId");
+
+function connectMainWebSocket() {
+  const socket = new SockJS("/wss");
+  mainStompClient = Stomp.over(socket);
+
+  mainStompClient.connect({}, function (frame) {
+    console.log("✅ 메인 WebSocket 연결됨:", frame);
+
+    // 모든 채팅방의 메시지 수신
+    mainStompClient.subscribe("/topic/chat/global", function (message) {
+      const chat = JSON.parse(message.body);
+      handleIncomingMessage(chat);
+    });
+  });
+}
+
+function handleIncomingMessage(chat) {
+  const isMine = chat.senderId === currentUserId;
+  const openRoomId = sessionStorage.getItem("openRoomId"); // 열려있는 방
+
+  // 알림 조건
+  if (!isMine && Notification.permission === "granted") {
+    if (String(chat.roomId) !== openRoomId) {
+      console.log("🔔 메신저 메인 - 알림 실행!");
+      new Notification(`${chat.senderName}님`, {
+        body: chat.messageText,
+        icon: "https://cdn-icons-png.flaticon.com/512/3588/3588530.png"
+      });
+    } else {
+      console.log("📪 메신저 메인 - 열려있는 채팅방이어서 알림 X");
+    }
+  }
+}
+
+function requestNotificationPermission() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+}
+
+// DOM 로딩 시 연결
+$(document).ready(function () {
+  requestNotificationPermission();
+  connectMainWebSocket();
+});

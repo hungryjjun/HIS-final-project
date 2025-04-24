@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.contract.ContractMapper">
+
+	<resultMap type="contractVO" id="ContractResultMap" autoMapping="true">
+		<id property="contractId"  column="CONTRACT_ID"/>
+		<result property="contractType" column="CONTRACT_TYPE"/>
+	    <result property="startDate" column="START_DATE"/>
+	    <result property="endDate" column="END_DATE"/>
+	    <result property="workType" column="WORK_TYPE"/>
+	    <result property="baseSalary" column="BASE_SALARY"/>
+	    <result property="overtimePay" column="OVERTIME_PAY"/>
+	    <result property="weeklyHours" column="WEEKLY_HOURS"/>
+	    <result property="contractStatus" column="CONTRACT_STATUS"/>
+	    <result property="createAt" column="CREATE_AT"/>
+		<association property="employee" javaType="EmployeeVO" autoMapping="true">
+			<id property="empId" column="EMP_ID"/>
+			<result property="name" column="NAME"/> 
+		</association>
+	</resultMap>
+	<!--모든 근로계약서 조회 -->
+	<select id="contractList" resultMap="ContractResultMap">
+		SELECT
+			C.CONTRACT_ID
+	      ,	C.EMP_ID
+	      , C.CONTRACT_TYPE
+	      , C.START_DATE
+	      , C.END_DATE
+	      , C.WORK_TYPE
+	      , C.BASE_SALARY
+	      , C.OVERTIME_PAY
+	      , C.WEEKLY_HOURS
+	      , C.CONTRACT_STATUS
+	      , C.CREATE_AT
+	      , E.NAME
+		FROM EMP_CONTRACT C
+		LEFT JOIN EMPLOYEE E ON C.EMP_ID = E.EMP_ID
+		ORDER BY C.CREATE_AT DESC
+	</select>
+	
+	<!-- 근로계약서가 없는 사원 조회 -->
+	<select id="unContractList" resultType="EmployeeVO">
+	  SELECT E.EMP_ID, E.NAME
+	  FROM EMPLOYEE E
+	  LEFT JOIN EMP_CONTRACT C ON E.EMP_ID = C.EMP_ID
+	  WHERE C.EMP_ID IS NULL
+	</select>
+	
+	<!-- 특정 사원의 근로계약서 조회 -->
+	<select id="selectContract" resultMap="ContractResultMap">
+		SELECT
+			C.CONTRACT_ID
+	      ,	C.EMP_ID
+	      , C.CONTRACT_TYPE
+	      , C.START_DATE
+	      , C.END_DATE
+	      , C.WORK_TYPE
+	      , C.BASE_SALARY
+	      , C.OVERTIME_PAY
+	      , C.WEEKLY_HOURS
+	      , C.CONTRACT_STATUS
+	      , C.CREATE_AT
+	      , E.NAME
+		FROM EMP_CONTRACT C
+		LEFT JOIN EMPLOYEE E ON C.EMP_ID = E.EMP_ID
+		WHERE C.EMP_ID = #{empId}
+		ORDER BY C.CREATE_AT DESC
+	</select>
+	
+	
+	    <!-- 근로계약서 등록 -->
+    <insert id="insertContract">
+        INSERT INTO EMP_CONTRACT (
+            CONTRACT_ID, EMP_ID, CONTRACT_TYPE, START_DATE, END_DATE, 
+            WORK_TYPE, BASE_SALARY, OVERTIME_PAY, WEEKLY_HOURS, CONTRACT_STATUS, CREATE_AT
+        ) VALUES (
+            EMP_CONTRACT_SEQ.NEXTVAL, #{empId}, #{contractType}, #{startDate}, #{endDate},
+            #{workType}, #{baseSalary}, #{overtimePay}, #{weeklyHours}, #{contractStatus}, SYSDATE
+        )
+    </insert>    
+</mapper>

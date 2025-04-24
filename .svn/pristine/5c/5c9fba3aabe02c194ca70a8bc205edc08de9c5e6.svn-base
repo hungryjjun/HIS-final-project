@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 12.     	정태우            최초 생성
+ *
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.mybatis.mappers.attendance.attendanceMapper">
+
+	<resultMap type="attendanceVO" id="attendanceResultMap"
+		autoMapping="true">
+		<id property="attendanceId" column="attendance_id" />
+		<association property="employee" javaType="employeeVO" autoMapping="true">
+			<id property="empId" column="emp_id" />
+			<association property="department" javaType="DepartmentVO" autoMapping="true" /> 
+			<association property="team" javaType="TeamVO" autoMapping="true" />
+		</association>
+	</resultMap>
+
+
+	<select id="attendanceList" resultMap="attendanceResultMap">
+	SELECT *
+	FROM attendance a
+		JOIN employee e ON a.emp_id = e.emp_id
+		JOIN department d ON e.department_id = d.department_id
+		JOIN team t ON d.department_id = t.department_id
+
+	</select>
+
+	<select id="attendanceDetail" resultMap="attendanceResultMap">
+    SELECT *
+    FROM attendance a
+    left JOIN employee e ON a.emp_id = e.emp_id
+    left JOIN department d ON e.department_id = d.department_id
+    left JOIN team t ON e.team_id = t.team_id  
+    join EMP_STATUS es on es.STATUS_ID = a.STATUS_ID
+    WHERE a.emp_id = #{empId} 
+	</select>
+	
+	<select id="findTodayAttendance"  resultType="AttendanceVO">
+    SELECT * 
+   	FROM attendance 
+    WHERE 
+   		 emp_id = #{empId} 
+    AND 
+    	TO_CHAR(work_start, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+	</select>
+	
+	<insert id="attendanceInsert">
+		<selectKey order="BEFORE" keyProperty="attendanceId" resultType="long">
+			SELECT NVL(MAX(attendance_id), 0) + 1 FROM attendance
+		</selectKey>
+	INSERT INTO attendance (
+	    attendance_id,
+	    emp_id,
+	    work_start,
+	    work_end,
+	    working_hours,
+	    latitude,
+	    longtitude,
+	    attendance_status,
+	    work_type,
+	    status_id
+	) VALUES (
+	    #{attendanceId,jdbcType=NUMERIC}, 
+	    #{empId,jdbcType=VARCHAR}, 
+	    TO_DATE(#{workStart,jdbcType=DATE}, 'YYYY-MM-DD HH24:MI:SS'),
+		TO_DATE(#{workEnd,jdbcType=DATE}, 'YYYY-MM-DD HH24:MI:SS'),
+	    #{workingHours,jdbcType=NUMERIC}, 
+	    #{latitude,jdbcType=VARCHAR}, 
+	    #{longtitude,jdbcType=VARCHAR}, 
+	    #{attendanceStatus,jdbcType=VARCHAR}, 
+	    #{workType,jdbcType=VARCHAR}, 
+	    #{statusId,jdbcType=VARCHAR}
+	)
+	</insert>
+	
+	<update id="updateWorkEnd">
+    UPDATE 
+    	attendance
+    SET 
+   	 	work_end = TO_DATE(#{workEnd,jdbcType=VARCHAR}, 'YYYY-MM-DD HH24:MI:SS'), 
+<!--      	working_hours = ROUND((TO_DATE(#{workEnd}, 'YYYY-MM-DD HH24:MI:SS') - TO_DATE(work_start, 'YYYY-MM-DD HH24:MI:SS')) * 24, 2) -->
+    WHERE 
+    	emp_id = #{empId}
+    AND 
+   		 TO_CHAR(work_start, 'YYYY-MM-DD') = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+    AND 
+   		 work_end IS NULL
+</update>
+	
+</mapper>

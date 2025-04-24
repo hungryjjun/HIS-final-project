@@ -1,0 +1,13 @@
+package kr.or.ddit.empappointments.vo;
+
+import java.util.List;
+
+import lombok.Data;
+
+@Data
+public class AppointmentWrapper {
+	
+	private List<AppointmentVO> appointmentList;
+
+	
+}

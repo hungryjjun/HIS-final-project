@@ -1,0 +1,32 @@
+package kr.or.ddit.application.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.application.vo.ApplicationVO;
+import kr.or.ddit.mybatis.mappers.application.ApplicationMapper;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ApplicationServiceImpl implements ApplicationService {
+
+	@Inject
+	private final ApplicationMapper dao;
+	
+	// 지원서 목록 조회
+	@Override
+	public List<ApplicationVO> readApplicationList(Long recruitId) {
+		return dao.selectApplicationList(recruitId);
+	}
+
+	// 지원서 상세 조회
+	@Override
+	public ApplicationVO readApplicationDetail(Long appId) {
+		return dao.selectApplicationDetail(appId);
+	}
+
+}

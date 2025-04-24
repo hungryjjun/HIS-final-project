@@ -1,0 +1,13 @@
+package kr.or.ddit.messenger.service;
+
+import java.util.List;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+
+public interface ChatEmpService {
+	List<ChatEmpVO> chatempList();
+
+	public boolean chatInsert(ChatEmpVO chat);
+	
+	boolean updateEmpStatus(String empId, String Status);
+}

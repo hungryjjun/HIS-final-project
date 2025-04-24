@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.messenger.chatempMapper">
+
+    <!-- 직원 정보 ResultMap -->
+    <resultMap type="ChatempVO" id="ChatEmpResultMap" autoMapping="true">
+        <association property="department" javaType="DepartmentVO" autoMapping="true"/>
+    </resultMap>
+
+    <!-- 채팅방 직원 목록 -->
+    <select id="chatempList" resultMap="ChatEmpResultMap">
+        SELECT 
+            D.DEPARTMENT_NAME, 
+            C.TEAM_NAME ,
+            C.EMP_NAME,
+            C.EMP_ID ,
+            C.EMP_RANK,
+            C.STATUS,
+            C.LAST_LOGIN
+        FROM CHAT_EMP C
+        JOIN DEPARTMENT D ON C.DEPARTMENT_ID = D.DEPARTMENT_ID
+        ORDER BY D.DEPARTMENT_NAME ASC, C.TEAM_NAME ASC,  C.EMP_NAME ASC
+    </select>
+
+    <!-- 상태 업데이트 -->
+    <update id="updateEmpStatus">
+        UPDATE CHAT_EMP
+        SET STATUS = #{status}
+        WHERE EMP_ID = #{empId}
+    </update>
+
+    <!-- 채팅 계정 생성 -->
+    <insert id="insertChatEmp" parameterType="accountVO">
+        INSERT INTO CHAT_EMP (
+            EMP_ID,
+            DEPARTMENT_ID,
+            EMP_NAME,
+            TEAM_NAME,
+            EMP_RANK,
+            STATUS,
+            LAST_LOGIN
+        ) VALUES (
+            #{empId},
+            #{departmentId},
+            #{empName},
+            (SELECT TEAM_NAME FROM TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TEAM_MEMBER WHERE TM_ID = #{tmId})),
+            (SELECT RANK_NAME FROM RANK WHERE RANK_ID = #{jobId}),
+            '오프라인',
+            SYSDATE
+        )
+    </insert>
+
+    <!-- ============================= -->
+    <!-- 채팅방 관련 SQL -->
+    <!-- ============================= -->
+
+    <!-- 1:1 채팅방 존재 여부 확인 -->
+    <select id="selectOneToOneChatRoom" resultType="int">
+        SELECT R.ROOM_ID
+        FROM CHAT_ROOM R
+        JOIN CHAT_MEMBER M1 ON R.ROOM_ID = M1.ROOM_ID
+        JOIN CHAT_MEMBER M2 ON R.ROOM_ID = M2.ROOM_ID
+        WHERE R.ROOM_TYPE = '1:1'
+          AND M1.EMP_ID = #{empId1}
+          AND M2.EMP_ID = #{empId2}
+    </select>
+
+    <!-- 채팅방 생성 -->
+    <insert id="insertChatRoom" parameterType="chatRoomVO">
+    	<selectKey resultType="long" keyProperty="roomId" order="BEFORE">
+    		SELECT CHAT_ROOM_SEQ.NEXTVAL FROM DUAL
+    	</selectKey>    	
+        INSERT INTO CHAT_ROOM (
+            ROOM_ID,
+            EMP_ID,
+            ROOM_TYPE,
+            ROOM_NAME,
+            CREATE_AT
+        ) VALUES (
+        	#{roomId},
+            #{empId},
+            '1:1',
+            #{roomName},
+            SYSDATE
+        ) 
+    </insert>
+
+    <!-- 방금 생성한 채팅방 ID 조회 -->
+    <select id="selectLastChatRoomId" resultType="int">
+        SELECT MAX(ROOM_ID) FROM CHAT_ROOM
+    </select>
+
+    <!-- CHAT_MEMBER에 참여자 추가 -->
+    <insert id="insertChatMembers">
+        INSERT INTO CHAT_MEMBER (
+            EMP_ID,
+            ROOM_ID,
+            JOINED_AT,
+            ROLE
+        ) VALUES (
+            #{empId},
+            #{roomId},
+            SYSDATE,
+            'member'
+        )
+    </insert>
+    <!-- 메시지 관련 SQL -->
+    <insert id="insertMessage" parameterType="chatMessageVO">
+    	<selectKey resultType="long" keyProperty="messageId" order="BEFORE">
+    		SELECT CHAT_MESSAGE_SEQ.NEXTVAL FROM DUAL
+    	</selectKey>    
+    	INSERT INTO CHAT_MESSAGE(
+    		MESSAGE_ID,
+    		ROOM_ID,
+    		SENDER_ID,
+    		MESSAGE_TEXT,
+    		SENT_AT
+    		) VALUES(
+    			#{messageId},
+    			#{roomId},
+    			#{senderId},
+    			#{messageText},
+    			SYSDATE
+    		)
+    		
+    </insert>
+</mapper>

@@ -1,0 +1,50 @@
+package kr.or.ddit.approval.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.approval.vo.DraftApproverVO;
+import kr.or.ddit.approval.vo.DraftManageMentVO;
+import kr.or.ddit.mybatis.mappers.approval.ApproverMapper;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 18.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 18.     	CHOI	          결재자 관리 
+ *
+ * </pre>
+ */
+@Service
+public class ApproverServiceImpl implements ApproverService {
+	
+	@Inject
+	private ApproverMapper mapper;
+	/**
+	 * 결재자가 본인의 결재 상태 정보 (결재 대기 문서)를 볼 때 
+	 * @param aprId 결재자
+	 * @return
+	 */
+	@Override
+	public List<DraftApproverVO> getMyApprovalInfo(String aprId) {
+		return mapper.getMyApprovalInfo(aprId);
+	}
+	/**
+	 * 결재 대기 문서 상세 조회 
+	 */
+	@Override
+	public List<DraftApproverVO>  getMyApprovalInfoDetail(Long draftId) {
+		return mapper.getMyApprovalInfoDetail(draftId);
+	}
+}

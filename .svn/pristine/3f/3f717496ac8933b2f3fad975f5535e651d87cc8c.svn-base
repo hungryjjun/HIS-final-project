@@ -1,0 +1,23 @@
+package kr.or.ddit.emprecordcards.vo;
+
+import lombok.Data;
+
+@Data
+public class RecordCardVO {
+	
+	private Long cradId;
+	private String empId;
+	private Long certificateId;
+	private Long paId;
+	private String resigntionDate;
+	private String resigntionReason;
+	private String passbook;
+	private String rewardPenalty;
+	private String workStatus;
+	private Long serviceYear;
+	private String emergencyNumber;
+	private String health;
+	private String hobby;
+	private String specialty;
+	
+}

@@ -1,0 +1,238 @@
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        
+        body {
+	        font-family: Arial, sans-serif;
+	        margin: 0; /* 바디 여백 제거 */
+	        display: flex;
+	        justify-content: center; /* 가운데 정렬 */
+	        align-items: center;
+	        min-height: 100vh; /* 화면 높이를 꽉 채움 */
+	        background-color: #f4f4f4;
+	    }
+	    
+	    .container {
+	        display: grid;
+	        grid-template-columns: 0.35fr 0.65fr; /* 왼쪽 폼, 오른쪽 리스트 동일 너비 */
+	        gap: 20px;
+	        width: 90vw; /* 전체 너비 활용 */
+	        max-width: 1500px; /* 너무 넓어지지 않도록 제한 */
+	        background: white;
+	        padding: 20px;
+	        border-radius: 8px;
+	        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	    }
+	
+	    .form-section, .list-section {
+	        padding: 20px;
+	        border: 1px solid #ddd;
+	        border-radius: 8px;
+	        background-color: #ffffff;
+	    }
+        
+/*         body { */
+/*             font-family: Arial, sans-serif; */
+/*             display: flex; */
+/*             justify-content: space-between; */
+/*             padding: 20px; */
+/*         } */
+/*         .container { */
+/*             display: flex; */
+/*             width: 100%; */
+/*             gap: 20px; */
+/*         } */
+/*         .form-section, .list-section { */
+/*             flex: 1; */
+/*             padding: 20px; */
+/*             border: 1px solid #ddd; */
+/*             border-radius: 8px; */
+/*             background-color: #f9f9f9; */
+        }
+        .form-section h2, .list-section h2 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group input[type="number"] {
+            width: 80px;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .button-group button {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .save-btn { background-color: #007bff; color: white; }
+        .reset-btn { background-color: #dc3545; color: white; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        // 입력값 검증 및 리스트에 추가
+        function addEvaluation() {
+            const id = document.getElementById("evaluaTypeId").value.trim();
+            const name = document.getElementById("evaluaName").value.trim();
+            const type = document.getElementById("evaluaType").value.trim();
+            const criteria = document.getElementById("evaluaCriteria").value.trim();
+            const weight = document.getElementById("evaluaWeight").value.trim();
+            const comment = document.getElementById("evaluaComment").value.trim();
+            const use = document.getElementById("evaluaUse").value;
+
+            if (!name || !type || !criteria || !weight) {
+                alert("필수 입력 항목을 모두 입력하세요.");
+                return;
+            }
+
+            const table = document.getElementById("evaluationTableBody");
+            const newRow = table.insertRow();
+
+            newRow.innerHTML = `
+                <td>${id}</td>
+                <td>${name}</td>
+                <td>${type}</td>
+                <td>${criteria}</td>
+                <td>${weight}%</td>
+                <td>${comment}</td>
+                <td>${use}</td>
+                <td><button class="delete-btn" onclick="deleteRow(this)">삭제</button></td>
+            `;
+
+            // 입력 폼 초기화
+            document.getElementById("evaluation-form").reset();
+        }
+
+        // 행 삭제 기능
+        function deleteRow(button) {
+            button.closest("tr").remove();
+        }
+    </script>
+</head>
+<body>
+<h2>평가 기준 설정</h2>
+<div class="container">
+    <!-- 평가 기준 입력 폼 -->
+    <div class="form-section">
+        <h5>추가</h5>
+        <form id="evaluation-form" action="${pageContext.request.contextPath}/evaluation/evaluationTypeInsert" method="post">
+		    <div class="form-group">
+		        <label for="evaluaTypeId">순번</label>
+		        <input type="number" id="evaluaTypeId" name="evaluaTypeId" required>
+		    </div>
+		    <div class="form-group">
+		        <label for="evaluaName">평가명</label>
+		        <input type="text" id="evaluaName" name="evaluaName" required>
+		    </div>
+		
+		    <div class="form-group">
+		        <label for="evaluaType">평가 유형</label>
+		        <input type="text" id="evaluaType" name="evaluaType" required>
+		    </div>
+		
+		    <div class="form-group">
+		        <label for="evaluaCriteria">평가 항목</label>
+		        <input type="text" id="evaluaCriteria" name="evaluaCriteria" required>
+		    </div>
+		
+		    <div class="form-group">
+		        <label for="evaluaWeight">가중치 (%)</label>
+		        <input type="number" id="evaluaWeight" name="evaluaWeight" min="0" max="100" required>
+		    </div>
+		
+		    <div class="form-group">
+		        <label for="evaluaComment">설명</label>
+		        <textarea id="evaluaComment" name="evaluaComment" rows="3"></textarea>
+		    </div>
+		
+		    <div class="form-group">
+		        <label for="evaluaUse">사용 여부</label>
+		        <select id="evaluaUse" name="evaluaUse">
+		            <option value="Y">사용</option>
+		            <option value="N">미사용</option>
+		        </select>
+		    </div>
+		
+		    <div class="button-group">
+		        <button type="submit" class="save-btn">추가</button>
+		        <button type="reset" class="reset-btn">초기화</button>
+		    </div>
+		</form>
+    </div>
+
+    <!-- 기존 평가 리스트 -->
+    <div class="list-section">
+        <h5>현 평가 목록</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>순번</th>
+                    <th>평가명</th>
+                    <th>유형</th>
+                    <th>항목</th>
+                    <th>가중치</th>
+                    <th>설명</th>
+                    <th>사용 여부</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+            <tbody id="evaluationTableBody">
+                <c:forEach var="x" items="${evaluTypeList}">
+                    <tr>
+                        <td>${x.evaluaTypeId}</td>
+                        <td>${x.evaluaName}</td>
+                        <td>${x.evaluaType}</td>
+                        <td>${x.evaluaCriteria}</td>
+                        <td>${x.evaluaWeight}%</td>
+                        <td>${x.evaluaComment}</td>
+                        <td>${x.evaluaUse}</td>
+                        <td><button class="delete-btn" onclick="deleteRow(this)">삭제</button></td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

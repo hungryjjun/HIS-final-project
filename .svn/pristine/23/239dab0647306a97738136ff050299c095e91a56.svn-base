@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- * == 개정이력(Modification Information) == * * 수정일 수정자 수정내용 * ============ 
+	===================================== * 2025. 3. 12. 이진우 최초 생성 * 2025. 3. 
+	12. 정태우 VO 및 List 매핑 * * 2025. 3. 14. 정태우 상태코드객체 매핑 * 2025. 3. 15. 이진우 DB테이블 
+	수정으로 쿼리문 수정 -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.mybatis.mappers.employee.EmployeeMapper">
+
+	<resultMap type="EmployeeVO" id="EmployeeResultMap"
+		autoMapping="true">
+		<id property="empId" column="emp_id" />
+		<association property="department" javaType="DepartmentVO"
+			autoMapping="true">
+			<id property="departmentId" column="department_id" />
+		</association>
+		<association property="team" javaType="TeamVO"
+			autoMapping="true">
+			<id property="teamId" column="team_id" />
+		</association>
+		<association property="job" javaType="JobVO"
+			autoMapping="true">
+			<id property="jobId" column="job_id" />
+		</association>
+		<association property="position" javaType="PositionVO"
+			autoMapping="true">
+			<id property="positionId" column="position_id" />
+		</association>
+		<association property="rank" javaType="RankVO"
+			autoMapping="true">
+			<id property="rankId" column="rank_id" />
+		</association>
+		<association property="account" javaType="accountVO"
+			autoMapping="true">
+			<id property="accountId" column="account_id" />
+		</association>
+		<association property="role" javaType="RoleVO"
+			autoMapping="true">
+			<id property="roleId" column="role_id" />
+		</association>
+		<collection property="attendanceList" ofType="AttendanceVO">
+			<id property="attendanceId" column="attendance_id" />
+			<result property="workStartTime" column="WORK_START" />
+			<result property="workEndTime" column="WORK_END" />
+			<result property="workingHours" column="WORKING_HOURS" />
+			<result property="attendanceStatus" column="ATTENDANCE_STATUS" />
+			<result property="statusId" column="status_id" />
+		</collection>
+		<collection property="empCertificate"
+			ofType="EmpCertificateVO">
+			<id property="certificateId" column="certificate_id" />
+			<result property="empId" column="emp_id" />
+			<association property="certificate"
+				javaType="CertificateVO" autoMapping="true">
+				<id property="certificateId" column="certificate_id" />
+			</association>
+		</collection>
+	</resultMap>
+
+
+	<select id="selectEmpList" resultMap="EmployeeResultMap">
+		SELECT DISTINCT
+			e.*
+			, j.JOB_NAME
+			, d.DEPARTMENT_NAME
+			, p.POSITION_NAME
+			, t.TEAM_NAME
+			, r.RANK_NAME
+		FROM EMPLOYEE e
+			LEFT JOIN JOB j ON e.JOB_ID = j.JOB_ID
+			LEFT JOIN DEPARTMENT d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+			LEFT JOIN POSITION p ON e.POSITION_ID = p.POSITION_ID
+			LEFT JOIN TEAM t ON e.TM_ID = t.TEAM_ID
+			LEFT JOIN TEAM_MEMBER tm ON t.TEAM_ID = tm.TEAM_ID
+			LEFT JOIN RANK r ON e.RANK_ID = r.RANK_ID
+	</select>
+
+
+	<select id="selectEmp" resultMap="EmployeeResultMap">
+		SELECT
+			e.*
+			, j.JOB_NAME
+			, d.DEPARTMENT_NAME
+			, p.POSITION_NAME
+			, t.TEAM_NAME
+			, r.RANK_NAME
+		FROM EMPLOYEE e
+			LEFT JOIN JOB j ON e.JOB_ID = j.JOB_ID
+			LEFT JOIN DEPARTMENT d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+			LEFT JOIN POSITION p ON e.POSITION_ID = p.POSITION_ID
+			LEFT JOIN TEAM t ON e.TM_ID = t.TEAM_ID
+			LEFT JOIN TEAM_MEMBER tm ON t.TEAM_ID = tm.TEAM_ID
+			LEFT JOIN RANK r ON e.RANK_ID = r.RANK_ID
+		WHERE e.EMP_ID = #{empId}
+
+	</select>
+
+	<insert id="insertEmp">
+		INSERT INTO employee (
+			emp_id,
+			name,
+			address,
+			address_detail,
+			phone_number,
+			jumin_front,
+			jumin_back,
+			email,
+			final_level,
+			hire_date
+		) VALUES (
+			#{empId,jdbcType=VARCHAR}
+			, #{name,jdbcType=VARCHAR}
+			, #{address,jdbcType=VARCHAR}
+			, #{addressDetail,jdbcType=VARCHAR}
+			, #{phoneNumber,jdbcType=VARCHAR}
+			, #{juminFront,jdbcType=CHAR}
+			, #{juminBack,jdbcType=CHAR}
+			, #{email,jdbcType=VARCHAR}
+			, #{finalLevel,jdbcType=VARCHAR}
+			, TO_DATE(#{hireDate}, 'YYYY-MM-DD')
+		)
+
+	</insert>
+	
+	<!-- 직원 상태 업데이트시 근로계약서 업데이트 -규영박- -->
+	<update id="updateEmpStatus">
+        UPDATE EMPLOYEE
+        SET EMP_STATUS = #{empStatus}
+        WHERE EMP_ID = #{empId};
+
+        UPDATE EMP_CONTRACT
+        SET CONTRACT_STATUS = 
+            CASE 
+                WHEN #{empStatus} = '퇴사' THEN '종료'
+                WHEN #{empStatus} = '휴직' THEN '일시 중지'
+                WHEN #{empStatus} = '재직' THEN '유효'
+                ELSE CONTRACT_STATUS
+            END
+        WHERE EMP_ID = #{empId};
+    </update>
+		
+<<<<<<< .mine
+<!-- 	<update id="updateEmp"> -->
+<!-- 		UPDATE employee -->
+<!-- 		SET -->
+<!-- 			EMP_IMG = #{empImg,jdbcType=VARCHAR} -->
+<!-- 			, NAME = #{name,jdbcType=VARCHAR} -->
+<!-- 			, HIRE_DATE = #{hireDate,jdbcType=DATE} -->
+<!-- 			, SALARY = #{salary,jdbcType=NUMERIC} -->
+<!-- 			, EMAIL = #{email,jdbcType=VARCHAR} -->
+<!-- 			, ADDRESS = #{address,jdbcType=VARCHAR} -->
+<!-- 			, ADDRESS_DETAIL = #{addressDetail,jdbcType=VARCHAR} -->
+<!-- 			, FINAL_LEVEL = #{finalLevel,jdbcType=VARCHAR} -->
+<!-- 			, PHONE_NUMBER = #{phoneNumber,jdbcType=VARCHAR} -->
+<!-- 			, JUMIN_FRONT = #{juminFront,jdbcType=CHAR} -->
+<!-- 			, JUMIN_BACK = #{juminBack,jdbcType=CHAR} -->
+<!-- 		WHERE -->
+<!-- 			EMP_ID = #{empId,jdbcType=VARCHAR} -->
+<!-- 	</update> -->
+
+  <update id="updateEmp">
+       UPDATE employee
+       <set>
+           <trim suffixOverrides=",">
+               <if test="empImg != null">EMP_IMG = #{empImg},</if>
+               <if test="name != null">NAME = #{name},</if>
+               <if test="hireDate != null">HIRE_DATE = #{hireDate},</if>
+               <if test="salary != null">SALARY = #{salary},</if>
+               <if test="email != null">EMAIL = #{email},</if>
+               <if test="address != null">ADDRESS = #{address},</if>
+               <if test="addressDetail != null">ADDRESS_DETAIL = #{addressDetail},</if>
+               <if test="finalLevel != null">FINAL_LEVEL = #{finalLevel},</if>
+               <if test="phoneNumber != null">PHONE_NUMBER = #{phoneNumber},</if>
+               <if test="juminFront != null">JUMIN_FRONT = #{juminFront},</if>
+               <if test="juminBack != null">JUMIN_BACK = #{juminBack}</if>
+<!--                 EMP_ID = EMP_ID  -->
+           </trim>
+       </set>
+       WHERE EMP_ID = #{empId}
+   </update>
+||||||| .r471470
+	<update id="updateEmp">
+		UPDATE employee
+		SET
+			EMP_IMG = #{empImg,jdbcType=VARCHAR}
+			, NAME = #{name,jdbcType=VARCHAR}
+			, HIRE_DATE = #{hireDate,jdbcType=DATE}
+			, SALARY = #{salary,jdbcType=NUMERIC}
+			, EMAIL = #{email,jdbcType=VARCHAR}
+			, ADDRESS = #{address,jdbcType=VARCHAR}
+			, ADDRESS_DETAIL = #{addressDetail,jdbcType=VARCHAR}
+			, FINAL_LEVEL = #{finalLevel,jdbcType=VARCHAR}
+			, PHONE_NUMBER = #{phoneNumber,jdbcType=VARCHAR}
+			, JUMIN_FRONT = #{juminFront,jdbcType=CHAR}
+			, JUMIN_BACK = #{juminBack,jdbcType=CHAR}
+		WHERE
+			EMP_ID = #{empId,jdbcType=VARCHAR}
+	</update>
+=======
+	<update id="updateEmp">
+	    UPDATE employee
+	    <set>
+	        <trim suffixOverrides=",">
+	            <if test="empImg != null">EMP_IMG = #{empImg},</if>
+	            <if test="name != null">NAME = #{name},</if>
+	            <if test="hireDate != null">HIRE_DATE = #{hireDate},</if>
+	            <if test="salary != null">SALARY = #{salary},</if>
+	            <if test="email != null">EMAIL = #{email},</if>
+	            <if test="address != null">ADDRESS = #{address},</if>
+	            <if test="addressDetail != null">ADDRESS_DETAIL = #{addressDetail},</if>
+	            <if test="finalLevel != null">FINAL_LEVEL = #{finalLevel},</if>
+	            <if test="phoneNumber != null">PHONE_NUMBER = #{phoneNumber},</if>
+	            <if test="juminFront != null">JUMIN_FRONT = #{juminFront},</if>
+	            <if test="juminBack != null">JUMIN_BACK = #{juminBack}</if>
+	            <if test="empStatus != null">EMP_STATUS = #{empStatus}</if>
+	        </trim>
+	    </set>
+	    WHERE EMP_ID = #{empId}
+	</update>
+>>>>>>> .r471608
+<<<<<<< .mine
+	
+||||||| .r471470
+	
+	
+	
+	
+	
+=======
+
+>>>>>>> .r471608
+</mapper>

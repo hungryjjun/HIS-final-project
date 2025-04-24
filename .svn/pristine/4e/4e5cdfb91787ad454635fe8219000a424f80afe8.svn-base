@@ -1,0 +1,74 @@
+
+function connectWebSocket() {
+    console.log("🔌 WebSocket 연결 시도...");
+    
+    let socket = new SockJS('/wss');  // 서버에 연결
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        console.log("✅ WebSocket 연결 성공: " + frame);
+
+        // 서버에서 전송된 온라인 상태 업데이트를 수신
+        stompClient.subscribe('/topic/onlineStatus', function (message) {
+            let statusUpdate = message.body;
+            console.log("🔄 상태 업데이트 실행: ", statusUpdate);
+            alert(statusUpdate);
+            loadEmployeeList(); // 상태가 변경되면 직원 목록을 다시 로드
+        });
+    }, function (error) {
+        console.error("❌ WebSocket 연결 실패", error);
+    });
+}
+
+// 직원 목록을 불러오는 AJAX 함수
+function loadEmployeeList() {
+    console.log("직원 목록 불러오기");
+
+    $.ajax({
+        url: "/messenger/empList",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            console.log("직원 목록 불러오기 완료", data);
+
+            let empListHtml = `
+                <h3>직원 목록</h3>
+                <ul id="empList">
+            `;
+
+            data.forEach(emp => {
+                empListHtml += `
+                    <li class="employee-item">
+                        <strong>이름:</strong> ${emp.empName} <br>
+                        <strong>부서:</strong> ${emp.department.departmentName} <br>
+                        <strong>직급:</strong> ${emp.empRank} <br>
+                        <strong>팀:</strong> ${emp.teamName} <br>
+                        <strong>상태:</strong> ${emp.statuString === '온라인' ? '🟢 온라인' : '⚪ 오프라인'} <br>
+                    </li>
+                `;
+            });
+
+            empListHtml += `</ul>`;
+            $("#contentArea").html(empListHtml);
+        },
+        error: function (xhr, status, error) {
+            console.error("직원목록 불러오기 실패", status, error);
+            alert("실패함");
+        }
+    });
+}
+
+$(document).ready(function () {
+	console.log("chatempList.js 가져왔음")
+    connectWebSocket();
+    loadEmployeeList();
+
+    // 직원 목록 버튼 클릭 이벤트 추가
+    $("#empListBtn").on("click", function (e) {
+        e.preventDefault();
+        console.log("직원 목록 버튼 클릭");
+        loadEmployeeList();
+    });
+
+
+});

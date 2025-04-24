@@ -1,0 +1,20 @@
+package kr.or.ddit.mybatis.mappers.emprecords;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.emprecordcards.vo.EmpCardVO;
+
+
+@Mapper
+public interface EmpCardMapper {
+	
+	public List<EmpCardVO> selectEmpCardList(); 
+	
+	public EmpCardVO selectEmpCard(String cardId);
+	
+	public int insertEmpCard(String record);
+
+	public int updateEmpCard(String record);
+}

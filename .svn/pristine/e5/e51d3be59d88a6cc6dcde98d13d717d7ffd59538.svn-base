@@ -1,0 +1,226 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+.container {
+	margin-top: 30px;
+}
+
+.card {
+	margin-bottom: 20px;
+}
+
+.card-header {
+	font-size: 1.25rem;
+	font-weight: bold;
+}
+
+.form-group {
+	margin-bottom: 20px;
+}
+
+.table th, .table td {
+	vertical-align: middle;
+}
+
+.table th {
+	background-color: #f8f9fa;
+}
+
+.table td {
+	background-color: #ffffff;
+}
+
+.btn-group button {
+	margin-right: 10px;
+}
+
+.filter-section select {
+	width: 200px;
+}
+</style>
+<div class="container">
+	<h3>출퇴현황</h3>
+	<div class="card">
+		<div class="card-header"></div>
+		<div class="card-body">
+			<div class="form-row">
+				<div class="col-md-3 form-group">
+					<label for="department">부서</label> <select id="department"
+						class="form-control" onchange="filterTeams()">
+						<option value="">전체</option>
+						<c:forEach items="${departmentList}" var="departmentVO">
+							<option value="${departmentVO.departmentId}" label="${departmentVO.departmentName}"/>
+						</c:forEach>
+					</select>
+				</div>
+
+				<div class="col-md-3 form-group">
+					<label for="team">팀</label> <select id="team" class="form-control">
+						<option value="">전체</option>
+						<c:forEach items="${teamList}" var="teamVO">
+							<option value="${teamVO.teamId}" data-departmentId="${teamVO.departmentId}" class="team-option" label="${teamVO.teamName}"/>
+						</c:forEach>
+					</select>
+				</div>
+				<div class="col-md-3 form-group">
+					<label for="date">날짜 선택</label> <input type="date" id="date"
+						name="date" class="form-control" class="form-control">
+				</div>
+				<div class="col-md-3 form-group btn-group">
+					<button class="btn btn-outline-success" onclick="downloadExcel()">엑셀
+						다운로드</button>
+					<button class="btn btn-outline-danger" onclick="exportPDF()">PDF
+						다운로드</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="card">
+		<div class="card-body">
+			<table class="table table-striped" id="table1">
+				<thead>
+					<tr>
+						<th>부서</th>
+						<th>팀</th>
+						<th>이름</th>
+						<th>HP</th>
+<!-- 						<th>일자</th> -->
+						<th>출근시간</th>
+						<th>퇴근시간</th>
+						<th>근태상태</th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:forEach items="${attendanceList}" var="x">
+						<tr>
+							<td>${x.employee.department.departmentName }</td>
+							<td>${x.employee.team.teamName }</td>
+							<td><a href="/check/Detail?empId=${x.empId}">${x.employee.name }</a></td>
+							<td>${x.employee.phoneNumber }</td>
+<%-- 							<td>${x.workDate }</td> --%>
+							<td>${x.workStartTime }</td>
+							<td>${x.workEndTime }</td>
+							<td>${x.attendanceStatus }</td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+
+<script>
+    // PDF 다운로드
+    function exportPDF() {
+        const element = document.getElementById("table1");
+
+        const opt = {
+            margin : 1,
+            filename : '출퇴현황.pdf',
+            html2canvas : { scale : 2 },
+            jsPDF : { unit : 'mm', format : 'a4', orientation : 'portrait' }
+        };
+
+        html2pdf().from(element).set(opt).save();
+    }
+
+    // Excel 다운로드
+    function downloadExcel() {
+        var table = document.getElementById("table1");
+        var wb = XLSX.utils.table_to_book(table, { sheet : "출퇴현황" });
+        XLSX.writeFile(wb, "출퇴현황.xlsx");
+    }
+
+    // 현재 날짜를 YYYY-MM-DD 형식으로 설정
+    var today = new Date();
+    var day = ("0" + today.getDate()).slice(-2);
+    var month = ("0" + (today.getMonth() + 1)).slice(-2);
+    var year = today.getFullYear();
+
+    document.getElementById('date').value = year + "-" + month + "-" + day;
+
+ // 부서에 하위 팀만 보여주는 함수
+    function filterTeams() {
+        var selectedDept = document.getElementById("department").value;
+        var teamSelect = document.getElementById("team");  // 팀 셀렉트 박스
+        var teamOptions = document.querySelectorAll(".team-option");
+        
+        // 팀 셀렉트를 "전체"로 리셋
+        teamSelect.value = "";
+        teamOptions.forEach(function(option) {
+            if (selectedDept === "" || option.dataset.departmentid === selectedDept) {
+                option.style.display = "block";
+            } else {
+                option.style.display = "none";
+            }
+        });
+
+        fetchFilteredData(); // 부서가 변경되었을 때 필터링된 데이터 가져오기
+    }
+
+    // 날짜 변경 시 필터링된 데이터를 가져오는 함수
+    $("#date").change(function() {
+        fetchFilteredData(); // 날짜 변경 시 데이터 새로 불러오기
+    });
+
+    // 팀 변경 시 필터링된 데이터를 가져오는 함수
+    $("#team").change(function() {
+        fetchFilteredData(); // 팀 선택 시 필터링된 데이터 새로 불러오기
+    });
+
+    // 필터링된 데이터를 가져오는 함수
+    function fetchFilteredData() {
+        var departmentId = $("#department").val();
+        var teamId = $("#team").val();
+        var date = $("#date").val();
+
+        $.ajax({
+            url: "/filter", 
+            type: "GET",
+            data: {
+                departmentId: departmentId,
+                teamId: teamId,
+                date: date
+            },
+            dataType: "json",
+            success: function(data) {
+                updateTable(data);
+            },
+            error: function() {
+                alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            }
+        });
+    }
+
+    // 테이블 업데이트
+    function updateTable(data) {
+        var tableBody = $("#table1 tbody");
+        tableBody.empty(); // 기존 데이터 삭제
+
+        if (data.length === 0) {
+            tableBody.append("<tr><td class='text-center' colspan='8'>데이터가 없습니다.</td></tr>");
+            return;
+        }
+
+        $.each(data, function(index, x) {
+            var row = 
+            	"<tr>" +
+	                "<td>" + (x.employee.department ? x.employee.department.departmentName : "-") + "</td>" +
+	                "<td>" + (x.employee.team ? x.employee.team.teamName : "-") + "</td>" +
+	                "<td><a href='/check/Detail?empId=" + x.empId + "'>" + x.employee.name + "</a></td>" +
+	                "<td>" + x.employee.phoneNumber + "</td>" +
+	//                 "<td>" + x.workDate + "</td>" +
+	                "<td>" + x.workStartTime + "</td>" +
+	                "<td>" + (x.workEndTime ? x.workEndTime : "") + "</td>" +
+	                "<td>" + x.attendanceStatus + "</td>" +
+                "</tr>";
+            tableBody.append(row);
+        });
+    }
+</script>
+

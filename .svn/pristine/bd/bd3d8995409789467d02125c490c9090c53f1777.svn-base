@@ -1,0 +1,102 @@
+package kr.or.ddit.messenger.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.messenger.vo.ChatMessageVO;
+import kr.or.ddit.messenger.vo.ChatRoomVO;
+import kr.or.ddit.mybatis.mappers.messenger.chatempMapper;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class ChatEmpServiceImpl implements ChatEmpService{
+	
+	@Autowired
+	chatempMapper dao;
+	
+	@Override
+	public List<ChatEmpVO> chatempList() {
+		return dao.chatempList();
+	}
+
+	@Override
+	public boolean updateEmpStatus(String empId, String status) {
+	    log.info(" DB 상태 업데이트 요청 - empId: {}, status: {}", empId, status);
+	    
+	    int result = dao.updateEmpStatus(empId, status);
+	    
+	    if (result > 0) {
+	        log.info(" DB 상태 업데이트 성공 (변경된 행 수: {})", result);
+	    } else {
+	        log.warn(" DB 상태 업데이트 실패 (변경된 행 없음) - empId: {}", empId);
+	    }
+
+	    return result > 0;
+	}
+    //채팅방관련    
+	@Override
+	public int selectOrinsertOneToOneRoom(String empId1, String empId2) {
+		log.info("채팅방 대화 대상자!!~#!@#!@#!@# empId1: {} , empId: {}", empId1, empId2);
+		 if(empId1.equals(empId2)) {
+			 return 0;
+		 }
+        // 1.기존 채팅방 있는지 확인함
+        Integer existingRoomId = dao.selectOneToOneChatRoom(empId1, empId2);
+        if (existingRoomId != null) {
+        	log.info("기존 채팅방 존재 - ROOM_ID:{}", existingRoomId);
+            return existingRoomId;
+        }
+
+        // 2.채팅방 생성
+        ChatRoomVO newRoom = new ChatRoomVO();
+        newRoom.setRoomType("1:1");
+        newRoom.setRoomName(empId1 + "_" + empId2);
+
+        dao.insertChatRoom(newRoom);
+
+        // 3.방금 생성된 ROOM_ID 조회
+        Integer roomId = dao.selectLastChatRoomId();
+
+        // 4. 참여자 2명 등록
+        int result1=dao.insertChatMembers(empId1, roomId); // 본인
+        int result2=dao.insertChatMembers(empId2, roomId); // 상대방
+        log.info("참여자 등록 결과- empId1: {}, 성공여부: {}, empId2: {}, 성공여부: {}",
+        		 empId1, result1>0 , empId2, result2>0);
+        return roomId;
+    }
+	@Override
+	public int insertGroupChatRoom(String roomName, List<String> empIdList) {
+		ChatRoomVO groupRoom = new ChatRoomVO();
+		groupRoom.setRoomType("GROUP");
+		groupRoom.setRoomName(roomName);
+		dao.insertChatRoom(groupRoom);
+		
+		Integer roomId = dao.selectLastChatRoomId();
+		for(String empId :empIdList) {
+			dao.insertChatMembers(empId, roomId);
+		}
+		return roomId;
+	}
+	//메시지 관련
+	@Override
+	public int insertMessage(ChatMessageVO message) {
+		return dao.insertMessage(message);
+	}
+	//로그인한 사원의 채팅방 목록
+	public List<ChatRoomVO> selectChatRoomByEmpId(String empId) {
+		return dao.selectChatRoomByEmpId(empId);
+	}
+	
+	//채팅방에서 사원 나가기
+	@Override
+	public int deleteChatMember(String empId, int roomId) {
+	  int result = dao.deleteChatMember(empId, roomId);
+	  log.info("채팅방 나가기 empId :{}, roomId: {}", empId,roomId);
+	  return result;
+	}
+	
+}

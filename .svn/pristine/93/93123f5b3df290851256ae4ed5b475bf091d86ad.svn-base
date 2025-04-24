@@ -1,0 +1,27 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+
+평가 항목 : 달성율1, 달성율2, 부서장 평가, 팀장 평가, 동료 평가. <hr>
+
+rank / job 
+사원 / 사원이하 	: 출근율(달성율1), 연차 사용률(달성율2), 부서장 평가, 팀장 평가.
+대리 / 사원 		: 출근율(달성율2), 연차 사용률(달성율2), 부서장 평가, 팀장 평가, 동료평가.
+과장 / 선임 		: 동일 직급 평균 급여(달성율1) , 동일 직책 평균 급여(달성율2), 부서장 평가 , 팀장 평가, 동료 평가.
+차장 / 선임 이상	: 동일 직급 평균 급여(달성율1) , 동일 직책 평균 급여(달성율2), 부서장 평가 , 팀장 평가.
+부장 / 팀장 		: 동일 직급 평균 급여(달성율1) , 동일 직책 평균 급여(달성율2), 부서장 평가.
+
+ 
+
+
+평가 항목	측정 기준	관련 테이블	관련 컬럼	활용 방법
+업무 성과 (KPI 달성률)	평가 점수 기반	PERFORMANCE_EVALUATION	EVALUATION_SCORE, KPI	EVALUATION_SCORE 값 활용
+근태 (출근율, 지각, 결근)	출근, 지각, 결근 기록	Attendance	EMP_ID, STATUS	STATUS 값별 출석률 계산
+협업 태도 (팀워크 평가)	동료 평가 코멘트	PERFORMANCE_EVALUATION	EVALUATION_COMMENTS, FEEDBACK	텍스트 분석(수동 평가)
+문제 해결 능력	상사 평가 점수	PERFORMANCE_EVALUATION	EVALUATION_SCORE, EVALUATION_COMMENTS	EVALUATION_SCORE 활용
+자기 계발 노력	교육 및 자격증 취득	EMP_CARD	INTERNALTRAINING, EXTERNALTRAINING, CERTIFICATE_ID	CERTIFICATE_ID 개수 집계
+급여 관리 연계 (성과급 반영)	성과에 따른 급여 지급 여부	SALARY_MANAGEMENT	BASE_SALARY, TOTAL_PAY, BONUSINCENTIVES	BONUSINCENTIVES 값 비교
+승진/보직 이동 기록	인사 발령 기록	HR_APPOINTMENT	NEW_POSITION_ID, NEW_RANK_ID, NEW_DEPARTMENT_ID	승진 횟수 카운트
+퇴사 및 이직 기록	퇴사 유형 분석	EMP_RESIGNATION	RESIGN_REASON, RESIGN_TYPE	퇴사 사유별 통계

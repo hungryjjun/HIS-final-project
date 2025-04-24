@@ -1,0 +1,18 @@
+package kr.or.ddit.mybatis.mappers.empAppoint;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.empappointments.vo.AppointmentVO;
+
+//@Mapper
+public interface AppointmentMapper {
+	
+	public List<AppointmentVO> selectAppointList();
+	public AppointmentVO selectAppoint(String appId);
+	public int insertAppoint(AppointmentVO appoint);
+	public int updateAppoint(AppointmentVO appoint);
+	
+	
+}

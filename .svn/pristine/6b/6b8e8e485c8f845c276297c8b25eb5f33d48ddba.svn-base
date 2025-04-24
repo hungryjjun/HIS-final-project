@@ -1,0 +1,88 @@
+package kr.or.ddit.spring.config;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.messenger.service.ChatEmpService;
+import lombok.extern.slf4j.Slf4j;
+
+@Configuration
+@EnableWebSecurity
+@Slf4j
+public class SecurityConfig {
+
+    private final ChatEmpService chatEmpService;
+    private final SimpMessagingTemplate messagingTemplate; 
+
+    public SecurityConfig(ChatEmpService chatEmpService, SimpMessagingTemplate messagingTemplate) {
+        this.chatEmpService = chatEmpService;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    @Bean 
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(customizer -> customizer.disable())
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+            .formLogin(customizer ->
+                customizer.loginPage("/account/login/main")
+                          .loginProcessingUrl("/account/login")
+                          .usernameParameter("accountId")
+                          .passwordParameter("password")
+                          .permitAll()
+            )
+            .logout(customizer ->
+                customizer
+                    .logoutUrl("/account/login/logout")
+                    .addLogoutHandler((request, response, authentication) -> {
+                        log.info("로그아웃 핸들러 실행됨");
+
+                        HttpSession session = request.getSession(false);
+                        if (session != null) {
+                            AccountVO account = (AccountVO) session.getAttribute("sessionAccount");
+                            if (account != null) {
+                                log.info("로그아웃 - empId: {}, 상태 변경 -> 오프라인", account.getEmpId());
+
+                                //DB 상태 업데이트
+                                chatEmpService.updateEmpStatus(account.getEmpId(), "오프라인");
+
+                                //웹소켓을 통해 모든 사용자에게 실시간 상태 전송
+                                messagingTemplate.convertAndSend("/topic/onlineStatus",
+                                    "{ \"empId\": \"" + account.getEmpId() + "\", \"statuString\": \"오프라인\" }");
+
+                            } else {
+                                log.warn("세션에서 계정 정보를 가져오지 못함");
+                            }
+                        } else {
+                            log.warn("세션이 존재하지 않음");
+                        }
+                    })
+                    .logoutSuccessHandler((request, response, authentication) -> {
+                        log.info("로그아웃 성공! 홈으로 이동");
+                        response.sendRedirect("/");
+                    })
+            )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                       .maximumSessions(1)
+                       .expiredUrl("/account/login/logout?expired")
+            );
+
+        return http.build();
+    }
+}

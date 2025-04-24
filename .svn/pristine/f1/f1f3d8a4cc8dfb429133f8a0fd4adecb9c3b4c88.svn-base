@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   결재자 관리 Mapper
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 18		  CHOI			  결재자 기준 
+ *
+-->
+
+<mapper namespace="kr.or.ddit.mybatis.mappers.approval.ApproverMapper">
+	 
+	 <!-- ResultMap 수정 (VO와 매핑) -->
+    <resultMap id="draftApproverMap" type="kr.or.ddit.approval.vo.DraftApproverVO">
+        <id property="aprId" column="APR_ID"/> <!-- 결재자 순번(PK) -->
+        <result property="draftId" column="DRAFT_ID"/>
+        <result property="approverId" column="APPROVER_ID"/>
+        <result property="aprSeq" column="APR_SEQ"/>
+        <result property="aprYn" column="APR_YN"/>
+        <result property="aprDate" column="APR_DATE"/>
+        <result property="aprStatus" column="APR_STATUS"/>
+        <result property="aprReason" column="APR_REASON"/>
+        <result property="empSid" column="EMP_SID"/>
+
+        <!-- 추가된 필드 (문서 정보) -->
+        <result property="draftTitle" column="DRAFT_TITLE"/>
+        <result property="draftDate" column="DRAFT_DATE"/>
+        <result property="draftStatus" column="DRAFT_STATUS"/>
+        <result property="draftEmpName" column="DRAFT_EMP_NAME"/>
+        <result property="draftDepartment" column="DRAFT_DEPARTMENT"/>
+        <result property="approverName" column="APPROVER_NAME"/>
+    </resultMap>
+	 
+	 <!-- 결재자 본인의 결재 정보 조회 -->
+    <select id="getMyApprovalInfo" resultMap="draftApproverMap" parameterType="String">
+      SELECT
+		    da.draft_id
+		  , dm.draft_title
+		  , dm.draft_date
+		  , dm.draft_status
+		  , dm.emp_id             AS draft_emp_id
+		  , e_draft.name          AS draft_emp_name
+		  , e_draft.department_id AS draft_department
+		  , da.approver_id
+		  , e_approver.name       AS approver_name
+		  , da.apr_seq
+		  , da.apr_status
+		  , da.apr_yn
+		FROM
+		         draft_approver da
+		    JOIN draft_management dm ON da.draft_id = dm.draft_id
+		    JOIN employee         e_draft ON dm.emp_id = e_draft.emp_id
+		    JOIN employee         e_approver ON da.approver_id = e_approver.emp_id
+		WHERE
+		    da.approver_id = #{aprId} ORDER BY DM . DRAFT_DATE DESC
+    </select>
+    
+    
+    <!--  2. 결재 승인/반려 처리 (UPDATE) -->
+    <update id="updateApprovalStatus" parameterType="DraftApproverVO">
+        UPDATE draft_approver
+        SET apr_yn = 'Y',
+            apr_status = #{aprStatus}, 
+            apr_date = SYSDATE, 
+            apr_reason = #{aprReason}
+        WHERE draft_id = #{draftId} 
+        AND approver_id = #{approverId}
+    </update>
+
+	<!--  3. 해당 문서의 남은 결재자 수 확인 (마지막 결재자 체크) -->
+    <select id="countPendingApprovals" parameterType="String" resultType="int">
+        SELECT COUNT(*) 
+        FROM draft_approver
+        WHERE draft_id = #{draftId} 
+        AND apr_yn = 'N'
+    </select>
+
+	<!--  4. 문서 상태 업데이트 (모든 결재 완료 시) -->
+    <update id="updateDraftStatus" parameterType="DraftManageMentVO">
+        UPDATE draft_management
+        SET draft_status = #{draftStatus}
+        WHERE draft_id = #{draftId}
+    </update>
+
+	<!--   5. 문서함 상태 업데이트 -->
+    <update id="updateDraftBoxStatus" parameterType="DraftBoxVO">
+        UPDATE draft_box
+        SET doc_status = #{docStatus}, last_update = SYSDATE
+        WHERE draft_id = #{draftId}
+    </update>
+    
+	
+</mapper>

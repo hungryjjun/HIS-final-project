@@ -1,0 +1,27 @@
+package kr.or.ddit.application.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 지원자 조회
+ */
+@Controller
+@RequestMapping("/recruit/applicant")
+public class ApplicationReadController {
+
+	// 지원자 목록 조회
+	@GetMapping("list")
+	public String recruitApplicantList() {
+		return "tiles:recruitment/recruitApplicantList";
+	}
+	
+	// 지원자 상세 조회
+	@GetMapping("detail")
+	public String recruitApplicantDetail() {
+		return "tiles:recruitment/recruitApplicantDetail";
+	}
+	
+	
+}

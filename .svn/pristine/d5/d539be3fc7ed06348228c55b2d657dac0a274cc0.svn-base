@@ -1,0 +1,27 @@
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 19.     	CHOI            최초 생성
+ *
+-->
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+
+<h2 class="mb-4">미결함</h2>
+
+<div id="draftDocumentsContainer" class="table-responsive">
+</div>
+
+<script src="/resources/js/approval/approvalProcess.js"></script>
+
+<script>
+    $(document).ready(function () {
+        fetchMyDraftDocument(); // 로그인한 사용자 문서 자동 조회
+    });
+</script>
+
+

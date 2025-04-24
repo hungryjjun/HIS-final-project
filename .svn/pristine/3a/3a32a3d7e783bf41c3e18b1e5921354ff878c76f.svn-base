@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.file.FileMapper">
+
+    <!-- 🔹 FILE_ID 생성 (부모 테이블) -->
+    <insert id="insertFile" parameterType="kr.or.ddit.file.vo.FileVO">
+        <selectKey keyProperty="fileId" resultType="Long" order="BEFORE">
+            SELECT FILE_ID_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO "FILE" (FILE_ID, FILE_DEL)
+        VALUES (#{fileId}, 'N') <!-- 기본값 'N' (삭제되지 않음) -->
+    </insert>
+
+
+    <!-- 파일 상세 정보 삽입 (자식 테이블) -->
+    <insert id="insertFileDetail" parameterType="kr.or.ddit.file.vo.FileDetailVO">
+        INSERT INTO FILE_DETAIL 
+            (DETAIL_ID, FILE_ID, FILE_NAME, FILE_SAVENAME, FILE_PATH, FILE_STATUS, FILE_SIZE, FILE_TYPE, UPLOAD_DATE)
+        VALUES 
+            (FILE_DETAIL_SEQ.NEXTVAL, 
+             #{fileId}, <!-- 부모 테이블에서 반환된 FILE_ID -->
+             #{fileName}, 
+             #{fileSavename}, 
+             #{filePath}, 
+             'N', 
+             #{fileSize}, 
+             #{fileType}, 
+             SYSDATE)
+    </insert>
+
+    <!-- 파일 삭제 (상태 변경) -->
+    <update id="deleteFile" parameterType="long">
+        UPDATE FILE_DETAIL 
+        SET FILE_STATUS = 'Y' 
+        WHERE FILE_ID = #{fileId}
+    </update>
+
+    <!-- 파일 목록 조회 -->
+    <select id="getAllFiles" resultType="kr.or.ddit.file.vo.FileDetailVO">
+        SELECT 
+            DETAIL_ID, FILE_ID, FILE_NAME, FILE_SAVENAME, FILE_PATH, FILE_STATUS, FILE_SIZE, FILE_TYPE, UPLOAD_DATE
+        FROM FILE_DETAIL 
+        WHERE FILE_STATUS = 'N'
+        ORDER BY UPLOAD_DATE DESC
+    </select>
+
+    <!-- 파일 상세 조회 -->
+    <select id="getFileById" parameterType="long" resultType="kr.or.ddit.file.vo.FileDetailVO">
+        SELECT 
+            DETAIL_ID, FILE_ID, FILE_NAME, FILE_SAVENAME, FILE_PATH, FILE_STATUS, FILE_SIZE, FILE_TYPE, UPLOAD_DATE
+        FROM FILE_DETAIL
+        WHERE FILE_ID = #{fileId}
+    </select>
+
+</mapper>

@@ -1,0 +1,116 @@
+package kr.or.ddit.approval.controller;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import javax.inject.Inject;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import kr.or.ddit.approval.service.ApprovalProcessService;
+import kr.or.ddit.approval.service.ApproverService;
+import kr.or.ddit.approval.vo.DraftApproverVO;
+import kr.or.ddit.approval.vo.DraftManageMentVO;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 19.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 19.     	CHOI	          결재 진행(관련 정보 보기) 
+ *
+ * </pre>
+ */
+@RestController
+public class ApprovalProcessController {
+	
+	@Inject
+	private ApprovalProcessService service;
+	
+	@Inject
+	private ApproverService Aprservice;
+	/**
+	 * 기안자가 본인의 기안 문서를 조회 (비동기 방식)
+	 */
+	@GetMapping("/approvalProcess/mydrafts")
+	public ResponseEntity<List<DraftManageMentVO>> getMyDraftDocuments() {
+        // 로그인한 사용자의 empId 가져오기
+        String empId = getLoggedInUserId();
+
+        if (empId == null) {
+            return ResponseEntity.status(401).build(); // 401 Unauthorized
+        }
+
+        List<DraftManageMentVO> draftList = service.writeDraftMangeMent(empId);
+
+        if (draftList.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204 No Content (데이터 없음)
+        }
+
+        return ResponseEntity.ok(draftList);
+    }
+	
+	
+	/**
+	 * rest 방식으로 결재자 기준으로 조회
+	 * @return
+	 */
+	@GetMapping("/approvalProcess/approverDrafts")
+	public ResponseEntity<List<DraftApproverVO>> getMyApprovalInfoDoc(@RequestParam("aprId") String aprId){
+		//로그인한 사용자 정보 
+		String empId = getLoggedInUserId();
+		
+		if (empId == null) {
+            return ResponseEntity.status(401).build(); // 401 Unauthorized
+        }
+		
+		List<DraftApproverVO> draftList = Aprservice.getMyApprovalInfo(aprId);
+		
+		if(draftList.isEmpty()) {
+			return ResponseEntity.noContent().build(); // 204 No data
+		}
+		return ResponseEntity.ok(draftList);
+	}
+	
+	
+	@GetMapping("/approvalProcess/getApproverId")
+	public ResponseEntity<String> getApproverId() {
+	    // 현재 로그인한 사용자 ID 가져오기
+	    String empId = getLoggedInUserId();
+
+	    if (empId == null) {
+	        return ResponseEntity.status(401).body("Unauthorized");
+	    }
+
+	    return ResponseEntity.ok(empId); // 결재자 ID로 반환
+	}
+	
+
+    /**
+     * 로그인한 사용자의 empId 가져오기
+     */
+    private String getLoggedInUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername(); // 로그인된 사용자의 ID (empId) 반환
+        }
+
+        return null; // 로그인되지 않은 경우
+    }
+}

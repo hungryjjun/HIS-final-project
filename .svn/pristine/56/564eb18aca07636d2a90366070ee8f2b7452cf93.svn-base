@@ -1,0 +1,15 @@
+package kr.or.ddit.team.vo;
+
+import lombok.Data;
+
+@Data
+public class TeamMemberVO {
+	private Long tmId;  // 팀 멤버 ID
+	private Long newTmId; // 업데이트할 tmId (팀 수정시 tmId값을 변경할 때 ㄹ 사용)
+	private String tmHr;
+	private Long teamId;
+
+	private TeamVO team;
+
+	private int cnt ;
+}

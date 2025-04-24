@@ -1,0 +1,62 @@
+package kr.or.ddit.salary.controller;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.salary.service.SalaryService;
+import kr.or.ddit.salary.vo.SalaryVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping
+public class SalaryUpdateController {
+	
+	@Autowired
+	private SalaryService service;
+	
+//	@Transactional
+//	@PostMapping("/salary/update/total")
+//	public String totalSalaryUpdate(@RequestParam("pyear")int pyear, @RequestParam("pmonth")int pmonth
+//			,@ModelAttribute("salary")SalaryVO salary
+//			){
+//		
+//		return "redirect:/salary/list";
+//	}
+	
+	//급여상세에서 버튼 활성화
+	@PostMapping("/edit")
+	public String slaryUpdate() {
+		return"salary/salarDetail";
+	}
+	
+	//급여리스트에서 클릭
+	@PostMapping("/salary/final")
+	public String salaryFinal(@RequestParam("empId")String empId, @RequestParam("salaryId")Long salaryId){
+		service.finalStatusUpdate(salaryId, empId);
+		return "tiles:salary/salaryList";
+	}
+	
+	
+//	@PostMapping("/salary/final")
+//	@ResponseBody
+//	public ResponseEntity<String> workStatusManageDelete(@RequestBody Map<String, String> salaryInfo) {
+//		String empId = salaryInfo.get("empId");
+//		String salaryId = salaryInfo.get("salaryId");
+//		log.info("empId :{}",empId);
+//		log.info("salaryId :{}",salaryId);
+//		return ResponseEntity.ok("삭제 완료");
+//	}
+
+}

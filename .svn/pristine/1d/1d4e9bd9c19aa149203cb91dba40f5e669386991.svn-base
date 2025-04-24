@@ -1,0 +1,79 @@
+package kr.or.ddit.account.service;
+
+import java.util.List;
+
+import javax.security.sasl.AuthenticationException;
+
+import kr.or.ddit.account.exception.UserNotFoundException;
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+
+/**
+ * 
+ * @author youngjun
+ * @since 2025. 3. 16.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 11.     	youngjun	          최초 생성
+ *  2025. 3. 16.     	youngjun	      직원계정 수정, 직원테이블과 컬럼엮여있어 동시업데이트 진행
+ *
+ * </pre>
+ */
+public interface AccountService {
+	
+	/**
+	 * 계정리스트 전체조회
+	 * @return
+	 */
+	public List<AccountVO>accountList();
+	
+	
+	/**
+	 * 계정상세조회
+	 * @param accountId
+	 * @return
+	 */
+	public AccountVO readAccount(String accountId)throws UserNotFoundException;
+	
+	/**
+	 * 계정등록메서드
+	 * @param account
+	 * @return
+	 */
+	public boolean accountInsert(AccountVO account);
+	
+	/**
+	 * 계정 상태 인증 (id,비밀번호정보)
+	 * @param account
+	 * @return
+	 * @throws AuthenticationException
+	 */
+//	public AccountVO authenticate(AccountVO account) throws AuthenticationException;
+	
+	
+	/**
+	 * 계정에 미등록된 신규사원 조회 메서드(직원등록은 선행되야함 employee)
+	 * @return
+	 */
+	public List<AccountVO>unRegisterAccountList();
+
+	/**
+	 * 직원에 등록되지 않은 직원 선택
+	 * @param empId
+	 * @return
+	 */
+	public AccountVO selectedUnAccount(String empId);
+	
+	/**
+	 *  직원의 계정수정, 직원정보 테이블과 엮여있어 동시진행
+	 * @param account
+	 * @param employee
+	 * @return
+	 */
+	public boolean updateAccount(AccountVO account, EmployeeVO employee);
+}

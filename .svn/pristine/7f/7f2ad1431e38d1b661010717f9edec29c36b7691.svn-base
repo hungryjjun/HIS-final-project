@@ -1,0 +1,353 @@
+package kr.or.ddit.file.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import kr.or.ddit.file.vo.FileDetailVO;
+import kr.or.ddit.file.vo.FileInfoVO;
+import kr.or.ddit.file.vo.FileVO;
+import kr.or.ddit.mybatis.mappers.file.FileMapper;
+
+@Service
+public class FileInfoService {
+
+    @Autowired
+    private FileMapper mapper;
+    
+    @Autowired
+    private FileInfoVO fileInfoVO; // FileInfoVO 주입
+
+    @Autowired
+    private ResourceLoader resourceLoader; // Spring Resource 로더
+
+    /**
+     * 파일 그룹 (FILE_ID) 생성
+     */
+   @Transactional
+   public Long createFileGroup() {
+       FileVO fileVO = new FileVO();
+       fileVO.setFileDel("N");  // 삭제 여부 기본값
+       mapper.insertFile(fileVO); // 새 FILE_ID 생성
+       return fileVO.getFileId(); // 생성된 FILE_ID 반환
+   }
+
+    /**
+     * 기존 파일 그룹 (FILE_ID)에 파일 업데이트 또는 추가 (파일 교체 가능)
+     */
+   @Transactional
+   public List<Long> updateFileGroup(Long fileId, MultipartFile[] files) throws IOException {
+       if (fileId == null) {
+           throw new IllegalArgumentException("파일 그룹 ID가 필요합니다.");
+       }
+
+       List<Long> detailIds = new ArrayList<>();
+
+       //  기존 파일 삭제 (파일 그룹 내 모든 파일 삭제)
+       List<FileDetailVO> existingFiles = mapper.getFileDetailsByFileId(fileId);
+       for (FileDetailVO fileDetail : existingFiles) {
+           if (fileDetail != null && fileDetail.getFilePath() != null) {
+               Resource existingFileResource = resourceLoader.getResource("file:" + fileDetail.getFilePath());
+               try {
+                   File existingFile = existingFileResource.getFile();
+                   if (existingFile.exists()) {
+                       existingFile.delete(); // 기존 파일 삭제
+                   }
+               } catch (IOException e) {
+                   throw new RuntimeException("파일 삭제 실패: " + fileDetail.getFilePath(), e);
+               }
+               mapper.deleteFile(fileDetail.getDetailId());  // DB에서 개별 파일 삭제
+           }
+       }
+
+       long totalRequestSize = 0;
+
+       // 2. 새로운 파일 업로드
+       for (MultipartFile file : files) {
+           if (file == null || file.isEmpty()) {
+               continue; // 빈 파일 무시
+           }
+
+           long fileSize = file.getSize();
+
+           //  파일 크기 검증
+           if (fileSize > fileInfoVO.getMaxFileSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("파일 크기가 너무 큽니다.");
+           }
+
+           totalRequestSize += fileSize;
+           if (totalRequestSize > fileInfoVO.getMaxRequestSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("전체 요청 크기가 너무 큽니다.");
+           }
+
+           //  3. 파일 MIME 타입 확인 (이미지 여부 판별)
+           String contentType = file.getContentType();
+           boolean isImage = contentType != null && contentType.startsWith("image");
+
+           //  4. 저장할 디렉토리 설정 (이미지 → fileImages, 일반 파일 → fileUploads)
+           Resource uploadDirResource = resourceLoader.getResource(isImage ? fileInfoVO.getFileImages() : fileInfoVO.getFileUploads());
+           File uploadDir = uploadDirResource.getFile();
+
+           // 디렉토리 존재 여부 확인 및 생성
+           if (!uploadDir.exists()) {
+               uploadDir.mkdirs();
+           }
+
+           String originalFileName = file.getOriginalFilename();
+           String uuidFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+           File savedFile = new File(uploadDir, uuidFileName);
+
+           try {
+               // 5. 파일 저장
+               file.transferTo(savedFile);
+
+               //  6. 상대 경로 설정 (웹 애플리케이션에서 접근할 수 있는 경로)
+               String relativeFilePath = (isImage ? fileInfoVO.getFileImages() : fileInfoVO.getFileUploads()) + uuidFileName;
+
+               //  7. 파일 상세 정보 저장
+               FileDetailVO fileDetail = new FileDetailVO();
+               fileDetail.setFileId(fileId);
+               fileDetail.setFileName(originalFileName);
+               fileDetail.setFileSavename(uuidFileName);
+               fileDetail.setFilePath(relativeFilePath);  // 상대 경로로 저장
+               fileDetail.setFileSize(fileSize);
+               fileDetail.setFileType(file.getContentType());
+
+               // DB에 파일 정보 저장
+               mapper.insertFileDetail(fileDetail);
+               detailIds.add(fileDetail.getDetailId());
+
+           } catch (IOException e) {
+               throw new IOException("파일 저장 실패: " + savedFile.getAbsolutePath(), e);
+           }
+       }
+
+       return detailIds;
+   }
+
+
+   @Transactional
+   public List<Long> saveFiles(MultipartFile[] files) throws Exception {
+       List<Long> detailIds = new ArrayList<>();
+
+       // 1️⃣ 파일 그룹 (FILE_ID) 생성
+       FileVO fileVO = new FileVO();
+       fileVO.setFileDel("N");  // 삭제 여부 기본값
+       mapper.insertFile(fileVO);  // FILE 테이블에 삽입
+       Long fileId = fileVO.getFileId();  // 생성된 FILE_ID를 저장
+
+       long totalRequestSize = 0;
+
+       // 2️⃣ 파일을 하나씩 저장
+       for (MultipartFile file : files) {
+           if (file == null || file.isEmpty()) {
+               continue; // 빈 파일은 무시
+           }
+
+           long fileSize = file.getSize();
+
+           // 개별 파일 크기 제한 검사
+           if (fileSize > fileInfoVO.getMaxFileSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("파일 크기가 너무 큽니다.");
+           }
+
+           totalRequestSize += fileSize;
+           if (totalRequestSize > fileInfoVO.getMaxRequestSize() * 1024 * 1024) {
+               throw new IllegalArgumentException("전체 요청 크기가 너무 큽니다.");
+           }
+
+           // 3️⃣ 파일 MIME 타입 확인 (이미지 여부 판별)
+           String contentType = file.getContentType();
+           boolean isImage = contentType != null && contentType.startsWith("image");
+
+           // 4️⃣ 저장할 디렉토리 설정 (이미지는 `fileImages`, 그 외는 `fileUploads`)
+           Resource uploadDirResource = resourceLoader.getResource(isImage ? fileInfoVO.getFileImages() : fileInfoVO.getFileUploads());
+           File uploadDir = uploadDirResource.getFile();
+
+           // 디렉토리 존재 여부 확인 및 생성
+           if (!uploadDir.exists()) {
+               uploadDir.mkdirs();
+           }
+
+           String originalFileName = file.getOriginalFilename();
+           String uuidFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+           File savedFile = new File(uploadDir, uuidFileName);
+
+           try {
+               // 5️⃣ 파일 저장
+               file.transferTo(savedFile);
+
+               // 6️⃣ 상대 경로 설정 (웹 애플리케이션에서 접근할 수 있는 경로)
+               String relativeFilePath = (isImage ? fileInfoVO.getFileImages() : fileInfoVO.getFileUploads()) + uuidFileName;
+
+               // 7️⃣ 파일 상세 정보 저장
+               FileDetailVO fileDetail = new FileDetailVO();
+               fileDetail.setFileId(fileId);  // 그룹화된 'FILE_ID' 사용
+               fileDetail.setFileName(originalFileName);
+               fileDetail.setFileSavename(uuidFileName);
+               fileDetail.setFilePath(relativeFilePath);  // 상대 경로로 저장
+               fileDetail.setFileSize(fileSize);
+               fileDetail.setFileType(file.getContentType());
+
+               // DB에 파일 정보 저장
+               mapper.insertFileDetail(fileDetail);
+               detailIds.add(fileDetail.getDetailId());  // 삽입된 DETAIL_ID 추가
+
+           } catch (IOException e) {
+               throw new IOException("파일 저장 실패: " + savedFile.getAbsolutePath(), e);
+           }
+       }
+
+       return detailIds;
+   }
+
+
+
+    // 파일 ID로 파일 정보 조회
+    public FileDetailVO getFileById(Long detailId) {
+        return mapper.getFileById(detailId); // fileId를 사용
+    }
+
+
+    // 파일 삭제 (상대경로 사용)
+    @Transactional
+    public void deleteFile(Long fileId) {
+        FileDetailVO fileDetail = mapper.getFileById(fileId);
+        if (fileDetail != null && fileDetail.getFilePath() != null) {
+            try {
+                // 1️ 상대경로 가져오기 (예: /resources/fileImages/파일명)
+                String relativeFilePath = fileDetail.getFilePath();
+
+                // 2️ 파일이 이미지인지 확인
+                boolean isImage = relativeFilePath.startsWith(fileInfoVO.getFileImages());
+
+                // 3️ 실제 저장된 폴더 경로 가져오기
+                Resource uploadDirResource = resourceLoader.getResource(isImage ? fileInfoVO.getFileImages() : fileInfoVO.getFileUploads());
+                File uploadDir = uploadDirResource.getFile(); // 업로드 디렉토리 (fileImages 또는 fileUploads)
+
+                // 4️ 삭제할 파일의 실제 경로 가져오기
+                File fileToDelete = new File(uploadDir, relativeFilePath.substring(relativeFilePath.lastIndexOf("/") + 1));
+
+                // 5️ 파일 존재 여부 확인 후 삭제
+                if (fileToDelete.exists()) {
+                    boolean deleted = fileToDelete.delete();
+                    if (!deleted) {
+                        throw new IOException("파일 삭제 실패: " + fileToDelete.getAbsolutePath());
+                    }
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException("파일 삭제 중 오류 발생: " + fileDetail.getFilePath(), e);
+            }
+
+            // 6️ DB에서 논리적 삭제 (파일 정보 제거)
+            mapper.deleteFile(fileId);
+        }
+    }
+
+
+    /**
+     * 모든 파일 목록 조회
+     */
+    public List<FileDetailVO> getAllFiles() {
+        return mapper.getAllFiles();
+    }
+
+    /**
+     * Resource 활용
+     */
+    private File getUploadDirectory() throws IOException {
+        Resource resource = resourceLoader.getResource(fileInfoVO.getFileUploads());
+        File uploadDir = resource.getFile(); // `Resource`에서 `File` 객체 가져오기
+
+        // 디렉토리가 없으면 생성
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+        return uploadDir;
+    }
+
+    /**
+     * (다운로드, 이미지 뷰어 등에서 사용)
+     */
+    public Resource loadFileAsResource(String fileName) throws IOException {
+        if (fileName == null || fileName.isEmpty()) {
+            throw new IllegalArgumentException("파일 이름이 제공되지 않았습니다.");
+        }
+
+        // 실제 파일 경로를 가져오기 (WEB-INF/uploads 안에 파일이 있음)
+        Resource resource = resourceLoader.getResource("file:" + fileInfoVO.getFileUploads() + fileName);
+
+        // 파일 존재 여부 확인
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new IOException("파일을 찾을 수 없거나 읽을 수 없습니다: " + fileName);
+        }
+
+        return resource;
+    }
+
+    /**
+     * 파일 저장 (안정적인 경로 설정 적용)
+     */
+    @Transactional
+    public Long saveFileWithGroup(MultipartFile file, Long fileId) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드된 파일이 비어 있습니다.");
+        }
+
+        // 파일 MIME 타입 확인
+        String contentType = file.getContentType();
+        boolean isImage = contentType != null && contentType.startsWith("image");
+
+        // 저장할 디렉토리 설정 (이미지 파일이면 fileImages, 그 외는 fileUploads)
+        File uploadPath = isImage ? new File(fileInfoVO.getFileImages()) : new File(fileInfoVO.getFileUploads());
+
+        // 디렉토리 존재 여부 확인 및 생성
+        if (!uploadPath.exists()) {
+            uploadPath.mkdirs();
+        }
+
+        // 파일명 생성 (UUID 추가하여 중복 방지)
+        String originalFileName = file.getOriginalFilename();
+        String uuidFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+        File savedFile = new File(uploadPath, uuidFileName);
+
+        try {
+            file.transferTo(savedFile); // 파일 저장
+        } catch (IOException e) {
+            throw new IOException("파일 저장 실패: " + savedFile.getAbsolutePath(), e);
+        }
+
+        // 상대 경로 설정 (이미지와 일반 파일 구분)
+        String relativeFilePath = (isImage ? fileInfoVO.getFileImages() : fileInfoVO.getFileUploads()) + uuidFileName;
+
+        // 파일 상세 정보 생성
+        FileDetailVO fileDetail = new FileDetailVO();
+        fileDetail.setFileId(fileId);
+        fileDetail.setFileName(originalFileName);
+        fileDetail.setFileSavename(uuidFileName);
+        fileDetail.setFilePath(relativeFilePath);
+        fileDetail.setFileSize(file.getSize());
+        fileDetail.setFileType(contentType);
+
+        // DB에 파일 정보 저장
+        mapper.insertFileDetail(fileDetail);
+
+        return fileDetail.getDetailId();
+    }
+
+}

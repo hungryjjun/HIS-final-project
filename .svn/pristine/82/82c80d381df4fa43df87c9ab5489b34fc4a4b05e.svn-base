@@ -1,0 +1,27 @@
+package kr.or.ddit.schedule.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mybatis.mappers.schedule.ScheduleMapper;
+import kr.or.ddit.schedule.vo.ScheduleVO;
+
+@Service
+public class ScheduleServiceImpl implements ScheduleService{
+	
+	@Autowired
+	private ScheduleMapper dao;
+	
+	@Override
+	public List<ScheduleVO> ScheduleList() {
+		return dao.ScheduleList();
+	}
+
+	@Override
+	public void ScheduleInsert(ScheduleVO schedule) {
+		dao.ScheduleInsert(schedule);
+	}
+	
+}

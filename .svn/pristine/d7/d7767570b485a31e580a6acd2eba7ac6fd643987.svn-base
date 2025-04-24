@@ -1,0 +1,46 @@
+package kr.or.ddit.emprecordcards.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.emprecordcards.exception.EmpCardNotFoundException;
+import kr.or.ddit.emprecordcards.vo.EmpCardVO;
+import kr.or.ddit.mybatis.mappers.emprecords.EmpCardMapper;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class EmpCardServiceImpl implements EmpCardService {
+
+	private final EmpCardMapper dao;
+
+	@Override
+	public List<EmpCardVO> readEmpCardList() {
+		return dao.selectEmpCardList();
+	}
+
+	@Override
+	public EmpCardVO readEmpCard(String cardId) throws EmpCardNotFoundException {
+		EmpCardVO record = dao.selectEmpCard(cardId);
+		if(record==null) {
+			throw new EmpCardNotFoundException(cardId);			
+		}
+		return record;
+	}
+
+	@Override
+	public boolean createEmpCard(String record) {
+		int rowcnt = dao.insertEmpCard(record);
+		return rowcnt > 0;
+	}
+
+	@Override
+	public boolean modifyEmpCard(String record) {
+		int rowcnt = dao.updateEmpCard(record);
+		return rowcnt > 0;
+	}
+	
+	
+
+}

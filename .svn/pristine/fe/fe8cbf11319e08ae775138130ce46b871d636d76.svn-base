@@ -1,0 +1,22 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <script>
+        // QR 코드 스캔 시 이동만 처리
+        function redirectToQRCheck(event, qrData) {
+            event.preventDefault();  // 기본 링크 이동 방지
+
+            // QR 코드의 링크로 이동 (유저 ID와 함께)
+            window.location.href = qrData;
+        }
+    </script>
+</head>
+<body>
+    <!-- QR 코드 클릭 시 qr-check.jsp로 이동하도록 수정 -->
+    <img id="qrCodeImage" src="${qrCode}" alt="QR Code" onclick="redirectToQRCheck(event, '${qrCode}')"/>
+    
+</body>
+</html>

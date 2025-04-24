@@ -1,0 +1,37 @@
+package kr.or.ddit.board.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.board.service.BoardService;
+import kr.or.ddit.board.vo.BoardVO;
+import lombok.RequiredArgsConstructor;
+
+@Controller
+@RequestMapping("/board")
+@RequiredArgsConstructor
+public class BoardUpdateController {
+
+	private final BoardService service;
+	public static final String MODELNAME = "board";
+
+
+	@GetMapping("update")
+	public String formUI(@RequestParam("noticeId") Long noticeId, Model model) {
+	    BoardVO board = service.readBoard(noticeId);
+	    model.addAttribute("board", board);
+	    return "tiles:board/boardUpdate";
+	}
+
+
+	@PostMapping("update/success")
+	public String formProcess(@ModelAttribute BoardVO board) {
+	    service.modifyBoard(board);
+	    return "redirect:/board/list";
+	}
+}

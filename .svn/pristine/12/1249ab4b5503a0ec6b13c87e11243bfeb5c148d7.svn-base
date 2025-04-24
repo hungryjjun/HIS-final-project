@@ -1,0 +1,22 @@
+package kr.or.ddit.file.controller;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+import org.junit.jupiter.api.Test;
+
+public class test {
+	
+	@Test
+	public static void main(String[] args) {
+		
+		LocalDateTime now = LocalDateTime.now();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");// 원하는 형식 지정
+		String formattedTime = now.format(formatter); //String타입 formatter
+		LocalTime localTime = LocalTime.parse(formattedTime, formatter); //LocalTime타입 formatter
+		System.out.println(now);
+		System.out.println(formattedTime);
+		System.out.println(localTime);
+	}
+}

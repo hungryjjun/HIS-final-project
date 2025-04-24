@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   결재 진행 Mapper
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 18		  CHOI			  기안자 기준 처리
+ *
+-->
+<mapper namespace="kr.or.ddit.mybatis.mappers.approval.ApprovalProcessMapper">
+	<resultMap id="draftManageMentMap" type="kr.or.ddit.approval.vo.DraftManageMentVO" >
+		<id property="draftId" column="DRAFT_ID"/>
+		<result property="templateId" column="TEMPLATE_ID"/>
+		<result property="empId" column="EMP_ID"/>
+		<result property="draftTitle" column="DRAFT_TITLE"/>
+		<result property="draftContent" column="DRAFT_CONTENT"/>
+		<result property="draftFile" column="DRAFT_FILE"/>
+		<result property="draftDate" column="DRAFT_DATE" jdbcType="DATE"/>
+		<result property="draftUrgent" column="DRAFT_URGENT"/>
+		<result property="departmentId" column="DEPARTMENT_ID"/>
+		<result property="draftStatus" column="DRAFT_STATUS"/>
+		<!-- 최종 결재자 정보 추가 -->
+	    <result property="finalApprover" column="FINAL_APPROVER"/>
+	    
+	    <!-- 첨부파일 여부 -->
+	    <result property="hasAttachment" column="HAS_ATTACHMENT"/>
+		
+		
+		<!-- 기안자 정보 -->
+	    <association property="employee" javaType="kr.or.ddit.employee.vo.EmployeeVO">
+	        <id property="empId" column="EMP_ID"/>
+	        <result property="name" column="DRAFT_EMP_NAME"/>
+	        <result property="departmentId" column="DRAFT_DEPARTMENT"/>
+	    </association>
+
+	    <!-- 문서함 목록 (1:N) -->
+	    <collection property="draftBoxList" ofType="kr.or.ddit.approval.vo.DraftBoxVO" autoMapping="true">
+	        <id property="boxId" column="BOX_ID"/>
+	    </collection>
+	
+	    <!-- 결재자 목록 (1:N) -->
+	    <collection property="draftapproverList" ofType="kr.or.ddit.approval.vo.DraftApproverVO" autoMapping="true" >
+	        <id property="aprId" column="APR_ID"/>
+	    </collection>
+	
+	    <!-- 참조자/수신자 목록 (1:N) -->
+	    <collection property="draftParList" ofType="kr.or.ddit.approval.vo.DraftParVO">
+	        <id property="parId" column="PAR_ID"/>
+	    </collection>
+	    
+	    
+        <!--  파일 상세 정보 추가 -->
+	   <collection property="fileDetails" ofType="FileDetailVO">
+	       <id property="detailId" column="DETAIL_ID"/>
+	       <result property="fileId" column="FILE_ID"/>
+	       <result property="fileName" column="FILE_NAME"/>
+	       <result property="fileSavename" column="FILE_SAVENAME"/>
+	       <result property="filePath" column="FILE_PATH"/>
+	       <result property="fileStatus" column="FILE_STATUS"/>
+	       <result property="fileSize" column="FILE_SIZE"/>
+	       <result property="fileType" column="FILE_TYPE"/>
+	       <result property="uploadDate" column="UPLOAD_DATE"/>
+	   </collection>
+	    
+	    
+	    
+	    
+</resultMap>
+
+<!-- 기안 상세 정보 VO 매핑 -->
+<resultMap id="draftDetailMap" type="kr.or.ddit.approval.vo.DraftDetailVO">
+    <!-- 기안 문서 기본 정보 -->
+    <id property="draftId" column="DRAFT_ID"/>
+    <result property="draftTitle" column="DRAFT_TITLE"/>
+    <result property="draftContent" column="DRAFT_CONTENT"/>
+    <result property="draftDate" column="DRAFT_DATE" jdbcType="DATE"/>
+    <result property="draftStatus" column="DRAFT_STATUS"/>
+    <result property="empId" column="EMP_ID"/>
+    <result property="empName" column="EMPNAME"/>
+    <result property="department" column="DEPARTMENT"/>
+    
+    <!-- 연차 이력 관련 정보 -->
+    <result property="leaveDate" column="LEAVE_DATE" jdbcType="DATE"/>
+    <result property="leaveEndDate" column="LEAVE_END_DATE" jdbcType="DATE"/>
+    <result property="reason" column="REASON"/>
+    <result property="annualCode" column="ANNUAL_CODE"/>
+    <result property="annualName" column="ANNUALNAME"/>
+    
+    <!-- 단일 결재자 정보 (대표 결재자) - 필요 시 -->
+    <result property="approverId" column="APPROVER_ID"/>
+    <result property="aprSeq" column="APR_SEQ"/>
+    <result property="aprStatus" column="APR_STATUS"/>
+    <result property="aprReason" column="APR_REASON"/>
+    
+    <!-- 다중 결재자 목록 -->
+    <collection property="draftApproverList" ofType="kr.or.ddit.approval.vo.DraftApproverVO">
+        <id property="aprId" column="APR_ID"/>
+        <result property="approverId" column="APPROVER_ID"/>
+        <result property="aprSeq" column="APR_SEQ"/>
+        <result property="aprStatus" column="APR_STATUS"/>
+        <result property="aprReason" column="APR_REASON"/>
+        <result property="empSid" column="EMP_SID"/>
+    </collection>
+</resultMap>
+	
+
+
+	<!-- 기안자가 본인의 상신함 쿼리!! -->
+	<select id="writeDraftMangeMent" resultMap="draftManageMentMap" parameterType="String">
+	    SELECT
+	        dm.draft_id,
+	        dm.draft_title,
+	        dm.draft_date,
+	        dm.draft_status,
+	        emp.name          AS draft_emp_name,
+	        emp.department_id AS draft_department,
+	        (
+	            SELECT name
+	            FROM employee
+	            WHERE emp_id = (
+	                SELECT approver_id
+	                FROM draft_approver
+	                WHERE draft_id = dm.draft_id
+	                ORDER BY apr_seq DESC
+	                FETCH FIRST 1 ROWS ONLY
+	            )
+	        ) AS final_approver,
+	        CASE
+	            WHEN dm.draft_file IS NOT NULL THEN 1
+	            ELSE 0
+	        END AS has_attachment
+	    FROM
+	        draft_management dm
+	    JOIN employee emp ON dm.emp_id = emp.emp_id
+	    WHERE
+	        dm.emp_id = #{empId}
+	        AND dm.draft_status IN ('대기', '결재 진행 중')  -- 🛠 상신함 조건 추가
+	    ORDER BY
+	        dm.draft_date DESC
+	</select>
+
+	
+	<!-- 기안된 문서 전체 리스트 조회 -> 기안자 정보, 문서 카테고리, 최종 결재자, 첨부 파일 여부  -->
+	<select id="writeDraftMangeMentList" resultMap="draftManageMentMap">
+		SELECT
+		    dm.draft_id
+		  , dm.draft_title
+		  , dm.draft_date
+		  , dm.draft_status
+		  , emp.name AS draft_emp_name
+		  , dt.template_category
+		  , coalesce(to_char(emp.department_id)
+		             , '미지정') AS draft_department
+		  , (
+		        SELECT
+		            name
+		        FROM
+		            employee
+		        WHERE
+		            emp_id = (
+		                SELECT
+		                    approver_id
+		                FROM
+		                    draft_approver
+		                WHERE
+		                    draft_id = dm.draft_id
+		                ORDER BY
+		                    apr_seq DESC
+		                FETCH FIRST 1 ROWS ONLY
+		            )
+		    )        AS final_approver
+		  , CASE
+		          WHEN dm.draft_file IS NOT NULL THEN
+		              1
+		          ELSE
+		              0
+		      END      AS has_attachment
+		FROM
+		         draft_management dm
+		    JOIN employee       emp ON dm.emp_id = emp.emp_id
+		    JOIN draft_template dt ON dm.template_id = dt.template_id
+		ORDER BY
+		    dm.draft_date DESC
+	
+	</select>
+	
+	
+	<!-- 1. 전자결재 문서 기안 (INSERT)  -> 문서 폼이 바뀌어도 처리 가능함 -->
+   <insert id="insertDraftManagement" parameterType="DraftManageMentVO">
+    <!-- draftId와 templateId는 시퀀스 값으로 자동 생성 -->
+    	   <!-- 1) INSERT 전에 시퀀스 값 미리 조회 -->
+	    <selectKey keyProperty="draftId" resultType="Long" order="BEFORE">
+	        SELECT DRAFT_ID_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+    
+    
+	    INSERT INTO DRAFT_MANAGEMENT (
+	        DRAFT_ID, TEMPLATE_ID, EMP_ID, DRAFT_TITLE, 
+	        DRAFT_CONTENT, DRAFT_DATE, DRAFT_URGENT, 
+	        DEPARTMENT_ID, DRAFT_STATUS, DRAFT_FILE
+	    ) VALUES (
+	        #{draftId}, #{templateId}, #{empId}, #{draftTitle}, 
+	        #{draftContent}, SYSDATE, #{draftUrgent}, 
+	        #{departmentId}, '대기', #{draftFile}
+	    )
+	</insert>
+	<!-- 템플릿 제목 조회 -->
+	<select id="selectTemplateTitle" parameterType="Long" resultType="String">
+	    SELECT TEMPLATE_TITE
+	    FROM DRAFT_TEMPLATE
+	    WHERE TEMPLATE_ID = #{templateId}
+	</select>
+	
+
+    <!-- 2. 결재자 정보 추가 -->
+	<insert id="insertDraftApprover" parameterType="kr.or.ddit.approval.vo.DraftApproverVO">
+		<selectKey keyProperty="aprId" resultType="Long" order="BEFORE">
+			 SELECT APR_ID_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+	    INSERT INTO DRAFT_APPROVER (
+	        APR_ID, DRAFT_ID, APPROVER_ID, APR_SEQ, 
+	        APR_YN, APR_STATUS, APR_DATE, APR_REASON, APPROVER_NAME
+	    ) VALUES (
+	       #{aprId}, #{draftId}, #{approverId}, #{aprSeq}, 
+	        'N', #{aprStatus}, SYSDATE, #{aprReason}, #{approverName}
+	    )
+	</insert>
+	<!-- 결재자 이름 찾기 -->
+	<select id="selectApproverName" parameterType="String" resultType="kr.or.ddit.approval.vo.DraftApproverVO">
+		 SELECT 
+	       e.NAME as approverName
+	    FROM DRAFT_APPROVER a
+	    JOIN EMPLOYEE e ON a.APPROVER_ID = e.EMP_ID
+	    WHERE e.NAME = #{approverName}
+	</select>
+	
+	
+	<!-- 결재자 이름하고 id랑 매핑  -->
+	<select id="selectEmpIdByName" parameterType="String" resultType="String">
+		SELECT emp_id
+	    FROM account
+	    WHERE EMP_NAME = #{approverName}
+	</select>
+	
+	<!-- 연차 신청서에 해당 타입 리스트 불러오기  -->
+	<select id="selectAvailableAnnualTypes" resultType="kr.or.ddit.annual.vo.AnnualManageVO">
+	    SELECT ANNUAL_CODE as cd,
+	           ANNUAL_NAME as nm,
+	           ANNUAL_INFO,
+	           ANNUAL_STATUS
+	      FROM ANNUAL_TYPE
+	     WHERE ANNUAL_STATUS = 'Y'
+	     ORDER BY ANNUAL_CODE
+	</select>
+	
+	<!--연차 신청서  작성 -->
+	<insert id="insertAnnualHistory" parameterType="kr.or.ddit.annual.vo.AnnualHistoryVO">
+	    <!-- 시퀀스를 사용하여 PRIMARY KEY 생성 (오라클 가정) -->
+	    <selectKey keyProperty="historyId" resultType="Long" order="BEFORE">
+	        SELECT HISTORY_ID_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+	    INSERT INTO ANNUAL_HISTORY (
+	        HISTORY_ID, EMP_ID, LEAVE_DATE, LEAVE_END_DATE,
+	        STATUS, REASON, REJECT_REASON, REQUEST_DATE, ANNUAL_CODE, DRAFT_ID
+	        
+	    ) VALUES (
+	        #{historyId}, #{empId}, 
+	        TO_DATE(#{leaveDate}, 'YYYY-MM-DD'),
+        	TO_DATE(#{leaveEndDate}, 'YYYY-MM-DD'),
+	        #{status},
+	        #{reason}, #{rejectReason}, SYSDATE, #{annualCode}, #{draftId}
+	    )
+	</insert>
+	
+
+    <!-- 3. 문서함 등록 -->
+	<insert id="insertDraftBox" parameterType="DraftBoxVO">
+		<selectKey keyProperty="boxId" resultType="Long" order="BEFORE">
+			 SELECT BOX_ID_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+	    INSERT INTO DRAFT_BOX (
+	        BOX_ID, DRAFT_ID, EMP_ID, APPROVER_ID, 
+	        DOC_TITLE, DOC_STATUS, DOC_CATEGORY, DOC_TYPE, 
+	        LAST_UPDATE, CREATE_DATE, DOC_FILE
+	    ) VALUES (
+	        #{boxId}, #{draftId}, #{empId}, #{approverId}, 
+	        #{docTitle}, '대기', #{docCategory}, #{docType}, 
+	        SYSDATE, SYSDATE, #{docFile}
+	    )
+	</insert>
+
+
+    <!-- 4. 결재자 처리 (승인/반려/보류) -->
+    <update id="updateDraftApprover" parameterType="kr.or.ddit.approval.vo.DraftApproverVO">
+        UPDATE DRAFT_APPROVER
+        SET APR_YN = 'Y', 
+            APR_STATUS = #{aprStatus}, 
+            APR_DATE = SYSDATE, 
+            APR_REASON = #{aprReason}
+        WHERE DRAFT_ID = #{draftId} AND APPROVER_ID = #{approverId}
+    </update>
+
+    <!-- 5. 남은 결재자 수 확인 (마지막 결재자 체크) -->
+    <select id="countPendingApprovals" parameterType="Long" resultType="int">
+        SELECT COUNT(*) 
+        FROM DRAFT_APPROVER
+        WHERE DRAFT_ID = #{draftId} 
+        AND APR_YN = 'N'
+    </select>
+
+    <!-- 6. 문서 상태 업데이트 (마지막 결재자 승인 시) -->
+    <update id="updateDraftManagementStatus" parameterType="DraftManageMentVO">
+        UPDATE DRAFT_MANAGEMENT
+        SET DRAFT_STATUS = #{draftStatus}
+        WHERE DRAFT_ID = #{draftId}
+    </update>
+
+    <!--  7. 문서함 상태 업데이트 -->
+    <update id="updateDraftBoxStatus" parameterType="DraftBoxVO">
+        UPDATE DRAFT_BOX
+        SET DOC_STATUS = #{docStatus}, LAST_UPDATE = SYSDATE
+        WHERE DRAFT_ID = #{draftId}
+    </update>
+	
+	
+	<!-- FILE_DETAIL 테이블에 기안관리 ID와 파일 ID 매핑 -->
+	<insert id="insertDraftMentFile" parameterType="map" >
+        INSERT INTO FILE_DETAIL (FILE_ID, DRAFT_FILE)
+        SELECT
+            F.FILE_ID,
+            #{draftId}
+        FROM "FILE" F
+        WHERE F.FILE_ID = #{fileIds}
+	</insert>
+	
+	<!--  해당 문서에 저장된 데이터 값들 -> 결재 대기함이나 미결함에서 정보를 불러올 때 사용   -->
+	<select id="getDraftDocDetail" resultMap="draftDetailMap" parameterType="Long">
+		SELECT
+		    dm.draft_id,
+		    dm.draft_title,
+		    dm.draft_content,
+		    dm.draft_date,
+		    dm.draft_status,
+		    dm.emp_id,
+		    e.name AS empName,
+		    e.department_id AS department,
+		    an.leave_date,
+		    an.leave_end_date,
+		    an.reason,
+		    an.annual_code,             
+		    at.annual_name AS annualName,
+		    da.approver_id,
+		    da.apr_seq,
+		    da.apr_status,
+		    da.apr_reason
+		FROM draft_management dm
+		JOIN annual_history an 
+		    ON dm.emp_id = an.emp_id
+		    AND TO_CHAR(dm.draft_date, 'YYYY-MM-DD') = TO_CHAR(an.leave_date, 'YYYY-MM-DD')
+		JOIN annual_type at
+		    ON an.annual_code = at.annual_code
+		JOIN employee e
+		    ON dm.emp_id = e.emp_id
+		JOIN draft_approver da
+		    ON dm.draft_id = da.draft_id
+		WHERE dm.draft_id = #{draftId}
+	
+	</select>
+	
+	
+</mapper>

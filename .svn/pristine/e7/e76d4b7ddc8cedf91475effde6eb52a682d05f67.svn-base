@@ -1,0 +1,17 @@
+package kr.or.ddit.account.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/account/update")
+public class AccountUpdateController {
+	
+	@GetMapping
+	public String UpdateFormUI() {
+		
+		return"tiles:account/accountUpdateForm";
+	}
+
+}

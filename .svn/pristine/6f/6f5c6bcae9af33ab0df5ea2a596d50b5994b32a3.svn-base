@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.schedule.ScheduleMapper">
+
+
+	<select id="ScheduleList">
+	select 
+		s.*
+		,e.name as empName
+	from 
+		Schedule s
+    join employee e on e.emp_id = s.emp_id
+	</select>
+	
+	
+<insert id="ScheduleInsert">
+    <selectKey order="BEFORE" keyProperty="scheduleId" resultType="long">
+        select 
+            nvl(max(SCHEDULE_ID) +1 ,0)
+        from 
+            SCHEDULE
+    </selectKey>
+    INSERT INTO schedule (
+          schedule_id
+        , emp_id
+        , schedule_title
+        , schedule_context
+        , start_date
+        , end_date
+        , schedule_visibility
+        , color_code
+    ) VALUES (
+            #{scheduleId}
+          , #{empId}
+          , #{scheduleTitle}
+          , #{scheduleContext}
+       	  , TO_DATE(#{startDate}, 'YYYY-MM-DD HH24:MI:SS') 
+          , TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')  
+          , #{scheduleVisibility}
+          , #{colorCode}
+    )
+</insert>
+
+</mapper>

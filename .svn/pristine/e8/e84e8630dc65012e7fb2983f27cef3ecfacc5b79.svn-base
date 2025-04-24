@@ -1,0 +1,37 @@
+package kr.or.ddit.team.controller;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.team.service.TeamService;
+import kr.or.ddit.team.vo.TeamVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping("/team")
+public class TeamInsertController {
+
+	@Autowired
+	TeamService service;
+
+	@GetMapping("register")
+	public String TeamInsert() {
+		return "tiles:team/teamFormUI";
+	}
+
+    // 팀 등록 처리 (POST)
+    @PostMapping("register/commit")
+    public String registerTeam(TeamVO team) {
+        log.info("팀 등록 요청: {}", team);
+
+     // 팀과 팀 멤버(팀장 여부 포함)를 등록
+//        service.createTeamWithMembers(team);
+
+        return "redirect:/team/list"; // 팀 목록 페이지로 이동
+    }
+}

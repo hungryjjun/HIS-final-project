@@ -1,0 +1,165 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+.container {
+	margin-top: 30px;
+}
+
+.card {
+	margin-bottom: 20px;
+}
+
+.card-header {
+	font-size: 1.25rem;
+	font-weight: bold;
+}
+
+.form-group {
+	margin-bottom: 20px;
+}
+
+.table th, .table td {
+	vertical-align: middle;
+}
+
+.table th {
+	background-color: #f8f9fa;
+}
+
+.table td {
+	background-color: #ffffff;
+}
+
+.btn-group button {
+	margin-right: 10px;
+}
+
+.filter-section select {
+	width: 200px;
+}
+</style>
+<div class="container">
+	<h3>출퇴현황</h3>
+	<div class="card">
+		<div class="card-header"></div>
+		<div class="card-body">
+			<div class="form-row">
+				<div class="col-md-3 form-group">
+					<label for="department">부서</label> <select id="department"
+						class="form-control">
+						<option>전체</option>
+						<option>부서1</option>
+						<option>부서2</option>
+						<option>부서3</option>
+					</select>
+				</div>
+				<div class="col-md-3 form-group">
+					<label for="team">팀</label> <select id="team" class="form-control">
+						<option>전체</option>
+						<option>팀1</option>
+						<option>팀2</option>
+						<option>팀3</option>
+					</select>
+				</div>
+				<div class="col-md-3 form-group">
+					<label for="date">날짜 선택</label> <input type="date" id="date"
+						name="date" class="form-control" class="form-control">
+				</div>
+				<div class="col-md-3 form-group btn-group">
+					<button class="btn btn-outline-success" onclick="downloadExcel()">엑셀
+						다운로드</button>
+					<button class="btn btn-outline-danger" onclick="exportPDF()">PDF
+						다운로드</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="card">
+		<div class="card-body">
+			<table class="table table-striped" id="table1">
+				<thead>
+					<tr>
+						<th>부서</th>
+						<th>팀</th>
+						<th>이름</th>
+						<th>직급</th>
+						<th>HP</th>
+						<th>일자</th>
+						<th>출근시간</th>
+						<th>퇴근시간</th>
+						<th>근태상태</th>
+						<th>업무상태</th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:forEach items="${attendanceList}" var="x">
+						<tr>
+							<td>${x.employee.department.departmentName }</td>
+							<td>${x.employee.team.teamName }</td>
+							<td><a href="/check/Detail?empId=${x.empId}">${x.employee.name }</a></td>
+							<td>${x.employee.team.teamHr }</td>
+							<td>${x.employee.phoneNumber }</td>
+							<td>${fn:split(x.workStart, ' ')[0]}</td>
+							<td>${fn:split(x.workStart, ' ')[1]}</td>
+							<td>${fn:split(x.workEnd, ' ')[1]}</td>
+							<td>${x.attendanceStatus }</td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+<script>
+	// PDF 다운로드
+	function exportPDF() {
+		const element = document.getElementById("table1");
+
+		const opt = {
+			margin : 1,
+			filename : '출퇴현황.pdf',
+			html2canvas : {
+				scale : 2
+			},
+			jsPDF : {
+				unit : 'mm',
+				format : 'a4',
+				orientation : 'portrait'
+			}
+		};
+
+		html2pdf().from(element).set(opt).save();
+	}
+	function downloadExcel() {
+		// 테이블 데이터를 가져옵니다.
+		var table = document.getElementById("table1");
+
+		// 엑셀로 변환하는 과정
+		var wb = XLSX.utils.table_to_book(table, {
+			sheet : "출퇴현황"
+		});
+
+		// 엑셀 파일을 다운로드
+		XLSX.writeFile(wb, "출퇴현황.xlsx");
+
+	}
+	// 현재 날짜를 YYYY-MM-DD 형식으로 설정
+	var today = new Date();
+	var day = ("0" + today.getDate()).slice(-2); // 일
+	var month = ("0" + (today.getMonth() + 1)).slice(-2); // 월
+	var year = today.getFullYear(); // 연도
+
+	// "YYYY-MM-DD" 형식으로 날짜를 입력 필드에 설정
+	document.getElementById('date').value = year + "-" + month + "-" + day;
+</script>
+<script
+	src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>

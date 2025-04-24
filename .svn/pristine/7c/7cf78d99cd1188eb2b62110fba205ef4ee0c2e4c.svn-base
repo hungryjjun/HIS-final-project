@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.workstatuss.WorkStatusMapper">
+	<!-- 업무상태 목록 가져오기 -->
+    <select id="workStatusManageList" >
+        SELECT
+            STATUS_ID,
+            STATUS_NAME, 
+            STATUS_INFO, 
+            STATUS_POS 
+       from EMP_STATUS
+    </select>
+
+    <!-- 업무상태 항목 추가 -->
+    <insert id="insertWorkStatusItem" >
+        INSERT INTO EMP_STATUS ( STATUS_ID, STATUS_NAME, STATUS_INFO, STATUS_POS )
+        VALUES (#{statusId}, #{statusName}, #{statusInfo}, #{statusPos})
+    </insert>
+
+    <!-- 업무상태 항목 수정 -->
+    <update id="updateWorkStatusItemStatus" >
+        UPDATE EMP_STATUS
+        SET STATUS_NAME = #{statusName},
+            STATUS_INFO = #{statusInfo},
+            STATUS_POS = #{statusPos}
+        WHERE STATUS_ID = #{statusId}
+    </update>
+	<delete id="deleteWorkStatusItem">
+		DELETE FROM  EMP_STATUS
+ 	   WHERE STATUS_ID = #{statusId}
+	</delete>
+
+
+</mapper>

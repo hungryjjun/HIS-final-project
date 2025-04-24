@@ -1,0 +1,38 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<!-- departmentList -->
+<%-- ${empList } --%>
+<!-- empList -->
+<!-- empAllowanceList -->
+<%-- ${empAllowanceList } --%>
+<table class="table">
+   <tr>
+	<th>공제코드</th>
+	<th>공제명</th>
+	<th>정의</th>
+	<th>공제대상</th>
+	<th>계산식</th>
+   </tr>
+   
+   <tbody>
+	<c:forEach items="${deductionList }" var="deductionVO">
+   <tr>
+		<td>${deductionVO.deductionCode }</td>
+		<td>${deductionVO.deductionName }</td>
+		<td>${deductionVO.deductionDesc }</td>
+		<td>${deductionVO.deductionCalcBase }</td>
+		<td>${deductionVO.deductionCalcLogic }</td>
+   </tr>
+	</c:forEach>
+   </tbody>
+</table>
+</body>
+</html>

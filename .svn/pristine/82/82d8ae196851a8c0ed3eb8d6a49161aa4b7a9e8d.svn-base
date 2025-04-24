@@ -1,0 +1,53 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<head>
+<meta charset="UTF-8">
+<title>결재 양식 수정</title>
+</head>
+<body>
+	<h4>결재 양식 수정</h4>
+	
+	
+	<form action="${pageContext.request.contextPath}/approval/approvalUpdate" method="post">
+	<button type="submit">수정</button>
+		<input type="hidden" name="templateId" value="${templateVO.templateId}">
+		
+		<div class="row mb-3">
+			<label for="templateTite" class="col-sm-2 col-form-label">양식 제목</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="templateTite"
+					id="templateTite" value="${templateVO.templateTite}">
+				<form:errors path="templateTite" class="text-danger" element="span" />
+			</div>
+		</div>
+		<div class="row mb-3">
+			<label for="templateContent" class="col-sm-2 col-form-label">양식 내용</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="templateContent"
+					id="templateContent" value="${templateVO.templateContent}">
+				<form:errors path="templateContent" class="text-danger"
+					element="span" />
+			</div>
+		</div>
+		<div class="row mb-3">
+			<label for="templateCategory" class="col-sm-2 col-form-label">양식 카테고리</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="templateCategory"
+					id="templateCategory" value="${templateVO.templateCategory}">
+				<form:errors path="templateCategory" class="text-danger"
+					element="span" />
+			</div>
+		</div>
+		<div class="row mb-3">
+			<label for="temlpateDeleted" class="col-sm-2 col-form-label">양식 삭제 여부 (Y,N)</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" name="temlpateDeleted"
+					id="temlpateDeleted" value="${templateVO.temlpateDeleted}">
+				<form:errors path="temlpateDeleted" class="text-danger"
+					element="span" />
+				
+			</div>
+		</div>
+	</form>
+</body>

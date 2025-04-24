@@ -1,0 +1,88 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    
+<h4>지원자 목록</h4>
+<section class="section">
+		<div class="card">
+			<div class="card-header">DUMMY DATA</div>
+			<div class="card-body">
+				<a href="${pageContext.request.contextPath }/recruit/board/list">
+				    <button class="btn btn-primary">공고목록으로 이동</button>
+				</a>
+				<table class="table table-striped" id="table1">
+					<thead>
+						<tr>
+							<th>이름</th>
+							<th>생년월일</th>
+							<th>전화번호</th>
+							<th>이메일</th>
+							<th>입사지원서</th>
+							<th>평가상태</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td>
+								<a href="${pageContext.request.contextPath }/recruit/applicant/detail">
+								    <button class="btn btn-outline-primary">보기</button>
+								</a>
+							</td>
+							<td>평가필요</td>
+						</tr>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td><button>보기</button></td>
+							<td>평가필요</td>
+						</tr>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td><button>보기</button></td>
+							<td>평가필요</td>
+						</tr>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td><button>보기</button></td>
+							<td>평가필요</td>
+						</tr>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td><button>보기</button></td>
+							<td>평가필요</td>
+						</tr>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td><button>보기</button></td>
+							<td>평가필요</td>
+						</tr>
+						<tr>
+							<td>김지원</td>
+							<td>1999-09-09</td>
+							<td>01098769876</td>
+							<td>applicant1@ddit.com</td>
+							<td><button>보기</button></td>
+							<td>평가필요</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section>

@@ -1,0 +1,48 @@
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<h4>결재 양식 수정</h4>
+	
+	<div class="row mb-3">
+		<label for="templateTite" class="col-sm-2 col-form-label">기안양식제목</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" name="templateTite"
+				id="templateTite" value="${templateVO.templateTite}">
+			<form:errors path="templateTite" class="text-danger" element="span" />
+		</div>
+	</div>
+	<div class="row mb-3">
+		<label for="templateContent" class="col-sm-2 col-form-label">기얀양식내용</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" name="templateContent"
+				id="templateContent" value="${templateVO.templateContent}">
+			<form:errors path="templateContent" class="text-danger"
+				element="span" />
+		</div>
+	</div>
+	<div class="row mb-3">
+		<label for="templateCategory" class="col-sm-2 col-form-label">기안양식카테고리
+			추가</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" name="templateCategory"
+				id="templateCategory" value="${templateVO.templateCategory}">
+			<form:errors path="templateCategory" class="text-danger"
+				element="span" />
+		</div>
+	</div>
+	<div class="row mb-3">
+		<label for="temlpateDeleted" class="col-sm-2 col-form-label">기안양식
+			삭제여부(Y,N)</label>
+		<div class="col-sm-10">
+			<input type="text" class="form-control" name="temlpateDeleted"
+				id="temlpateDeleted" value="${templateVO.temlpateDeleted}">
+			<form:errors path="temlpateDeleted" class="text-danger"
+				element="span" />
+		</div>
+	</div>
+	
+
+
+</body>

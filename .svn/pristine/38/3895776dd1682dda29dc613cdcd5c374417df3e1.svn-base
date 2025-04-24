@@ -1,0 +1,48 @@
+package kr.or.ddit.recruitment.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.recruitment.service.RecruitmentService;
+import kr.or.ddit.recruitment.vo.RecruitmentVO;
+
+/**
+ * 채용공고 등록
+ */
+@Controller
+@RequestMapping("/recruit/board")
+public class RecruitBoardInsertController {
+	
+	@Autowired
+	private RecruitmentService service;
+
+	// 등록 UI
+	@GetMapping("registerUI")
+	public String recruitBoardForm() {
+		return "tiles:recruitment/recruitBoardFormUI";
+	}
+	
+	// 등록 process
+	@PostMapping("registerProcess")
+	public String recruitBoardRegister(
+		@ModelAttribute("recruitBoard") RecruitmentVO recruitBoard
+		, Model model
+	) {
+		boolean isRegistered = service.createRecruitBoard(recruitBoard);
+
+        if (isRegistered) {
+            // 등록 성공 시 리스트로 리다이렉트
+            return "redirect:/recruit/board/list"; 
+        } else {
+            // 실패 시 에러 메시지, 폼으로 돌아가기
+            model.addAttribute("error", "채용공고 등록에 실패했습니다.");
+            return "tiles:recruitment/recruitBoardFormUI"; 
+        }
+	}
+	
+}

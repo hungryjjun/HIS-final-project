@@ -1,0 +1,481 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+   pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일               수정자           수정내용
+ *  ============      ============== =======================
+ *  2025-03-12          정태우            최초 생성
+ *  2025-03-14          정태우            출근 퇴근 일한시간 삽입
+ *  2025-03-17          이영준            security재 설정 세션값 변경
+ *
+-->
+<style>
+#calendar {
+transform: scale(0.99); /* 80% 크기로 축소 */
+   width: 100%;
+   height: 500px;
+/*    max-width: 600px; /* 원하는 최대 너비로 설정 */ */
+/*    margin: auto;   /* 가운데 정렬(옵션) */ */
+}
+
+
+#doc-id {
+    width: 5%;
+}
+
+#title {
+    width: 10%;
+}
+
+#draft-date {
+    width: 1%;
+}
+
+#status {
+    width: 1%;
+}
+
+#draftor {
+    width: 1%;
+}
+
+#department {
+    width: 1%;
+}
+
+#approver {
+    width: 1%;
+}
+
+#approval-status {
+    width: 10%;
+}
+
+#approval-progress {
+    width: 15%;
+}
+
+#attachment {
+    width: 1%;
+}
+
+</style>
+
+<div id="main" class="layout-horizontal">
+	<header class="mb-3">
+		<a href="#" class="burger-btn d-block d-xl-none">
+		 <i class="bi bi-justify fs-3"></i>
+		</a>
+	</header>
+		<security:authentication property="principal" var="principal" />
+	<div class="page-content">
+		<section class="row">
+			<!-- 캘린더 왼쪽 -->
+			<div class="col-12 col-lg-4">
+				<div class="card" >
+					<script src="${pageContext.request.contextPath}/resources/fullcalendar-6.1.15/dist/index.global.js"></script>
+					<div id="calendar"></div>
+				</div>
+			</div>
+			<div class="col12- col-lg-4">
+				<div class="card-content pb-4">
+				    <div class="card widget-todo">
+				        <title>동적 Todo List</title>
+				        <div class="container my-3">
+				            <h5>오늘 할 일</h5>
+				            <ul id="todoList" class="list-group"></ul>
+				            <button id="addTaskBtn" class="btn btn-primary mt-3">할 일 추가</button>
+				        </div>
+				    </div>
+				</div>
+
+			</div>
+			<!-- 캘린더 오른쪽 (프로필 정보) -->
+			<div class="col-12 col-lg-4">
+				<div class="card">
+					<div class="card-body py-4 px-5">
+						<div class="d-flex align-items-center">
+							<div class="avatar avatar-xl">
+								<img
+									src="${pageContext.request.contextPath}/resources/template/dist/assets/static/images/faces/1.jpg"
+									alt="Face 1">
+							</div>
+							<div class="ms-3 name">
+								<h6>${principal.realUser.department.departmentName} ${principal.realUser.employee.team.teamName}</h6>
+								<h5 class="text-muted mb-0">${principal.realUser.empName }  ${principal.realUser.rank.rankName }</h5>
+
+								<a href="javascript:logoutStatus()" >로그아웃</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card">
+					<div class="card-header">
+						<h4>나의 근태</h4>
+					</div>
+					<div class="card-content pb-4">
+						<h6>
+							<span id="time"></span>
+						</h6>
+
+
+						<c:if test="${not empty sessionAccount.attendance}">
+							<c:forEach items="${sessionAccount.attendance}" var="attendance">
+							    <span id="startTime">출근 시간   ${attendance.workStartTime} </span> <br/>
+							    <span id="endTime">퇴근 시간   ${attendance.workEndTime}</span> <br/>
+							    <span>일한 시간
+							    	<span class="workDuration" data-workstart="${attendance.workStartTime}" data-workend="${attendance.workEndTime}"></span>
+							    </span> <br/>
+							</c:forEach>
+						</c:if>
+						<c:if test="${empty sessionAccount.attendance}">
+								<span id="startTime" >출근 시간   </span> <br/>
+							    <span id="endTime" >퇴근 시간  </span> <br/>
+							    <span>일한 시간 </span> <br/>
+						</c:if>
+
+						<a class="btn btn-outline-info" href="${pageContext.request.contextPath}/generate-qr"
+												data-bs-toggle="modal" data-bs-target="#exampleModal__" >출/퇴QR</a>
+						<select id="workStatusSelect" name="workStatus" onchange="updateWorkStatus()" class="btn btn-outline-info">
+						    <c:forEach items="${workStatusList}" var="workStatusVO">
+						        <c:if test="${workStatusVO.statusPos eq 'Y'}">  <!-- 🔹 POS가 'Y'인 경우만 표시 -->
+						            <c:choose>
+						                <c:when test="${workStatus.statusId eq 'STAT_01' || workStatus.statusId eq 'STAT_02'}">
+						                    <option value="${workStatusVO.statusId}"
+						                            ${workStatusVO.statusId eq workStatus.statusId ? 'selected' : ''}
+						                            ${workStatusVO.statusId eq 'STAT_03' ? 'disabled' : ''}>
+						                        ${workStatusVO.statusName}
+						                    </option>
+						                </c:when>
+
+						                <c:when test="${workStatus.statusId eq 'STAT_03'}">
+						                    <option value="${workStatusVO.statusId}"
+						                            ${workStatusVO.statusId eq 'STAT_03' ? 'selected' : ''}
+						                            ${workStatusVO.statusId ne 'STAT_03' ? 'disabled' : ''}>
+						                        ${workStatusVO.statusName}
+						                    </option>
+						                </c:when>
+						            </c:choose>
+						        </c:if>
+						    </c:forEach>
+						</select>
+					</div>
+				</div>
+
+
+			</div>
+		</section>
+
+      <section class="row">
+         <!-- 게시판 (왼쪽) -->
+         <div class="col-12 col-lg-6">
+            <div class="card">
+               <div class="card-body">
+					<section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title"><a href="${pageContext.request.contextPath }/board/list" class="text-decoration-none text-grey">공지사항</a></h5>
+
+            </div>
+            <script>
+                function navigateToDetail(postId) {
+                    console.log("Navigating to detail with noticeId:", postId); // 로그 추가
+                    window.location.href = "${pageContext.request.contextPath}/board/detail?noticeId=" + postId;
+                }
+            </script>
+            <div class="card-body">
+                <div class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-columns">
+                    <div class="dataTable-container">
+                        <table id="table1" class="table table-striped datatable">
+                            <thead>
+                                <tr>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">글번호</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">카테고리</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">제목</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">작성자</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">작성일</a></th>
+                                    <th data-sortable=""><a href="#" class="dataTable-sorter">조회수</a></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty boardList}">
+                                        <c:forEach items="${boardList}" var="board">
+                                            <tr>
+                                                <td>${board.noticeId}</td>
+                                                <td>${board.category.categoryName}</td>
+                                                <td>
+                                                    <a href="javascript:void(0);" onclick="navigateToDetail('${board.noticeId}')">${board.title}</a>
+                                                </td>
+                                                <td>${board.role.roleName}</td>
+                                                <td>${board.createdAt}</td>
+                                                <td>${board.viewCount}</td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="6">공지글 없음.</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+
+                  </div>
+              </div>
+          </div>
+      </div>
+  </section>
+               </div>
+            </div>
+         </div>
+
+         <!-- 게시판 오른쪽 (appoverProcess.jsp) -->
+         <div class="col-12 col-lg-6">
+    <div class="card">
+        <div class="card-body">
+            <section class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title"><a href="${pageContext.request.contextPath }/approval/approverDrafts">결재대기함</a></h4>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- 데이터 테이블을 가로 스크롤 가능하게 만들기 -->
+                        <div class="table-responsive" style="max-width: 100%; overflow-x: auto;">
+                            <table id="approvalTable" class="table table-striped datatable">
+                                <thead>
+                                    <tr>
+										<th id="doc-id"><a href="#" class="dataTable-sorter">문서ID</a></th>
+										<th id="title"><a href="#" class="dataTable-sorter">제목</a></th>
+										<th id="draft-date"><a href="#" class="dataTable-sorter">기안일</a></th>
+										<th id="status"><a href="#" class="dataTable-sorter">상태</a></th>
+										<th id="draftor"><a href="#" class="dataTable-sorter">기안자</a></th>
+										<th id="department"><a href="#" class="dataTable-sorter">부서</a></th>
+										<th id="approver"><a href="#" class="dataTable-sorter">결재자</a></th>
+										<th id="approval-status"><a href="#" class="dataTable-sorter">승인여부</a></th>
+										<th id="approval-progress"><a href="#" class="dataTable-sorter">결재 진행상태</a></th>
+										<th id="attachment"><a href="#" class="dataTable-sorter">첨부파일</a></th>
+
+                                    </tr>
+                                </thead>
+                                <tbody id="draftDocumentsContainer">
+                                    <tr>
+                                        <td colspan="10"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+
+      </section>
+   </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal__" tabindex="-1"
+	aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">출퇴근 QR</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"
+					aria-label="Close"></button>
+			</div>
+			<div class="modal-body"></div>
+		</div>
+	</div>
+</div>
+
+    <!-- 투두리스트 할 일 추가 모달 창 -->
+	<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+	    <div class="modal-dialog modal-dialog-centered">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="taskModalLabel">할 일 추가</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <div class="form-group">
+	                    <label for="taskInput" class="form-label">할 일 입력</label>
+	                    <textarea class="form-control" id="taskInput" rows="3"></textarea>
+	                </div>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+	                <button type="button" class="btn btn-primary" id="saveTask">저장</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+<!-- Simple DataTables 스크립트 -->
+<script src="${pageContext.request.contextPath}/resources/js/approval/approverProcess.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/qr/qrModal.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/content/updateTime.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/content/updateWorkedTime.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/qr/qrWorkStatusUpdate.js"></script>
+<script>
+	var empId = '${workStatus.empId}'
+	console.log("empId1",empId);
+   //페이지가 로드되면 시간을 업데이트하고, 1초마다 갱신
+   window.onload = function() {
+      updateTime();
+      updateWorkedTime();   // 페이지 로드 시 바로 실행
+      setInterval(updateTime, 1000); // 1초마다 시간 갱신
+      setInterval(updateWorkedTime, 1000);
+   };
+   function updateWorkStatus() {
+		var statusId = $('#workStatusSelect').val();  // 선택된 상태 ID
+		$.ajax({
+			url: '/workstauts/updateWorkStatus',  // 서버의 URL
+			type: 'POST',
+			data: {
+				statusId: statusId,
+				empId: empId,
+				workDate: workDate
+			},
+			success: function(response) {
+				alert('업데이트 성공');
+			},
+			error: function() {
+				alert('업데이트 실패');
+			}
+		});
+	}
+
+
+   var empId = '${principal.realUser.empId}'; //로그인한 사원의 Id
+   console.log("empId2",empId);
+   let stompClient = null;
+
+   function connectAndSendStatus() {
+       const socket = new SockJS('/wss');
+       stompClient = Stomp.over(socket);
+
+       stompClient.connect({}, function(frame) {
+           console.log('🟢 WebSocket 연결됨 (로그인 상태 알림용)', frame);
+
+           // 온라인 상태 서버에 전송
+           stompClient.send("/app/status", {}, JSON.stringify({
+               empId: empId,
+               status: "온라인"
+           }));
+       });
+   }
+
+   window.onload = function() {
+       connectAndSendStatus();
+   };
+
+   function logoutStatus() {
+   	if (stompClient) {
+   		stompClient.send("/app/status", {}, JSON.stringify({
+   			empId: empId,
+   			status: "오프라인"
+   		}));
+   	}
+   	setTimeout(() => {
+   		location.href = "/account/login/logout";
+   	}, 300);
+   }
+</script>
+
+<script>
+    var scheduleList = [
+        <c:forEach items="${scheduleList}" var="x" varStatus="status">
+            {
+                scheduleTitle: "${x.scheduleTitle}",
+                scheduleContext: "${x.scheduleContext}",
+                startDate: "${x.startDate}",
+                endDate: "${x.endDate}",
+                scheduleVisibility: "${x.scheduleVisibility}",
+                colorCode: "${x.colorCode}"
+            }<c:if test="${!status.last}">,</c:if>
+        </c:forEach>
+    ];
+    window.scheduleList = scheduleList;
+</script>
+
+
+<!-- TodoList JS -->
+<script>
+$(document).ready(function(){
+    var drake = dragula([document.getElementById("todoList")]);
+
+    loadTasks(); // ✅ 페이지 로드 시 저장된 데이터 불러오기
+
+    $('#addTaskBtn').click(function(){
+        $('#taskModal').modal('show');
+    });
+
+    $('#saveTask').click(function(){
+        var taskText = $('#taskInput').val().trim();
+        if(taskText) {
+            addTaskToList(taskText);
+            saveTasks(); // ✅ 할 일 저장
+            $('#taskInput').val("");
+            $('#taskModal').modal('hide');
+        }
+    });
+
+    $('#todoList').on('change', 'input[type="checkbox"]', function(){
+        if(this.checked){
+            $(this).closest('li').fadeOut(function(){
+                $(this).remove();
+                saveTasks(); // ✅ 삭제 후 저장
+            });
+        }
+    });
+
+    function addTaskToList(taskText) {
+        var newTask = $('<li class="list-group-item d-flex align-items-center"></li>');
+        var listIcon = $('<i data-feather="list" class="cursor-move me-2" style="font-size: 20px;"></i>');
+
+        var checkbox = $('<input type="checkbox" class="form-check-input me-2">');
+        var label = $('<span></span>').text(taskText);
+
+        newTask.append(listIcon).append(checkbox).append(label);
+        $('#todoList').append(newTask);
+        feather.replace();
+
+        drake.destroy();
+        drake = dragula([document.getElementById("todoList")]);
+    }
+
+    function saveTasks() {
+        let tasks = [];
+        $("#todoList li").each(function() {
+            let text = $(this).find("span").text();
+            tasks.push(text);
+        });
+        localStorage.setItem("todoTasks", JSON.stringify(tasks));
+    }
+
+    function loadTasks() {
+        let savedTasks = localStorage.getItem("todoTasks");
+        if (savedTasks) {
+            savedTasks = JSON.parse(savedTasks);
+            savedTasks.forEach(task => {
+                addTaskToList(task);
+            });
+        }
+    }
+});
+</script>

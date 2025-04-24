@@ -1,0 +1,79 @@
+let stompClient;
+
+const senderId = sessionStorage.getItem("currentUserId"); // 세션에서 현재 로그인한 유저 ID 가져옴
+
+function connectChatRoom() {
+  const socket = new SockJS("/wss");
+  stompClient = Stomp.over(socket);
+
+  stompClient.connect({}, function (frame) {
+    console.log("🟢 채팅방 연결됨:", frame);
+
+    stompClient.subscribe(`/topic/chat/${roomId}`, function (message) {
+      const chat = JSON.parse(message.body);
+	  console.log("받은 메시지 : ", chat);
+      showMessage(chat);
+    });
+  });
+}
+
+function sendMessage() {
+  const content = $("#chatInput").val();
+  if (!content || !senderId) return;
+
+  const msg = {
+    roomId: roomId,
+    senderId: senderId,
+    messageText: content
+  };
+
+  stompClient.send("/app/chat.send", {}, JSON.stringify(msg));
+  $("#chatInput").val("");
+}
+
+function showMessage(chat) {
+  const currentUserId = sessionStorage.getItem("currentUserId"); 
+  const isMine = chat.senderId === currentUserId; // 
+  console.log("senderId in DOM:", $("#senderId").val());
+  console.log("내 ID:", currentUserId, "보낸 사람:", chat.senderId, "내 메시지인가?", isMine);
+  console.log("내 id:", currentUserId, typeof currentUserId)
+  console.log("메시지 보낸사람", chat.senderId, typeof chat.senderId)
+  console.log("isMine:", isMine); // true or false
+  
+  let sentTime = "";
+   if (chat.sentAt) {
+     const date = new Date(chat.sentAt);
+     if (!isNaN(date)) {
+       sentTime = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+     }
+   }
+
+  const messageHtml = `
+    <div class="chat-message ${isMine ? 'mine' : 'other'}">
+		<div class="chat-bubble">
+	       <div><strong>${chat.senderName}</strong>: ${chat.messageText}</div>
+	       <div class="chat-time">${sentTime}</div>
+	     </div>
+	   </div>
+  `;
+
+  $("#chat-box").append(messageHtml);
+  $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+}
+
+
+
+
+$(document).ready(function () {
+  connectChatRoom();
+
+  $("#sendBtn").on("click", sendMessage);
+
+  $("#chatInput").on("keypress", function (e) {
+    if (e.which === 13) sendMessage();
+  });
+  $("#closeBtn").on("click", function () {
+    window.close(); 
+  });
+
+});

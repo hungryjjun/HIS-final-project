@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.recruitment.RecruitmentMapper">
+
+	<resultMap type="RecruitmentVO" id="recruitmentMap">
+		<id property="recruitId" column="RECRUIT_ID"/>
+		<result property="recruitTitle" column="RECRUIT_TITLE"/>
+		<result property="recruitWorkplace" column="RECRUIT_WORKPLACE"/>
+		<result property="recruitHiretype" column="RECRUIT_HIRETYPE"/>
+		<result property="recruitSalary" column="RECRUIT_SALARY"/>
+		<result property="recruitWorkdetail" column="RECRUIT_WORKDETAIL"/>
+		<result property="recruitPq" column="RECRUIT_PQ"/>
+		<result property="recruitEnddate" column="RECRUIT_ENDDATE" jdbcType="DATE"/>
+		<result property="recruitContact" column="RECRUIT_CONTACT"/>
+	</resultMap>
+
+	<select id="selectRecruitBoardList" resultMap="recruitmentMap">
+		SELECT RECRUIT_ID
+		       ,RECRUIT_TITLE
+		       ,RECRUIT_WORKPLACE
+		       ,RECRUIT_HIRETYPE
+		       ,RECRUIT_SALARY
+		       ,RECRUIT_WORKDETAIL
+		       ,RECRUIT_PQ
+		       ,RECRUIT_ENDDATE
+		       ,RECRUIT_CONTACT
+		FROM RECRUIT
+		ORDER BY RECRUIT_ID DESC
+	</select>
+
+	<select id="selectRecruitBoardDetail" resultMap="recruitmentMap" parameterType="Long">
+		SELECT RECRUIT_ID
+			   ,RECRUIT_TITLE
+		       ,RECRUIT_WORKPLACE
+		       ,RECRUIT_HIRETYPE
+		       ,RECRUIT_SALARY
+		       ,RECRUIT_WORKDETAIL
+		       ,RECRUIT_PQ
+		       ,RECRUIT_ENDDATE
+		       ,RECRUIT_CONTACT
+		FROM RECRUIT
+		WHERE RECRUIT_ID = #{recruitId}
+	</select>
+
+	<insert id="insertRecruitBoard" parameterType="RecruitmentVO">
+		INSERT INTO RECRUIT (    
+				RECRUIT_ID
+		       ,RECRUIT_TITLE
+		       ,RECRUIT_WORKPLACE
+		       ,RECRUIT_HIRETYPE
+		       ,RECRUIT_SALARY
+		       ,RECRUIT_WORKDETAIL
+		       ,RECRUIT_PQ
+		       ,RECRUIT_ENDDATE
+		       ,RECRUIT_CONTACT
+		) VALUES (   
+				recruit_seq.NEXTVAL     
+				, #{recruitTitle}
+				, #{recruitWorkplace}
+				, #{recruitHiretype}
+				, #{recruitSalary}
+				, #{recruitWorkdetail}
+				, #{recruitPq}
+				, #{recruitEnddate}
+				, #{recruitContact}     
+		)
+	</insert>
+
+	<update id="updateRecruitBoard" parameterType="RecruitmentVO">
+		UPDATE RECRUIT
+		SET	RECRUIT_TITLE = #{recruitTitle}
+			, RECRUIT_WORKPLACE = #{recruitWorkplace}
+			, RECRUIT_HIRETYPE = #{recruitHiretype}
+			, RECRUIT_SALARY = #{recruitSalary}
+			, RECRUIT_WORKDETAIL = #{recruitWorkdetail}
+			, RECRUIT_PQ = #{recruitPq}
+			, RECRUIT_ENDDATE = #{recruitEnddate}
+			, RECRUIT_CONTACT = #{recruitContact}
+        WHERE RECRUIT_ID = #{recruitId}
+	</update>
+</mapper>

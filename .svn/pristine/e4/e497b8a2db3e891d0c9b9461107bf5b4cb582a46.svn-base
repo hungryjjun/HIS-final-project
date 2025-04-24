@@ -1,0 +1,200 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025-03-12    	   정태우            최초 생성
+ *  2025-03-14    	   정태우            출근 퇴근 일한시간 삽입
+ *  2025-03-17    	   이영준            security재 설정 세션값 변경
+ *
+-->
+<style>
+#calendar {
+	transform: scale(0.85); /* 80% 크기로 축소 */
+	width: 100%;
+}
+
+.messengerSTbtn {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+}
+
+/* 드롭다운 메뉴 숨기기 */
+.layer_transition {
+	display: none;
+	position: absolute;
+	top: 50px; /* 버튼 아래에 표시되도록 조정 */
+	z-index: 100;
+	width: 200px;
+	border: 1px solid #ccc;
+	background-color: white;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 메뉴 항목 스타일 */
+.submenu-list li {
+	padding: 10px;
+	cursor: pointer;
+}
+
+.submenu-list li:hover {
+	background-color: #f0f0f0;
+}
+</style>
+<header> </header>
+<script
+	src="${pageContext.request.contextPath}/resources/template/dist/assets/static/js/pages/horizontal-layout.js"></script>
+<div id="main" class="layout-horizontal">
+	<header class="mb-3">
+		<a href="#" class="burger-btn d-block d-xl-none"> <i
+			class="bi bi-justify fs-3"></i>
+		</a>
+	</header>
+	<security:authentication property="principal" var="principal" />
+	<div class="page-heading">
+		<h3>
+			<a href="${pageContext.request.contextPath}/generate-qr"
+				data-bs-toggle="modal" data-bs-target="#exampleModal">HR
+				Insiders</a> 
+		</h3>							세션명:principal.realUser ======
+										${principal.realUser}
+	</div>
+	<div class="page-content">
+		<section class="row">
+			<!-- 캘린더 왼쪽 -->
+			<div class="col-12 col-lg-8">
+				<div class="card">
+					<script
+						src="${pageContext.request.contextPath}/resources/fullcalendar-6.1.15/dist/index.global.js"></script>
+					<div id="calendar"></div>
+					<div class="modal fade" id="eventModal" tabindex="-1"
+						aria-labelledby="eventModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="eventModalLabel">일정</h5>
+									<button class="eventInsert" type="button">등록</button>
+									<button class="eventUpdate" type="button">수정</button>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="Close"></button>
+								</div>
+								<div class="modal-body" id="eventList"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 캘린더 오른쪽 (프로필 정보) -->
+			<div class="col-12 col-lg-4">
+				<div class="card">
+					<div class="card-body py-4 px-5">
+						<div class="d-flex align-items-center">
+							<div class="avatar avatar-xl">
+								<img
+									src="${pageContext.request.contextPath}/resources/template/dist/assets/static/images/faces/1.jpg"
+									alt="Face 1">
+							</div>
+							<div class="ms-3 name">
+								<h6>${principal.realUser.department.departmentName} ${principal.realUser.teamMember.team.teamName}</h6>
+								<h5 class="text-muted mb-0">${principal.realUser.empName }  ${principal.realUser.rank.rankName }</h5>
+								
+								<a href="<c:url value='/account/login/logout'/>">로그아웃</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card">
+					<div class="card-header">
+						<h4>근태 관리</h4>
+					</div>
+					<div class="card-content pb-4">
+						<h6>
+							<span id="time"></span>
+						</h6>
+						<c:if test="${not empty principal.realUser.employee.attendanceList}">
+							<c:forEach items="${principal.realUser.employee.attendanceList}" var="attendance">
+							    <span>출근 시간:${attendance.workStartTime } </span> <br/>
+							    <span>퇴근 시간:${attendance.workEndTime } </span> <br/>
+							    <span>일한 시간: 
+							    	<span class="workDuration" data-workstart="${attendance.workStartTime}" data-workend="${attendance.workEndTime}"></span>
+							    </span> <br/>
+							</c:forEach>
+						</c:if>
+						<c:if test="${empty principal.realUser.employee.attendanceList}">
+								<span>출근 시간: </span> <br/>
+							    <span>퇴근 시간: </span> <br/>
+							    <span>일한 시간: </span> <br/>
+						</c:if>
+
+						<button class="btn btn-outline-info">출근하기</button>
+						<button class="btn btn-outline-info">퇴근하기</button>
+						<select class="btn btn-outline-info">
+							<option>업무중</option>
+							<option>퇴근</option>
+							<option>출장</option>
+							<option>회의</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="row">
+			<!-- 게시판 (왼쪽) -->
+			<div class="col-12 col-lg-8">
+				<div class="card">
+					<div class="card-body">
+						<%@include file="/WEB-INF/views/includee2/notice.jsp"%>
+					</div>
+				</div>
+			</div>
+
+			<!-- 게시판 오른쪽 (rufwoanstj.jsp) -->
+			<div class="col-12 col-lg-4">
+				<div class="card">
+					<div class="card-body">
+						<%@include file="/WEB-INF/views/mazer/rufwoanstj.jsp"%>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1"
+	aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">출퇴근 QR</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"
+					aria-label="Close"></button>
+			</div>
+			<div class="modal-body"></div>
+		</div>
+	</div>
+</div>
+
+<script>
+	//페이지가 로드되면 시간을 업데이트하고, 1초마다 갱신
+	window.onload = function() {
+		updateTime();
+		updateWorkedTime();   // 페이지 로드 시 바로 실행
+		setInterval(updateTime, 1000); // 1초마다 시간 갱신
+		setInterval(updateWorkedTime, 1000);
+		
+	};
+</script>
+<script src="${pageContext.request.contextPath}/resources/js/content/changeStatus.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/content/updateTime.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/content/updateWorkedTime.js"></script>
+<script src="${pageContext.request.contextPath}/resources/js/qr/qrModal.js"></script>

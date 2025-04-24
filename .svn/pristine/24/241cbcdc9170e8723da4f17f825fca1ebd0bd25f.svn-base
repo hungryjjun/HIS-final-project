@@ -1,0 +1,61 @@
+package kr.or.ddit.salary.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mybatis.mappers.salary.SalaryMapper;
+import kr.or.ddit.salary.vo.AllowanceCodeVO;
+import kr.or.ddit.salary.vo.AllowanceVO;
+import kr.or.ddit.salary.vo.DeductionCodeVO;
+import kr.or.ddit.salary.vo.DeductionVO;
+import kr.or.ddit.salary.vo.SalaryVO;
+
+@Service
+public class SalaryServiceImpl implements SalaryService {
+
+	@Autowired
+	private SalaryMapper mapper;
+	
+	@Override
+	public List<SalaryVO> salaryList() {
+		return mapper.salaryList();
+	}
+
+	@Override
+	public SalaryVO salarySelected(String empId) {
+		return mapper.salarySelected(empId);
+	}
+
+	@Override
+	public List<AllowanceCodeVO> AllowanceList() {
+		return mapper.AllowanceList();
+	}
+
+//	@Override
+//	public List<AllowanceVO> EmpAllowanceList() {
+//		return mapper.EmpAllowanceList();
+//	}
+//
+//	@Override
+//	public AllowanceVO EmpAllowanceSelected(String empId) {
+//		return mapper.EmpAllowanceSelected(empId);
+//	}
+
+	@Override
+	public List<DeductionCodeVO> DeductionList() {
+		return mapper.DeductionList();
+	}
+
+//	@Override
+//	public List<DeductionVO> EmpDeductionList() {
+//		return mapper.EmpDeductionList();
+//	}
+//
+//	@Override
+//	public DeductionVO EmpdeductionSelected(String empId) {
+//		return mapper.EmpdeductionSelected(empId);
+//	}
+
+}

@@ -1,0 +1,21 @@
+package kr.or.ddit.board.vo;
+
+import java.sql.Date;
+
+import lombok.Data;
+
+@Data
+public class BoardVO {
+	private Long noticeId;
+	private String empId;
+	private String title;
+	private String content;
+	private String category;
+	private String importance;
+	private Date createdAt;
+	private String updatedAt;
+	private int viewCount;
+	private Long noticeFile;
+	
+	private String jobName;
+}

@@ -1,0 +1,21 @@
+package kr.or.ddit.empAppointment.vo;
+
+import lombok.Data;
+
+@Data
+public class AppointmentVO {
+	
+	private Long appId;
+	private String empId;
+	private String appDate;
+	private String appType;
+	private String appReason;
+	private String prevJobId;
+	private String prevRankId;
+	private String prevDepartmentId;
+	private String newJobId;
+	private String newRankId;
+	private String newDepartmentId;
+	private String hireDrte;
+	private Long serviceYear;
+}

@@ -1,0 +1,56 @@
+package kr.or.ddit.empAppointment.vo;
+
+import kr.or.ddit.employee.vo.EmployeeVO;
+import lombok.Data;
+
+
+@Data
+public class AppointmentVO {
+    private Long appId;
+    private String empId;
+    private String appDate;
+    private String appType;
+    private String appReason;
+    private String prevJobId;
+    private String prevRankId;
+    private String prevDepartmentId;
+    private String newJobId;
+    private String newRankId;
+    private String newDepartmentId;
+    private String hireDrte;
+    private Long serviceYear;
+    private String prevTeamId;
+    private String prevPositionId;
+    private String newTeamId;
+    private String newPositionId;
+
+    private EmployeeVO employee;
+    
+    private String prevRankName;  
+    private String newRankName;  
+    private String prevPositionName; 
+    private String newPositionName;  
+    private String prevDepartmentName;  
+    private String newDepartmentName;  
+    private String prevJobName;  
+    private String newJobName;  
+    private String prevTeamName;  
+    private String newTeamName;  
+
+//    private DepartmentVO prevDepartment;
+//    private DepartmentVO newDepartment;
+//    private DepartmentVO department;
+//    private TeamVO prevTeam;
+//    private TeamVO newTeam;
+//    private TeamVO team;
+//    private TeamMemberVO teamMember;
+//    private PositionVO prevPosition;
+//    private PositionVO newPosition;
+//    private PositionVO position;
+//    private JobVO prevJob;
+//    private JobVO newJob;
+//    private JobVO job;
+//    private RankVO prevRank;
+//    private RankVO newRank;
+//    private RankVO rank;
+}

@@ -1,0 +1,41 @@
+//직원 목록
+$(document).ready(function () {
+    $("#empListBtn").click(function (e) {
+        e.preventDefault();
+        console.log("📌 직원 목록 버튼 클릭됨!");
+
+        $.ajax({
+            url: "/messenger/empList",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                console.log("✅ 직원 목록 불러오기 성공", data);
+
+                let empListHtml = `
+                    <h3>직원 목록</h3>
+                    <ul id="empList">
+                `;
+
+                data.forEach(emp => {
+                    empListHtml += `
+                        <li class="employee-item">
+                            <strong>이름:</strong> ${emp.empName} <br>
+                            <strong>부서:</strong> ${emp.department.departmentName} <br>
+                            <strong>직급:</strong> ${emp.empRank} <br>
+                            <strong>팀:</strong> ${emp.teamName} <br>
+                        </li>
+                    `;
+                });
+
+                empListHtml += `</ul>`;
+
+                $("#contentArea").html(empListHtml);
+                console.log("✅ 직원 목록 업데이트 완료");
+            },
+            error: function (xhr, status, error) {
+                console.error("❌ 직원 목록 불러오기 실패", status, error);
+                alert("직원 목록을 불러오는 데 실패했습니다.");
+            }
+        });
+    });
+});

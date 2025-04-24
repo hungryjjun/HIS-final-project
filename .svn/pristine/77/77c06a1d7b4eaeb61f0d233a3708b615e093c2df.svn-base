@@ -1,0 +1,14 @@
+package kr.or.ddit.evaluation.service;
+
+import java.util.List;
+
+import kr.or.ddit.evaluation.vo.EvaluationTypeVO;
+
+public interface EvaluationTypeService {
+	
+	public List<EvaluationTypeVO> evaluTypeList();
+	
+	public void insertEvaluType(EvaluationTypeVO evaluType);	
+	
+	public void deleteEvaluType(String evaluType);	
+}

@@ -1,0 +1,38 @@
+package kr.or.ddit.empResignation.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.empResignation.exception.ResignNotFoundException;
+import kr.or.ddit.empResignation.vo.ResignationVO;
+import kr.or.ddit.mybatis.mappers.empResignation.ResignationMapper;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ResignationServiceImpl implements ResignationService {
+
+	private final ResignationMapper dao;
+	
+	@Override
+	public List<ResignationVO> readResignationList() {
+		return dao.selectResignList();
+	}
+
+	@Override
+	public ResignationVO readResignation(String leaveId) throws ResignNotFoundException {
+		ResignationVO resign = dao.selectResign(leaveId);
+		if(resign==null) {
+			throw new ResignNotFoundException(leaveId);
+		}
+		return resign;
+	}
+
+	@Override
+	public boolean createResignation(ResignationVO resign) {
+		int rowcnt = dao.insertResign(resign);
+		return rowcnt > 0;
+	}
+
+}

@@ -1,0 +1,18 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    <header class="mb-3">
+        <a href="#" class="burger-btn d-block d-xl-none">
+            <i class="bi bi-justify fs-3"></i>
+        </a>
+    </header>
+	<button class="btn btn-primary" id="themaChange">테마 변경</button>
+		<div class="messengerSTbtn">
+			<a href="#" id="messengerBtn"> 
+				<span class="avatar-content"><i class="bi bi-envelope"></i></span>
+			</a>
+		</div>
+	
+	
+	
+	
+	             

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 15.     	LJW            최초 생성
+ *
+-->
+
+<!-- 
+<resultMap>은 SQL 조회 결과를 자바 객체로 변환하는 역할을 함.
+id="EmployeeResultMap" → EmployeeVO 객체와 매핑될 resultMap의 고유한 식별자.
+type="EmployeeVO" → 조회된 데이터를 매핑할 대상이 EmployeeVO임.
+autoMapping="true" → 컬럼과 VO의 프로퍼티가 자동으로 매핑되도록 설정.
+ -->
+
+<mapper namespace="kr.or.ddit.mybatis.mappers.AppointmentMapper.AppointmentMapper">
+	
+	<resultMap type="AppointmentVO" id="AppointmentResultMap" autoMapping="true">
+		<id property="appId" column="app_id"/>
+		<association property="department" javaType="DepartmentVO">
+			<id property="departmentId" column="department_id" />
+		</association>
+		<association property="team" javaType="TeamVO">
+			<id property="teamId" column="team_id" />
+		</association>
+		<association property="position" javaType="PositionVO">
+			<id property="positionId" column="position_id" />
+		</association>
+		<association property="job" javaType="JobVO">
+			<id property="jobId" column="position_id" />
+		</association>
+		<association property="rank" javaType="RankVO">
+			<id property="rankId" column="rank_id" />
+		</association>
+		
+	</resultMap>
+	
+	<select id="">
+		SELECT
+		    app_id
+		  , emp_id
+		  , app_date
+		  , app_type
+		  , app_reason
+		  , prev_job_id
+		  , prev_rank_id
+		  , prev_department_id
+		  , new_job_id
+		  , new_rank_id
+		  , new_department_id
+		  , hire_drte
+		  , service_year
+		FROM
+		    hr_appointment;
+	</select>
+	
+	
+</mapper>

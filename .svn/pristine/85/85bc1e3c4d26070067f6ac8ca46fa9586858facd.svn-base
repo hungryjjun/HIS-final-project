@@ -1,0 +1,34 @@
+package kr.or.ddit.departmentboard.vo;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import org.apache.commons.lang3.builder.ToStringExclude;
+
+import kr.or.ddit.department.vo.DepartmentVO;
+import lombok.Data;
+
+@Data
+public class DepartmentBoardVO implements Serializable{
+  // 부서 게시판을 위한 VO
+  
+  @ToStringExclude
+  private Long deptnoticeId; // 부서게시판 고유 식별자
+  
+  private Long departmentId; // 부서ID
+  
+  private String title; // 제목
+  
+  private String content; // 내용
+  
+  private String author; // 작성자
+  
+  private Long viewCount; // 조회수
+  
+  private Long deptFile; // 첨부파일
+  
+  private Date noticeDate; // 작성일자
+  
+  private DepartmentVO department; 
+  
+}

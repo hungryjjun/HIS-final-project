@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 15.     	LJW            최초 생성
+ *
+-->
+
+<!-- 
+<resultMap>은 SQL 조회 결과를 자바 객체로 변환하는 역할을 함.
+id="EmployeeResultMap" → EmployeeVO 객체와 매핑될 resultMap의 고유한 식별자.
+type="EmployeeVO" → 조회된 데이터를 매핑할 대상이 EmployeeVO임.
+autoMapping="true" → 컬럼과 VO의 프로퍼티가 자동으로 매핑되도록 설정.
+ -->
+
+<mapper namespace="kr.or.ddit.mybatis.mappers.empAppoint.AppointmentMapper">
+
+    <!-- AppointmentResultMap -->
+    <resultMap type="AppointmentVO" id="AppointmentResultMap" autoMapping="true">
+        <id property="appId" column="app_id" />
+        <result property="appDate" column="app_date" />
+        <result property="appType" column="app_type" />
+        <result property="appReason" column="app_reason" />
+        <result property="serviceYear" column="service_year" />
+
+        <!-- 직원 정보 매핑 -->
+        <association property="employee" javaType="EmployeeVO" autoMapping="true">
+            <id property="empId" column="emp_id" />
+            <result property="name" column="name" />
+            <result property="hireDate" column="hire_date" />
+        </association>
+
+        <!-- 이전 정보 매핑 -->
+        <association property="prevDepartment" javaType="DepartmentVO" autoMapping="true">
+            <id property="departmentId" column="prev_department_id" />
+            <result property="departmentName" column="prev_department_name" />
+        </association>
+        <association property="prevJob" javaType="JobVO" autoMapping="true">
+            <id property="jobId" column="prev_job_id" />
+            <result property="jobName" column="prev_job_name" />
+        </association>
+        <association property="prevPosition" javaType="PositionVO" autoMapping="true">
+            <id property="positionId" column="prev_position_id" />
+            <result property="positionName" column="prev_position_name" />
+        </association>
+        <association property="prevRank" javaType="RankVO" autoMapping="true">
+            <id property="rankId" column="prev_rank_id" />
+            <result property="rankName" column="prev_rank_name" />
+        </association>
+        <association property="prevTeam" javaType="TeamVO" autoMapping="true">
+            <id property="teamId" column="prev_team_id" />
+            <result property="teamName" column="prev_team_name" />
+        </association>
+
+        <!-- 신규 정보 매핑 -->
+        <association property="newDepartment" javaType="DepartmentVO" autoMapping="true">
+            <id property="departmentId" column="new_department_id" />
+            <result property="departmentName" column="new_department_name" />
+        </association>
+        <association property="newJob" javaType="JobVO" autoMapping="true">
+            <id property="jobId" column="new_job_id" />
+            <result property="jobName" column="new_job_name" />
+        </association>
+        <association property="newPosition" javaType="PositionVO" autoMapping="true">
+            <id property="positionId" column="new_position_id" />
+            <result property="positionName" column="new_position_name" />
+        </association>
+        <association property="newRank" javaType="RankVO" autoMapping="true">
+            <id property="rankId" column="new_rank_id" />
+            <result property="rankName" column="new_rank_name" />
+        </association>
+        <association property="newTeam" javaType="TeamVO" autoMapping="true">
+            <id property="teamId" column="new_team_id" />
+            <result property="teamName" column="new_team_name" />
+        </association>
+    </resultMap>
+	
+	<select id="selectAppoint" resultMap="AppointmentResultMap">
+		
+		SELECT 
+		    e.NAME,
+		    a.APP_ID, 
+		    a.EMP_ID, 
+		    a.APP_DATE, 
+		    a.APP_TYPE, 
+		    a.APP_REASON, 
+		    e.HIRE_DATE, 
+		    a.SERVICE_YEAR,
+		
+		    prev_dept.DEPARTMENT_NAME AS PREV_DEPARTMENT_NAME,
+		    prev_job.JOB_NAME AS PREV_JOB_NAME,
+		    prev_pos.POSITION_NAME AS PREV_POSITION_NAME,  
+		    prev_rank.RANK_NAME AS PREV_RANK_NAME,
+		    prev_team.TEAM_NAME AS PREV_TEAM_NAME,  
+		
+		    new_dept.DEPARTMENT_NAME AS NEW_DEPARTMENT_NAME,
+		    new_job.JOB_NAME AS NEW_JOB_NAME,
+		    new_pos.POSITION_NAME AS NEW_POSITION_NAME,
+		    new_rank.RANK_NAME AS NEW_RANK_NAME,
+		    new_team.TEAM_NAME AS NEW_TEAM_NAME
+		
+		FROM HR_APPOINTMENT a
+		
+		JOIN EMPLOYEE e ON a.EMP_ID = e.EMP_ID
+		
+		LEFT JOIN DEPARTMENT prev_dept ON a.PREV_DEPARTMENT_ID = prev_dept.DEPARTMENT_ID
+		LEFT JOIN JOB prev_job ON a.PREV_JOB_ID = prev_job.JOB_ID
+		LEFT JOIN POSITION prev_pos ON a.PREV_POSITION_ID = prev_pos.POSITION_ID 
+		LEFT JOIN RANK prev_rank ON a.PREV_RANK_ID = prev_rank.RANK_ID
+		LEFT JOIN TEAM prev_team ON a.PREV_TEAM_ID = prev_team.TEAM_ID 
+		
+		LEFT JOIN DEPARTMENT new_dept ON a.NEW_DEPARTMENT_ID = new_dept.DEPARTMENT_ID
+		LEFT JOIN JOB new_job ON a.NEW_JOB_ID = new_job.JOB_ID
+		LEFT JOIN POSITION new_pos ON a.NEW_POSITION_ID = new_pos.POSITION_ID  
+		LEFT JOIN RANK new_rank ON a.NEW_RANK_ID = new_rank.RANK_ID
+		LEFT JOIN TEAM new_team ON a.NEW_TEAM_ID = new_team.TEAM_ID  
+		
+		WHERE APP_ID = #{appId }
+		
+	</select>
+		
+	<select id="selectAppointList" resultMap="AppointmentResultMap">
+		SELECT 
+		    e.NAME,
+		    a.APP_ID, 
+		    a.EMP_ID, 
+		    a.APP_DATE, 
+		    a.APP_TYPE, 
+		    a.APP_REASON, 
+		    e.HIRE_DATE, 
+		    a.SERVICE_YEAR,
+		
+		    prev_dept.DEPARTMENT_NAME AS PREV_DEPARTMENT_NAME,
+		    prev_job.JOB_NAME AS PREV_JOB_NAME,
+		    prev_pos.POSITION_NAME AS PREV_POSITION_NAME,  
+		    prev_rank.RANK_NAME AS PREV_RANK_NAME,
+		    prev_team.TEAM_NAME AS PREV_TEAM_NAME,  
+		
+		    new_dept.DEPARTMENT_NAME AS NEW_DEPARTMENT_NAME,
+		    new_job.JOB_NAME AS NEW_JOB_NAME,
+		    new_pos.POSITION_NAME AS NEW_POSITION_NAME,
+		    new_rank.RANK_NAME AS NEW_RANK_NAME,
+		    new_team.TEAM_NAME AS NEW_TEAM_NAME
+		
+		FROM HR_APPOINTMENT a
+		
+		JOIN EMPLOYEE e ON a.EMP_ID = e.EMP_ID
+		
+		LEFT JOIN DEPARTMENT prev_dept ON a.PREV_DEPARTMENT_ID = prev_dept.DEPARTMENT_ID
+		LEFT JOIN JOB prev_job ON a.PREV_JOB_ID = prev_job.JOB_ID
+		LEFT JOIN POSITION prev_pos ON a.PREV_POSITION_ID = prev_pos.POSITION_ID 
+		LEFT JOIN RANK prev_rank ON a.PREV_RANK_ID = prev_rank.RANK_ID
+		LEFT JOIN TEAM prev_team ON a.PREV_TEAM_ID = prev_team.TEAM_ID 
+		
+		LEFT JOIN DEPARTMENT new_dept ON a.NEW_DEPARTMENT_ID = new_dept.DEPARTMENT_ID
+		LEFT JOIN JOB new_job ON a.NEW_JOB_ID = new_job.JOB_ID
+		LEFT JOIN POSITION new_pos ON a.NEW_POSITION_ID = new_pos.POSITION_ID  
+		LEFT JOIN RANK new_rank ON a.NEW_RANK_ID = new_rank.RANK_ID
+		LEFT JOIN TEAM new_team ON a.NEW_TEAM_ID = new_team.TEAM_ID 
+
+	</select>
+	
+</mapper>

@@ -1,0 +1,53 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<style>
+/* 메신저 버튼 우측 상단 고정 및 크기 조정 */
+.messengerSTbtn {
+	position: fixed;
+	top: 30px;
+	right: 30px;
+	z-index: 999;
+}
+
+#messengerBtn {
+	display: inline-block;
+	background-color: #007bff;
+	color: #fff;
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	text-align: center;
+	line-height: 60px;
+	font-size: 24px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	transition: all 0.3s;
+}
+
+#messengerBtn:hover {
+	background-color: #0056b3;
+}
+
+.avatar-content i {
+	font-size: 28px;
+}
+</style>
+
+<header class="mb-3">
+	<a href="#" class="burger-btn d-block d-xl-none">
+		<i class="bi bi-justify fs-3"></i>
+	</a>
+</header>
+
+<!-- 보기싫어서 임시 지움 나중에 뭘로 대체하기  -->
+<div class="page-heading">
+	<h3><a type="button" id="themaChange"></a></h3>
+</div>
+
+<div class="messengerSTbtn">
+	<a href="#" id="messengerBtn"> 
+		<span class="avatar-content">
+			<i class="bi bi-envelope"></i>
+		</span>
+	</a>
+</div>

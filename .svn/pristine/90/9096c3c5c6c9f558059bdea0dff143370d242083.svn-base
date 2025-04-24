@@ -1,0 +1,55 @@
+let stompClient;
+
+const senderId = sessionStorage.getItem("currentUserId"); // 세션에서 현재 로그인한 유저 ID 가져옴
+
+function connectChatRoom() {
+  const socket = new SockJS("/wss");
+  stompClient = Stomp.over(socket);
+
+  stompClient.connect({}, function (frame) {
+    console.log("🟢 채팅방 연결됨:", frame);
+
+    stompClient.subscribe(`/topic/chat/${roomId}`, function (message) {
+      const chat = JSON.parse(message.body);
+	  console.log("받은 메시지 : ", chat);
+      showMessage(chat);
+    });
+  });
+}
+
+function sendMessage() {
+  const content = $("#chatInput").val();
+  if (!content || !senderId) return;
+
+  const msg = {
+    roomId: roomId,
+    senderId: senderId,
+    messageText: content
+  };
+
+  stompClient.send("/app/chat.send", {}, JSON.stringify(msg));
+  $("#chatInput").val("");
+}
+
+function showMessage(chat) {
+  console.log("메시지 수신 :" , chat);
+  const newMsg = `<div><strong>${chat.senderId}</strong>: ${chat.messageText}</div>`;
+  $("#chat-box").append(newMsg);
+  $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+}
+
+
+
+$(document).ready(function () {
+  connectChatRoom();
+
+  $("#sendBtn").on("click", sendMessage);
+
+  $("#chatInput").on("keypress", function (e) {
+    if (e.which === 13) sendMessage();
+  });
+  $("#closeBtn").on("click", function () {
+    window.close(); 
+  });
+
+});

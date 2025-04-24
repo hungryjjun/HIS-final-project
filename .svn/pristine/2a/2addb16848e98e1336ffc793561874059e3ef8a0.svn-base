@@ -1,0 +1,67 @@
+package kr.or.ddit.account.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.account.service.AccountService;
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 
+ * @author youngjun
+ * @since 2025. 3. 16.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 16.     	youngjun	          최초 생성
+ *
+ * </pre>
+ */
+@Controller
+@RequestMapping
+@Slf4j
+public class AccountUpdateController {
+
+    @Autowired
+    private AccountService service;
+
+    /**
+     * 계정 수정 폼 조회 (모달 내 삽입)
+     */
+    @GetMapping("/account/update/{accountId}")
+    public String UpdateFormUI(Model model, @PathVariable("accountId") String accountId,
+    		@ModelAttribute("account")AccountVO account) {
+        	account = service.readAccount(accountId);
+        	log.info("수정ID값 account{} : ",account );
+        	log.info("수정ID값 accountId{} : ",accountId );
+
+
+        model.addAttribute("account", account);
+        return "account/accountUpdateForm"; 
+    }
+
+    /**
+     * 계정 정보 수정 처리 (계정,직원테이블 동시)
+     */
+    @PostMapping("/account/update/save")
+    public String updateSave(@ModelAttribute("account")AccountVO account,
+    						 @ModelAttribute("employee")EmployeeVO employee) {
+    	
+    	log.info("수정save account값 {} : " , account);
+    	log.info("수정save employee값 {} : " , employee);
+        service.updateAccount(account, employee);
+        return "account/accountDetail"; 
+    }
+}

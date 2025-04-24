@@ -1,0 +1,36 @@
+package kr.or.ddit.department.controller;
+
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.department.service.DepartmentService;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping("/department")
+public class DepartmentDeleteController {
+	
+	@Autowired
+	private DepartmentService service;
+	
+	// ✅ 여러 개의 부서 삭제
+	@PostMapping("/delete")
+	@ResponseBody
+    public Map<String, Object> deleteDepartments(@RequestBody List<String> departmentIds) {
+        log.info("삭제 요청된 부서 ID 목록: {}", departmentIds);
+        service.deleteDepartments(departmentIds);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        return response;
+    }
+}

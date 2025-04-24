@@ -1,0 +1,149 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+
+
+<div class="button-container mb-3">
+   <a class="btn btn-primary" href="${pageContext.request.contextPath}/approval/approvalUpdateForm?templateId=${template.templateId}">양식 수정</a>
+</div>
+
+<table class="table table-striped datatable">
+    <tr>
+        <th>기안양식제목</th>
+        <td>${template.templateTite}</td>
+    </tr>
+    <tr>
+        <th>기안양식내용</th>
+        <td>${template.templateContent}</td>
+    </tr>
+    <tr>
+        <th>기안양식카테고리</th>
+        <td>${template.templateCategory}</td>
+    </tr>
+    <tr>
+        <th>기안양식 사용여부</th>
+        <td>
+            <c:choose>
+                <c:when test="${template.temlpateDeleted eq 'N'}">
+                    <span class="badge bg-success">사용가능</span>
+                </c:when>
+                <c:otherwise>
+                    <span class="badge bg-danger">사용불가</span>
+                </c:otherwise>
+            </c:choose>
+        </td>
+    </tr>
+    <tr>
+        <th>기안양식 최초 등록일시</th>
+        <td><fmt:formatDate value="${template.templateCreate}" pattern="yyyy년MM월dd일" /></td>
+    </tr>
+
+    <!-- 로그인한 사용자의 ID 가져오기 -->
+    <c:set var="loggedInUserId" value="${sessionScope.sessionAccount.empId}" />
+
+    <!-- 로그인한 사용자가 결재자인지 여부 확인 -->
+    <c:set var="isApprover" value="false" />
+    <c:forEach var="approver" items="${template.approverList}">
+        <c:if test="${approver.approverId eq loggedInUserId}">
+            <c:set var="isApprover" value="true" />
+        </c:if>
+    </c:forEach>
+
+    <!-- 결재자일 경우 결재 상태 표시 -->
+    <c:if test="${isApprover}">
+        <tr>
+            <th>결재 상태</th>
+            <td>
+                <c:forEach var="approver" items="${template.approverList}">
+                    <c:if test="${approver.approverId eq loggedInUserId}">
+                        ${approver.aprStatus} : 결재자 (${sessionScope.sessionAccount.empName})
+                    </c:if>
+                </c:forEach>
+            </td>
+        </tr>
+    </c:if>
+
+    <!-- 문서함 정보 표시 -->
+    <c:forEach var="draftBox" items="${template.draftBoxList}">
+        <tr>
+            <th>문서함 유형</th>
+            <td>${draftBox.docType}</td>
+        </tr>
+        <tr>
+            <th>문서 상태</th>
+            <td>${draftBox.docStatus}</td>
+        </tr>
+    </c:forEach>
+
+    <!-- 로그인한 사용자가 참조자 또는 수신자인지 여부를 저장할 변수 -->
+    <c:set var="isParticipant" value="false" />
+
+    <!-- draftParList(참조자 목록)에서 확인 -->
+    <c:forEach var="draftPar" items="${template.draftParList}">
+        <c:set var="draftParId" value="${draftPar.parId.toString()}" />
+        <c:if test="${draftParId eq loggedInUserId}">
+            <c:set var="isParticipant" value="true" />
+        </c:if>
+    </c:forEach>
+
+    <!-- draftBoxList(수신자 목록)에서 확인 -->
+    <c:forEach var="draftBox" items="${template.draftBoxList}">
+        <c:set var="draftBoxParId" value="${draftBox.boxId.toString()}" />
+        <c:if test="${draftBoxParId eq loggedInUserId}">
+            <c:set var="isParticipant" value="true" />
+        </c:if>
+    </c:forEach>
+
+    <!-- 로그인한 사용자가 참조자 또는 수신자인 경우에만 역할과 읽은 시간을 표시 -->
+    <c:if test="${isParticipant}">
+        <c:forEach var="draftPar" items="${template.draftParList}">
+            <tr>
+                <th>역할</th>
+                <td>${draftPar.role}</td>
+            </tr>
+            <tr>
+                <th>읽음 여부</th>
+                <td>
+                    <c:choose>
+                        <c:when test="${draftPar.isRead eq 'Y'}">
+                            <span class="badge bg-success">읽음</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge bg-danger">읽지않음</span>
+                        </c:otherwise>
+                    </c:choose>
+                </td>
+            </tr>
+            <tr>
+                <th>읽은 시간</th>
+                <td>
+                    <fmt:formatDate value="${draftPar.checkedAt}" pattern="yyyy년MM월dd일 HH시mm분"/>
+                </td>
+            </tr>
+        </c:forEach>
+    </c:if>
+   <tr>
+    <th>첨부 파일</th>
+    <td>
+        <c:forEach var="file" items="${template.fileDetails}">
+            <c:choose>
+                <c:when test="${file.fileType.startsWith('image/')}">
+                    <img src="${pageContext.request.contextPath}/file/view/${file.fileSavename}"
+                         alt="첨부 이미지"
+                         style="max-width: 500px; max-height: 500px; margin-right: 10px;">
+                </c:when>
+
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/file/download/${file.detailId}" target="_blank" download>
+                        ${file.fileName} (다운로드)
+                    </a><br>
+                </c:otherwise>
+            </c:choose>
+        </c:forEach>
+    </td>
+  </tr>
+
+
+    
+</table>

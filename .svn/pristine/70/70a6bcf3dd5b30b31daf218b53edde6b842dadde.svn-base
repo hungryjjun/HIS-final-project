@@ -1,0 +1,35 @@
+package kr.or.ddit.evaluation.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import kr.or.ddit.evaluation.vo.EvaluationCandidateVO;
+import kr.or.ddit.mybatis.mappers.evaluation.EvaluationCandidateMapper;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class EvaluationCandidateServiceImpl implements EvaluationCandidateService {
+
+    private final EvaluationCandidateMapper dao;
+
+    // 전체 후보자 리스트 조회
+    @Override
+    public List<EvaluationCandidateVO> selectAll() {
+        return dao.readCandidateList();
+    }
+
+    // 여러 직원 정보를 업데이트
+    @Transactional
+    @Override
+    public void updateAll(List<EvaluationCandidateVO> candidates) {
+        dao.updateAllCandidates(candidates);
+    }
+
+    // 개별 직원 정보 업데이트
+    @Override
+    public void update(EvaluationCandidateVO candidate) {
+        dao.updateCandidate(candidate);
+    }
+}

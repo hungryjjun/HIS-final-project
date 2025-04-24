@@ -1,0 +1,29 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 13.     	정태우            최초 생성
+ *
+ * </pre>
+ */
+document.addEventListener("DOMContentLoaded", () => {
+    const myModalEl = document.getElementById("exampleModal");
+
+    myModalEl.addEventListener("show.bs.modal", event => {
+        const aTag = event.relatedTarget; // 클릭한 요소 (a 태그)
+        const modalBody = myModalEl.querySelector(".modal-body");
+
+        // AJAX 요청 실행
+        fetch(aTag)
+            .then(response => response.text())
+            .then(html => {
+				console.log(html)
+                modalBody.innerHTML = html; // 모달에 내용 삽입
+            })
+            .catch(error => {
+                console.error("Error loading account details:", error);
+            });
+    });
+});

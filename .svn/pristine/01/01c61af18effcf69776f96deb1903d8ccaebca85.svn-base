@@ -1,0 +1,43 @@
+package kr.or.ddit.attendance.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.attendance.vo.AttendanceVO;
+import kr.or.ddit.mybatis.mappers.attendance.attendanceMapper;
+
+@Service
+public class AttendanceServiceImpl implements AttendanceService {
+	
+	@Autowired
+	attendanceMapper dao;
+	
+	@Override
+	public List<AttendanceVO> attendanceList() {
+		return dao.attendanceList();
+	}
+
+	@Override
+	public AttendanceVO attendanceDetail(String empId) {
+		return dao.attendanceDetail(empId);
+	}
+
+	@Override
+	public void attendanceInsert(AttendanceVO attendance) {
+		dao.attendanceInsert(attendance);
+	}
+
+	@Override
+	public AttendanceVO findTodayAttendance(String empId) {
+		return dao.findTodayAttendance(empId);
+	}
+
+	@Override
+	public void updateWorkEnd(AttendanceVO attendance) {
+		dao.updateWorkEnd(attendance);
+		
+	}
+
+}

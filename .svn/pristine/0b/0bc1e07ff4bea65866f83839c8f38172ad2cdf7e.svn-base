@@ -1,0 +1,14 @@
+package kr.or.ddit.salary.vo;
+
+import lombok.Data;
+import lombok.ToString;
+
+@ToString
+@Data
+public class DeductionCodeVO {
+	
+	private Long deductionCode; // 공제코드(PK)
+	private String deductionName; // 공제명
+	private String deductionDesc; // 공제설명
+
+}

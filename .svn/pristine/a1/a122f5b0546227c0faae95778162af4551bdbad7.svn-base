@@ -1,0 +1,48 @@
+package kr.or.ddit.schedule.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import kr.or.ddit.schedule.service.ScheduleService;
+import kr.or.ddit.schedule.vo.ScheduleVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Controller
+@Slf4j
+public class ScheduleReadController {
+	
+	@Autowired
+	private ScheduleService service;
+	
+	@GetMapping("/schedule/list")
+	public String scheduleList(Model model) {
+		model.addAttribute("scheduleList",service.ScheduleList());
+		return "tiles:schedule/scheduleList";
+	}
+	
+	@PostMapping("/schedule/insert")
+	public String  scheduleInsert(@ModelAttribute("schedule") ScheduleVO schedule) {
+		log.info("schedule {}",schedule);
+		
+		String startDateString = schedule.getStartDate();
+        String endDateString = schedule.getEndDate();
+
+        // 'T'를 공백으로 바꿔서 처리
+        startDateString = startDateString.replace("T", " ");
+        endDateString = endDateString.replace("T", " ");
+
+        schedule.setStartDate(startDateString);
+        schedule.setEndDate(endDateString);
+        
+		service.ScheduleInsert(schedule);
+		return "redirect:/schedule/list";
+	}
+
+}

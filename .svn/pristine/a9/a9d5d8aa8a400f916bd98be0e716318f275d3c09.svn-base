@@ -1,0 +1,21 @@
+package kr.or.ddit.mybatis.mappers.messenger;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+
+@Mapper
+public interface chatempMapper {
+	
+	//직원 목록 가져오기
+	public List<ChatEmpVO> chatempList();
+	
+	// 직원 정보 삽입(계정생성시 채팅계정생성)
+	public int chatInsert(ChatEmpVO chat);
+	
+	// 사용자 상태 없데이트 (온라인/오프라인)
+	 int updateEmpStatus(@Param("empId") String empId, @Param("status") String status);  
+}

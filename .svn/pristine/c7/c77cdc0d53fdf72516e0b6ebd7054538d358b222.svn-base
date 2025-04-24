@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.messenger.chatempMapper">
+
+<resultMap type="chatempVO" id="ChatEmpResultMap" autoMapping="true">
+		<id property="empId" column="emp_id"/>
+	<association property="department" javaType="DepartmentVO" autoMapping="true">
+		<id property="departmentId" column="DEPARTMENT_ID" />
+	</association>
+</resultMap>
+
+<select id="chatempList" resultMap="ChatEmpResultMap">
+      SELECT 
+        D.DEPARTMENT_NAME AS departmentName, 
+        C.TEAM_NAME AS teamName,
+        C.EMP_NAME AS empName, 
+        C.EMP_ID AS empId,
+        C.EMP_RANK AS empRank
+    FROM CHAT_EMP C
+    JOIN DEPARTMENT D ON C.DEPARTMENT_ID = D.DEPARTMENT_ID
+    ORDER BY departmentName ASC, teamName ASC, empName ASC
+</select>
+
+
+<update id="updateEmpStatus">
+	UPDATE CHAT_EMP
+	SET STATUS = #{status}
+	WHERE EMP_ID = #{empId}
+</update>
+
+<insert id="chatInsert">
+	    INSERT INTO CHAT_EMP (EMP_ID, DEPARTMENT_ID, EMP_NAME, TEAM_NAME, EMP_RANK, STATUS, LAST_LOGIN)
+    VALUES (#{empId}, #{deptId}, #{empName}, #{teamName}, #{empRank}, NULL, NULL)
+</insert>
+</mapper>

@@ -1,0 +1,23 @@
+package kr.or.ddit.application.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 지원자 수정
+ */
+@Controller
+@RequestMapping("/recruit/applicant")
+public class ApplicationUpdateController {
+
+	// 지원자 상태 업데이트
+	@PostMapping("update")
+	public String recruitApplicantUpdate() {
+		
+		return "tiles:recruitment/recruitApplicantList";
+	}
+	
+	
+}

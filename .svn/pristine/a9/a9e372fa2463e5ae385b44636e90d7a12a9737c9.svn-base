@@ -1,0 +1,42 @@
+package kr.or.ddit.messenger.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.mybatis.mappers.messenger.chatempMapper;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class ChatEmpServiceImpl implements ChatEmpService{
+	
+	@Autowired
+	chatempMapper dao;
+	
+	@Override
+	public List<ChatEmpVO> chatempList() {
+		return dao.chatempList();
+	}
+
+	@Override
+	public boolean chatInsert(ChatEmpVO chat) {
+		return dao.chatInsert(chat)>0;
+	}
+	@Override
+	public boolean updateEmpStatus(String empId, String status) {
+	    log.info(" DB 상태 업데이트 요청 - empId: {}, status: {}", empId, status);
+	    
+	    int result = dao.updateEmpStatus(empId, status);
+	    
+	    if (result > 0) {
+	        log.info(" DB 상태 업데이트 성공 (변경된 행 수: {})", result);
+	    } else {
+	        log.warn(" DB 상태 업데이트 실패 (변경된 행 없음) - empId: {}", empId);
+	    }
+
+	    return result > 0;
+	}
+}

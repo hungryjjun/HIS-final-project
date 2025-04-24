@@ -1,0 +1,65 @@
+package kr.or.ddit.messenger.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.messenger.vo.ChatRoomVO;
+import kr.or.ddit.mybatis.mappers.messenger.chatempMapper;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class ChatEmpServiceImpl implements ChatEmpService{
+	
+	@Autowired
+	chatempMapper dao;
+	
+	@Override
+	public List<ChatEmpVO> chatempList() {
+		return dao.chatempList();
+	}
+
+	@Override
+	public boolean updateEmpStatus(String empId, String status) {
+	    log.info(" DB 상태 업데이트 요청 - empId: {}, status: {}", empId, status);
+	    
+	    int result = dao.updateEmpStatus(empId, status);
+	    
+	    if (result > 0) {
+	        log.info(" DB 상태 업데이트 성공 (변경된 행 수: {})", result);
+	    } else {
+	        log.warn(" DB 상태 업데이트 실패 (변경된 행 없음) - empId: {}", empId);
+	    }
+
+	    return result > 0;
+	}
+
+	@Override
+	public int selectOrinsertOneToOneRoom(String empId1, String empId2) {
+        // 1.기존 채팅방 있는지 확인함
+        Integer existingRoomId = dao.selectOneToOneChatRoom(empId1, empId2);
+        if (existingRoomId != null) {
+            return existingRoomId;
+        }
+
+        // 2.채팅방 생성
+        ChatRoomVO newRoom = new ChatRoomVO();
+        newRoom.setEmpId(empId1); // 생성자 기준
+        newRoom.setRoomType("1:1");
+        newRoom.setRoomName(empId1 + "_" + empId2);
+
+        dao.insertChatRoom(newRoom);
+
+        // 3.방금 생성된 ROOM_ID 조회
+        Integer roomId = dao.selectLastChatRoomId();
+
+        // 4. 참여자 2명 등록
+        dao.insertChatMembers(empId1, roomId); // 본인
+        dao.insertChatMembers(empId2, roomId); // 상대방
+
+        return roomId;
+    }
+}

@@ -1,0 +1,39 @@
+package kr.or.ddit.team.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mybatis.mappers.team.TeamMapper;
+import kr.or.ddit.team.vo.TeamVO;
+
+@Service
+public class TeamServiceImpl implements TeamService {
+	
+	@Autowired
+	private TeamMapper mapper;
+
+	@Override
+	public List<TeamVO> teamManageList() {
+		return mapper.teamManageList();
+	}
+
+	@Override
+	public void insertTeamItem(TeamVO teamManage) {
+		mapper.insertTeamItem(teamManage);
+	}
+
+	@Override
+	public void updateTeamStatusItem(TeamVO teamManage) {
+		mapper.updateTeamStatusItem(teamManage);
+	}
+
+	@Override
+	public void deleteTeamItem(String teamCode) {
+		mapper.deleteTeamItem(teamCode);
+	}
+	
+	
+	
+}

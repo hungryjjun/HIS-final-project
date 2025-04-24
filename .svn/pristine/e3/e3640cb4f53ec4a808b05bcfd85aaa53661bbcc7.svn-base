@@ -1,0 +1,109 @@
+function connectWebSocket() {
+    console.log("🔌 WebSocket 연결 시도...");
+
+    let socket = new SockJS('/wss');  // 서버와의 연결
+    stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        console.log("✅ WebSocket 연결 성공: " + frame);
+
+        // 상태 변경 메시지 수신 시
+        stompClient.subscribe('/topic/onlineStatus', function (message) {
+            let statusUpdate = message.body;
+            console.log("🔄 상태 업데이트 수신: ", statusUpdate);
+
+            // 직원 목록 다시 불러오기
+            loadEmployeeList();
+        });
+    }, function (error) {
+        console.error("❌ WebSocket 연결 실패", error);
+    });
+}
+
+function loadEmployeeList() {
+    console.log("📥 직원 목록 요청");
+
+    $.ajax({
+        url: "/messenger/empList",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            console.log("📋 직원 목록 수신 완료", data);
+
+            let empListHtml = `
+				
+                <h3>직원 목록</h3>
+				<div id="empListWrapper">
+                <ul id="empList"></ul>
+				</div>
+            `;
+            $("#contentArea").html(empListHtml);
+
+            data.forEach(emp => {
+				console.log("emp.empId =", emp.empId);
+                const item = $(`
+                    <li class="employee-item"
+                        style="margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 10px; cursor: pointer;">
+                        <strong>이름:</strong> ${emp.empName}<br>
+                        <strong>부서:</strong> ${emp.department?.departmentName || 'N/A'}<br>
+                        <strong>직급:</strong> ${emp.empRank || 'N/A'}<br>
+                        <strong>팀:</strong> ${emp.teamName || 'N/A'}<br>
+                        <strong>상태:</strong> ${emp.status === '온라인' ? '🟢 온라인' : '⚪ 오프라인'}
+                    </li>
+                `);
+
+                item.on("click", function () {
+                    openChatWith(emp.empId);
+                });
+
+                $("#empList").append(item);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("❌ 직원 목록 로딩 실패", status, error);
+            alert("직원 목록을 불러오는 중 오류가 발생했습니다.");
+        }
+    });
+}
+
+function openChatWith(targetEmpId) {
+    const currentEmpId = sessionStorage.getItem("currentUserId"); 
+    console.log("✅ currentUserId: ", currentEmpId);
+    console.log("🎯 targetEmpId: ", targetEmpId); 
+
+    if (!currentEmpId || !targetEmpId) {
+        alert("로그인 정보가 없습니다.");
+        return;
+    }
+
+    $.ajax({
+        url: "/messenger/selectOrInsertRoom",
+        method: "POST",
+        data: {
+            empId1: currentEmpId,
+            empId2: targetEmpId
+        },
+        success: function (roomId) {
+            console.log("✅ 채팅방 생성 or 조회 성공, ROOM_ID: ", roomId);
+			const popupName = `chatRoom_${roomId}`;
+			const popupOptions = "width=600,height=500,left=300,top=100,resizable=yes,scrollbars=yes";
+
+			window.open(`/messenger/room?roomId=${roomId}`, popupName, popupOptions);
+        },
+        error: function () {
+            alert("❌ 채팅방 생성에 실패했습니다.");
+        }
+    });
+}
+$(document).ready(function () {
+    console.log("📦 chatempList.js 로드됨");
+
+    connectWebSocket();
+    loadEmployeeList();
+
+    $("#empListBtn").on("click", function (e) {
+        e.preventDefault();
+        console.log("👆 직원 목록 버튼 클릭됨");
+        loadEmployeeList();
+    });
+});

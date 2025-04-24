@@ -1,0 +1,27 @@
+package kr.or.ddit.evaluation.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.evaluation.service.EvaluationTypeService;
+import kr.or.ddit.evaluation.vo.EvaluationTypeVO;
+import kr.or.ddit.evaluation.vo.EvaluationVO;
+
+@Controller
+@RequestMapping
+public class EvaluationTypeInsertController {
+	
+	@Autowired
+	private EvaluationTypeService service;
+	
+	@PostMapping("/evaluation/evaluationTypeInsert")
+	public String insertEvalu(EvaluationTypeVO evaluationTypeVO) {
+		
+		service.insertEvaluType(evaluationTypeVO);
+        
+		return "redirect:/evaluation/evaluationTypeList"; 
+	}
+	
+}

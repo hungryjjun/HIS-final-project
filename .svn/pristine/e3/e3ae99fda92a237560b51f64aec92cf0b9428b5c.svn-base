@@ -1,0 +1,121 @@
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 20.     	CHOI            사원 기준으로 결재양식 리스트
+ *
+-->
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>문서 템플릿 목록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .team-list {
+            margin-bottom: 20px;
+        }
+        .team {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+        }
+        .team:hover {
+            background-color: #ddd;
+        }
+        .template-list {
+            display: none;
+            margin-top: 20px;
+        }
+        .template-list.active {
+            display: block;
+        }
+    </style>
+    <script>
+    function showTemplates(teamName) {
+        var formattedTeamName = teamName.replace(/\s+/g, "_");
+
+        // 모든 문서 목록 숨기기
+        var lists = document.querySelectorAll(".template-list");
+        lists.forEach(list => list.classList.remove("active"));
+
+        // 선택한 팀의 문서 목록 표시
+        var selectedList = document.getElementById("templates-" + formattedTeamName);
+        if (selectedList) {
+            selectedList.classList.add("active");
+        } else {
+            console.log("⚠️ 오류: ID 매칭 실패 - templates-" + formattedTeamName);
+        }
+    }
+
+    </script>
+</head>
+<body>
+
+<!-- 📌 팀 목록 출력 -->
+<div class="team-list">
+    <c:forEach var="team" items="${teamList}">
+        <c:set var="formattedTeamName" value="${fn:replace(team.teamName, ' ', '_')}" />
+        <div class="team" onclick="showTemplates('${team.teamName}')">
+            ${team.teamName}
+        </div>
+    </c:forEach>
+</div>
+
+<!-- 📌 문서 목록 -->
+
+<c:forEach var="team" items="${teamList}">
+    <c:set var="formattedTeamName" value="${fn:replace(team.teamName, ' ', '_')}" />
+    <div id="templates-${formattedTeamName}" class="template-list">
+        <h3>${team.teamName}의 문서</h3>
+        <ul>
+            <c:forEach var="template" items="${draftEmpTemplate}">
+                <!-- templateCategory를 트림하고, 공백 제거 -->
+                <c:set var="templateCategory" value="${fn:trim(template.templateCategory)}" />
+                <c:set var="formattedTemplateCategory" value="${fn:replace(templateCategory, ' ', '_')}" />
+
+                <!-- teamName과 templateCategory 비교 -->
+                <c:if test="${fn:trim(formattedTemplateCategory) eq fn:trim(team.teamName)}">
+                    <li>
+                        <a href="/approval/${template.templateId}">
+                            ${template.templateTite}
+                        </a>
+                    </li>
+                </c:if>
+            </c:forEach>
+        </ul>
+    </div>
+</c:forEach>
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

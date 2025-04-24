@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 12.     	CHOI            최초 생성
+ *
+-->
+
+<mapper namespace="kr.or.ddit.mybatis.mappers.approval.ApprovalMapper">
+     
+     
+    <!-- DraftTemplateVO와 매핑할 resultMap -->
+    <resultMap id="draftTemplateResultMap" type="DraftTemplateVO">
+        <id property="templateId" column="TEMPLATE_ID"/>
+        <result property="empId" column="EMP_ID"/>
+        <result property="templateTite" column="TEMPLATE_TITE"/> <!-- DB 컬럼명 유지 -->
+        <result property="templateContent" column="TEMPLATE_CONTENT"/>
+        <result property="templateCategory" column="TEMPLATE_CATEGORY"/>
+        <result property="temlpateDeleted" column="TEMLPATE_DELETED"/> <!-- DB 컬럼명 유지 -->
+        <result property="templateCreate" column="TEMPLATE_CREATE" jdbcType="DATE"/>
+        <result property="templateFiles" column="TEMPLATE_FILE"/>
+        <result property="aprStatus" column="APR_STATUS"/>
+        
+      
+        
+        
+	    <!-- EmployeeVO와 매핑 (1:1 관계) -->
+	    <association property="employee" javaType="EmployeeVO">
+	        <id property="empId" column="EMP_ID"/>
+	        <result property="name" column="NAME"/>  <!-- 직원명 매핑 -->
+	    </association>
+	    
+	      <!--  파일 상세 정보 추가 -->
+	   <collection property="fileDetails" ofType="FileDetailVO">
+	       <id property="detailId" column="DETAIL_ID"/>
+	       <result property="fileId" column="FILE_ID"/>
+	       <result property="fileName" column="FILE_NAME"/>
+	       <result property="fileSavename" column="FILE_SAVENAME"/>
+	       <result property="filePath" column="FILE_PATH"/>
+	       <result property="fileStatus" column="FILE_STATUS"/>
+	       <result property="fileSize" column="FILE_SIZE"/>
+	       <result property="fileType" column="FILE_TYPE"/>
+	       <result property="uploadDate" column="UPLOAD_DATE"/>
+	   </collection>
+	    
+	    
+	    <!-- 결재자 목록 ( 1: N) -->
+	    <collection property="approverList" ofType="DraftApproverVO">
+			<id property="approverId" column="APPROVER_ID"/>
+			<result property="aprId" column="APR_ID" />
+			<result property="aprStatus" column="APR_STATUS" />
+			<result property="aprDate" column="APR_DATE" />
+	    </collection>
+        
+        
+         <!-- 문서함 목록 (1:N 관계) -->
+        <collection property="draftBoxList" ofType="kr.or.ddit.approval.vo.DraftBoxVO">
+            <id property="boxId" column="BOX_ID"/>
+            <result property="docType" column="DOC_TYPE"/>
+            <result property="docStatus" column="DOC_STATUS" jdbcType="TIMESTAMP"/>
+        </collection>
+
+        <!-- 참조자 목록 (1:N 관계) -->
+        <collection property="draftParList" ofType="DraftParVO" autoMapping="true">
+            <id property="parId" column="PAR_ID"/>
+            <result property="role" column="ROLE"/>
+	        <result property="isRead" column="IS_READ"/>
+	        <result property="checkedAt" column="CHECKED_AT"/>
+        </collection>
+    </resultMap>
+
+    <!-- 결재 양식 리스트 조회 -->
+    <select id="DraftTemplateList" resultMap="draftTemplateResultMap">
+        SELECT 
+            DT.TEMPLATE_ID,            
+            DT.TEMPLATE_TITE, 
+            DT.TEMPLATE_CONTENT, 
+            DT.TEMPLATE_CATEGORY, 
+            DT.TEMLPATE_DELETED, 
+            DT.TEMPLATE_CREATE, 
+            DT.EMP_ID, 
+            COALESCE(E.NAME, '알 수 없음') AS NAME
+        FROM DRAFT_TEMPLATE DT
+        LEFT JOIN EMPLOYEE E 
+        ON DT.EMP_ID = E.EMP_ID 
+        ORDER BY DT.TEMPLATE_CREATE DESC 
+    </select>
+    
+<!-- 결재 양식 상세 조회 -->
+<select id="draftTemplateDetail" resultMap="draftTemplateResultMap">
+	SELECT 
+	    DT.TEMPLATE_ID,            
+	    DT.TEMPLATE_TITE, 
+	    DT.TEMPLATE_CONTENT, 
+	    DT.TEMPLATE_CATEGORY, 
+	    DT.TEMLPATE_DELETED, 
+	    DT.TEMPLATE_CREATE, 
+	    DT.EMP_ID, 
+	    DT.TEMPLATE_FILE,
+	    COALESCE(E.NAME, '알 수 없음') AS NAME,
+	    DA.APPROVER_ID,
+	    DA.APR_STATUS,
+	    DA.APR_DATE,
+	    DB.BOX_ID,
+	    DB.DOC_TYPE,
+	    DB.DOC_STATUS,
+	    DL.PAR_ID,
+	    DL.ROLE,
+	    DL.IS_READ,
+	    DL.CHECKED_AT,
+	    FD.DETAIL_ID,
+	    FD.FILE_ID,
+	    FD.FILE_NAME,
+	    FD.FILE_SAVENAME,
+	    FD.FILE_PATH,
+	    FD.FILE_STATUS,
+	    FD.FILE_SIZE,
+	    FD.FILE_TYPE,
+	    FD.UPLOAD_DATE
+	FROM DRAFT_TEMPLATE DT
+	LEFT JOIN EMPLOYEE E ON DT.EMP_ID = E.EMP_ID 
+	LEFT JOIN DRAFT_APPROVER DA ON DT.TEMPLATE_ID = DA.DRAFT_ID 
+	LEFT JOIN DRAFT_BOX DB ON DT.TEMPLATE_ID = DB.DRAFT_ID
+	LEFT JOIN DRAFT_PAR DL ON DT.TEMPLATE_ID = DL.DRAFT_ID
+	LEFT JOIN FILE_DETAIL FD ON DT.TEMPLATE_FILE = FD.FILE_ID 
+	WHERE DT.TEMPLATE_ID = #{templateId}
+	ORDER BY DA.APR_DATE DESC
+</select>
+
+<!-- 결재 양식 수정 -->
+<update id="updateDraftTemplate" parameterType="kr.or.ddit.approval.vo.DraftTemplateVO">
+	UPDATE draft_template
+	SET
+	    template_tite = #{templateTite}
+	    ,template_content = #{templateContent}
+	    ,template_category = #{templateCategory}
+	    ,temlpate_deleted = #{temlpateDeleted}
+	WHERE
+    	template_id = #{templateId}
+</update> 
+ <!-- 결재 양식 삭제 -->
+<delete id="deleteDraftTemplate" parameterType="Long">
+    DELETE FROM draft_template
+	WHERE
+    template_id= #{templateId}
+</delete>
+
+ 
+<!-- 	   결재 양식 추가  -> 쿼리는 작동함-->
+   <insert id="insertDraftTemplate" parameterType="map">
+    INSERT INTO DRAFT_TEMPLATE 
+    (TEMPLATE_ID, EMP_ID, TEMPLATE_TITE, TEMPLATE_CONTENT, TEMPLATE_CATEGORY, TEMLPATE_DELETED, TEMPLATE_CREATE, TEMPLATE_FILE)
+    values
+    (
+    	#{templateId}, 
+        #{empId}, 
+        #{templateTite}, 
+        #{templateContent}, 
+        #{templateCategory}, 
+        #{temlpateDeleted}, 
+        SYSDATE, 
+        #{templateFiles}
+    )   
+</insert>
+
+	<!-- FILE_DETAIL 테이블에 템플릿 ID와 파일 ID 매핑 -->
+	<insert id="insertDraftTemplateFile" parameterType="map" >
+        INSERT INTO FILE_DETAIL (FILE_ID, TEMPLATE_FILE)
+        SELECT
+            F.FILE_ID,
+            #{templateId}
+        FROM "FILE" F
+        WHERE F.FILE_ID = #{fileIds}
+	</insert>
+
+
+
+</mapper>

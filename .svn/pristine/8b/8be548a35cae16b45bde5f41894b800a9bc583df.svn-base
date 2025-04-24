@@ -1,0 +1,42 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+${appointment}
+<table class="table-bordered">
+	<thead>
+		<tr>
+			<th>발령호수</th>
+			<th>사번</th>
+			<th>발령일자</th>
+			<th>발령구분</th>
+			<th>발령사유</th>
+			<th>발령 전 직책</th>
+			<th>발령 전 직급</th>
+			<th>발령 전 부서</th>
+			<th>발령 후 직책</th>
+			<th>발령 후 직급</th>
+			<th>발령 후 부서</th>
+			<th>입사일자</th>
+			<th>근속</th>
+		</tr>
+	</thead>
+	<tbody>
+		<c:forEach items="${appointment}" var="x">
+			<tr>
+				<td>${x.appId              }</td>
+				<td>${x.empId              }</td>
+				<td>${x.appDate            }</td>
+				<td>${x.appType            }</td>
+				<td>${x.appReason          }</td>
+				<td>${x.prevJobId          }</td>
+				<td>${x.prevRankId         }</td>
+				<td>${x.prevDepartmentId   }</td>
+				<td>${x.newJobId           }</td>
+				<td>${x.newRankId          }</td>
+				<td>${x.newDepartmentId    }</td>
+				<td>${x.hireDrte           }</td>
+				<td>${x.serviceYear        }</td>
+			</tr>
+		</c:forEach>
+	</tbody>
+</table>

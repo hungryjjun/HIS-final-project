@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.application.ApplicationMapper">
+
+	<resultMap type="ApplicationVO" id="applicationMap">
+		<id property="appId" column="APP_ID"/>
+		<result property="recruitId" column="RECRUIT_ID"/>
+		<result property="appName" column="APP_NAME"/>
+		<result property="appYeardate" column="APP_YEARDATE"/>
+		<result property="appEmail" column="APP_EMAIL"/>
+		<result property="appGrade" column="APP_GRADE"/>
+		<result property="appCareer" column="APP_CAREER"/>
+		<result property="appPl" column="APP_PL"/>
+		<result property="appFile" column="APP_FILE"/>
+	</resultMap>
+	
+	<select id="selectApplicationList" resultMap="applicationMap" parameterType="Long">
+		SELECT APP_ID 
+		        ,RECRUIT_ID
+		        ,APP_NAME
+		        ,APP_YEARDATE
+		        ,APP_EMAIL
+		        ,APP_GRADE
+		        ,APP_CAREER
+		        ,APP_PL
+		        ,APP_FILE
+		FROM APPLICATION
+		WHERE RECRUIT_ID = #{recruitId}
+	</select>
+
+
+	<select id="selectApplicationDetail" resultMap="applicationMap" parameterType="Long">
+		SELECT APP_ID 
+		        ,RECRUIT_ID
+		        ,APP_NAME
+		        ,APP_YEARDATE
+		        ,APP_EMAIL
+		        ,APP_GRADE
+		        ,APP_CAREER
+		        ,APP_PL
+		        ,APP_FILE
+		FROM APPLICATION
+		WHERE APP_ID = #{appId}
+	</select>
+
+</mapper>

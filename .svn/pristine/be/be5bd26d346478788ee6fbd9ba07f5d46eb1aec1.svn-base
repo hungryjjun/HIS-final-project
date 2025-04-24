@@ -1,0 +1,100 @@
+package kr.or.ddit.spring.config;
+
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.messenger.service.ChatEmpService;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 
+ * @author youngjun
+ * @since 2025. 3. 12.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 12.     	youngjun	          최초 생성
+ *
+ * </pre>
+ */
+@Configuration
+@EnableWebSecurity
+@Slf4j
+public class SecurityConfig {
+
+    private final ChatEmpService chatEmpService; // ✅ final로 변경
+
+    public SecurityConfig(ChatEmpService chatEmpService) {
+        this.chatEmpService = chatEmpService;
+    }
+
+    @Bean 
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(customizer -> customizer.disable())
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+            .formLogin(customizer ->
+                customizer.loginPage("/account/login/main")
+                          .loginProcessingUrl("/account/login")
+                          .usernameParameter("accountId")
+                          .passwordParameter("password")
+                          .permitAll()
+            )
+            .logout(customizer ->
+                customizer
+                    .logoutUrl("/account/login/logout")
+                    .addLogoutHandler((request, response, authentication) -> {
+                        log.info("🔴 로그아웃 핸들러 실행됨!");
+
+                        HttpSession session = request.getSession(false);
+                        if (session != null) {
+                            AccountVO account = (AccountVO) session.getAttribute("sessionAccount");
+                            if (account != null) {
+                                log.info("🔴 로그아웃 - empId: {}, 상태 변경 -> 오프라인", account.getEmpId());
+                                chatEmpService.updateEmpStatus(account.getEmpId(), "오프라인");
+                            } else {
+                                log.warn("⚠️ 세션에서 계정 정보를 가져오지 못함!");
+                            }
+                        } else {
+                            log.warn("⚠️ 세션이 존재하지 않음!");
+                        }
+                    })
+                    .logoutSuccessHandler((request, response, authentication) -> {
+                        log.info("🔵 로그아웃 성공! 홈으로 이동");
+                        response.sendRedirect("/");
+                    })
+            )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                       .maximumSessions(1)
+                       .expiredUrl("/account/login/logout?expired")
+            );
+
+        return http.build();
+    }
+
+
+}
+
+
+
+
+

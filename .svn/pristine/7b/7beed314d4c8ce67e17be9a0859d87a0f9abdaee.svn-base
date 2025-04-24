@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.annual.AnnualMapper">
+
+<select id="annualList">
+SELECT
+    annual_id
+  , emp_id
+  , total_annual
+  , used_annual
+  , remaining_annual
+  , last_updated
+FROM
+    annual
+
+</select>
+
+<select id="annualDetail">
+SELECT
+    annual_id
+  , emp_id
+  , total_annual
+  , used_annual
+  , remaining_annual
+  , last_updated
+FROM
+    annual
+WHERE 
+	emp_id = #{empId}
+</select>
+
+
+</mapper>

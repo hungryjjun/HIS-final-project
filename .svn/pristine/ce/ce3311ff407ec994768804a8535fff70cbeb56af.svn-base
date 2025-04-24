@@ -1,0 +1,62 @@
+package kr.or.ddit.salary.service;
+
+import java.util.List;
+
+import kr.or.ddit.salary.vo.AllowanceCodeVO;
+import kr.or.ddit.salary.vo.AllowanceVO;
+import kr.or.ddit.salary.vo.DeductionCodeVO;
+import kr.or.ddit.salary.vo.DeductionVO;
+import kr.or.ddit.salary.vo.SalaryVO;
+
+public interface SalaryService {
+	
+	/**
+	 * 직원의 급여리스트 조회
+	 * @return
+	 */
+	public List<SalaryVO>salaryList();
+	
+	/**
+	 * 선택한 직원의 급여 상세조회
+	 * @param salary
+	 * @return
+	 */
+	public SalaryVO salarySelected(String empId);
+	
+	/**
+	 * 수당항목 리스트 조회
+	 * @return
+	 */
+	public List<AllowanceCodeVO>AllowanceList();
+	
+	
+	/**
+	 * 공제항목 리스트 조회
+	 * @return
+	 */
+	public List<DeductionCodeVO>DeductionList();
+	
+	
+	/**
+	 * 전직원 급여등록
+	 * @param salary
+	 * @return
+	 */
+	public boolean InsertSalary(SalaryVO salary);
+	
+	
+	/**
+	 * 전직원 공제등록
+	 * @param deducation
+	 * @return
+	 */
+	public boolean InsertDeducation(int pyear, int pmonth);
+	
+	/**
+	 * 급여대상자, 확정자, 총 급여금액 조회
+	 * @param salary
+	 * @return
+	 */
+	public SalaryVO salaryInfo();
+
+}

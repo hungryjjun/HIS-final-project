@@ -1,0 +1,111 @@
+package kr.or.ddit.approval.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.approval.vo.DraftApproverVO;
+import kr.or.ddit.approval.vo.DraftBoxVO;
+import kr.or.ddit.approval.vo.DraftManageMentVO;
+import kr.or.ddit.mybatis.mappers.approval.ApprovalProcessMapper;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 18.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 18.     	CHOI	        전자결재 진행 
+ *
+ * </pre>
+ */
+@Service
+public class ApprovalProcessServiceImpl implements ApprovalProcessService {
+	
+	
+	@Inject
+	private ApprovalProcessMapper mapper;
+
+	
+	/**
+	 * 기안자가 본인의 기안자 정보, 문서 카테고리, 최종 결재자, 첨부 파일 여부 볼 수 있음
+	 * @param empId 기안자 
+	 * @return
+	 */
+	@Override
+	public List<DraftManageMentVO> writeDraftMangeMent(String empId)  {
+		
+		return mapper.writeDraftMangeMent(empId);
+	}
+	
+	
+	
+	/**
+	 * 기안된 문서 리스트 조회 -> 기안자 정보, 문서 카테고리, 최종 결재자, 첨부 파일 여부
+	 */
+	@Override
+	public List<DraftManageMentVO> writeDraftMangeMentList() {
+		return mapper.writeDraftMangeMentList();
+	}
+
+
+
+	/**
+	 * 전자결재 문서 기안 (여러 개의 insert, update 하면 트랜잭션 기능)
+	 * 
+	 */
+	@Transactional
+	@Override
+	public void submitDraft(DraftManageMentVO draftMentVO, List<DraftApproverVO> approverList, List<DraftBoxVO> draftBoxList) {
+		//1. 기안 문서를 저장 
+		mapper.insertDraftManagement(draftMentVO);
+		
+		//2. 결재자 정보 삽입
+		for(DraftApproverVO approver : approverList) {
+			approver.setDraftId(draftMentVO.getDraftId());
+			mapper.insertDraftApprover(approver);
+		}
+		//3. 문서함 등록
+		if (draftBoxList != null && !draftBoxList.isEmpty()) {
+			for(DraftBoxVO draftBox : draftBoxList) {
+				draftBox.setDraftId(draftBox.getDraftId());
+				mapper.insertDraftBox(draftBox); //insert 호출
+			}
+		}
+		
+	}
+
+
+
+	/**
+	 * 결재자가 결재 승인/반려 
+	 */
+	@Transactional
+	@Override
+	public void approveDraft(DraftApproverVO approverVO) {
+		//1.결재자 상태 업데이트
+		mapper.updateDraftApprover(approverVO);
+		
+		//2.남은 결재자 확인
+		int pendingApprovals = mapper.countPendingApprovals(approverVO.getDraftId());
+		
+		//3. 최종 결재자인 경우 문서 상태 업데이트 
+		if("승인".equals(approverVO.getAprStatus()) && pendingApprovals == 0) {
+			mapper.updateDraftManagementStatus(approverVO.getDraftId(), "완료");
+			mapper.updateDraftBoxStatus(approverVO.getDraftId(), "완료");
+		} else if ("반려".equals(approverVO.getAprStatus())) {
+			mapper.updateDraftManagementStatus(approverVO.getDraftId(), "반려");
+			mapper.updateDraftBoxStatus(approverVO.getDraftId(), "반려");
+		}
+		
+	}
+
+}

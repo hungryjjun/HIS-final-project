@@ -1,0 +1,84 @@
+package kr.or.ddit.approval.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import kr.or.ddit.approval.service.ApprovalProcessService;
+import kr.or.ddit.approval.vo.DraftManageMentVO;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 20.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 20.     	CHOI	          기안자 기준(결재 처리)
+ *
+ * </pre>
+ */
+@RestController
+public class ApprovalDraftController {
+	
+	@Inject
+	private ApprovalProcessService service;
+	
+	
+	
+	/**
+     *  로그인한 사용자의 empId 가져오기
+     */
+    @GetMapping("/approval/draft/getEmpId")
+    public ResponseEntity<String> getLoggedInEmpId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ResponseEntity.ok(((UserDetails) principal).getUsername());
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+    }
+	
+	/**
+	 * 기안 문서 상신
+	 * @param draftMentVO
+	 * @return
+	 */
+	@PostMapping("/approval/draft/submit")
+	public ResponseEntity<String> submitApproval(@RequestBody DraftManageMentVO draftMentVO){
+		try {
+			// 기안 문서 상신 로직 처리 
+			service.submitDraft(draftMentVO, draftMentVO.getDraftapproverList(), draftMentVO.getDraftBoxList());
+			return ResponseEntity.ok("결재 문서가 상신되었습니다.");
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결재 상신 실패");
+		}
+		
+	}
+	
+	
+	/**
+	 * 관리자 또는 특정 사용자가 특정 기안자의 문서를 조회
+	 * -> 로그인 세션 정보 없는 조회
+	 * @param empId
+	 * @return
+	 */
+	@GetMapping("/approval/draft/my")
+	public ResponseEntity<List<DraftManageMentVO>> getDraftsByEmpId(@RequestParam String empId) {
+	    return ResponseEntity.ok(service.writeDraftMangeMent(empId));
+	}
+	
+}

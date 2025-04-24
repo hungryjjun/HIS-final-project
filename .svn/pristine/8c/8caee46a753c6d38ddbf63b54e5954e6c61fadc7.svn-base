@@ -1,0 +1,27 @@
+package kr.or.ddit.annual.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.annual.vo.AnnualVO;
+import kr.or.ddit.mybatis.mappers.annual.AnnualMapper;
+
+@Service
+public class AnnualServiceImpl implements AnnualService{
+	
+	@Autowired
+	AnnualMapper dao;
+
+	@Override
+	public List<AnnualVO> annualList() {
+		return dao.annualList();
+	}
+
+	@Override
+	public AnnualVO annualDetail(String empId) {
+		return dao.annualDetail(empId);
+	}
+
+}

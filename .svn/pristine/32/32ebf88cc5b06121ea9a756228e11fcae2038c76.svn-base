@@ -1,0 +1,12 @@
+package kr.or.ddit.application.vo;
+
+import lombok.Data;
+
+@Data
+public class ApplicationStatusVO {
+	private Long statusId;
+	private Long appId;
+	private String currentStatus;
+	private String interviewDate;
+	private String updateAt;
+}

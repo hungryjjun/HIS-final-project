@@ -1,0 +1,52 @@
+package kr.or.ddit.mybatis.mappers.approval;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import kr.or.ddit.approval.vo.DraftTemplateVO;
+
+@Mapper
+public interface ApprovalMapper {
+	
+	
+	/**
+	 * 결재 양식 리스트 
+	 * @return
+	 */
+	public List<DraftTemplateVO> DraftTemplateList();
+	
+	
+	
+	
+	/**
+	 * 결재 양식 상세 정보 
+	 * @param templateId
+	 * @return
+	 */
+	public DraftTemplateVO draftTemplateDetail(@Param("templateId") Long templateId);
+	
+	
+	/**
+	 * 결재 양식 등록
+	 * @param draftTemplate 
+	 * @return
+	 */
+	public int insertDraftTemplate(DraftTemplateVO draftTemplate);
+	
+	
+
+
+
+    /**
+     * 결재 양식 파일 정보 저장
+     * @param templateId
+     * @param fileId
+     * @return
+     */
+	public void insertDraftTemplateFile(Map<String, Object> paramMap);
+
+
+}

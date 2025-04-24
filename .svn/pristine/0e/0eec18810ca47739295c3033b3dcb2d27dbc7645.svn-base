@@ -1,0 +1,227 @@
+package kr.or.ddit.qr.controller;
+
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+
+import kr.or.ddit.attendance.service.AttendanceService;
+import kr.or.ddit.attendance.vo.AttendanceVO;
+import kr.or.ddit.qr.service.QrService;
+import kr.or.ddit.qr.vo.QrVO;
+import lombok.extern.slf4j.Slf4j;
+/**
+ * 
+ * 
+ * @author 정태우
+ * @since 2025. 3. 14.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 12.     	정태우	          최초 생성
+ *
+ * </pre>
+ */
+@Controller
+@Slf4j
+@RequestMapping("/")
+public class QRCodeController {
+	
+	@Autowired
+	AttendanceService service;
+	@Autowired
+	QrService qrservice;
+	
+	
+	@PostMapping(value = "scan-qr", produces = "application/json")
+	@ResponseBody
+	public Map<String, Object> scanQR(@RequestBody Map<String, Object> payload) {
+	    String uuid = (String) payload.get("uuid");
+	    double userLat = (double) payload.get("latitude");
+	    double userLng = (double) payload.get("longitude");
+
+	    Map<String, Object> response = new HashMap<>();
+
+	    // QR 코드 검증
+	    QrVO qrInfo = qrservice.getQRInfo(uuid);
+	    
+	    if (qrInfo == null) {
+	        response.put("success", false);
+	        response.put("message", "유효하지 않은 QR 코드입니다.");
+	        return response;
+	    }
+	    
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH24:mm:ss"); // DB에서 저장된 날짜 포맷
+	    LocalDateTime expiresAt = LocalDateTime.parse(qrInfo.getExpiresAt(), formatter);
+	    
+	    // 만료 시간 체크
+	    if (expiresAt.isBefore(LocalDateTime.now())) {
+	        response.put("success", false);
+	        response.put("message", "QR 코드가 만료되었습니다.");
+	        return response;
+	    }
+
+	    String empId = qrInfo.getEmpId(); // QR 코드에서 가져온 사용자 ID
+
+	    double companyLat = 36.3250181;
+	    double companyLng = 127.408912;
+
+	    // 위치 검증
+	    if (Math.abs(userLat - companyLat) < 0.01 && Math.abs(userLng - companyLng) < 0.01) {
+	        LocalDateTime now = LocalDateTime.now();
+	        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	        DateTimeFormatter formatterTime = DateTimeFormatter.ofPattern("HH:mm:ss");
+	        String formattedDate = now.format(formatterDate);
+	        String formattedTime = now.format(formatterTime);
+
+	        // 출근 기록 조회
+	        AttendanceVO existingAttendance = service.findTodayAttendance(empId);
+
+	        if (existingAttendance != null) {
+	            // 퇴근 처리
+	            existingAttendance.setWorkEndTime(formattedTime);
+	            service.updateWorkEnd(existingAttendance);
+	            response.put("message", "퇴근 처리가 완료되었습니다.");
+	        } else {
+	            // 출근 처리
+	            AttendanceVO attendance = new AttendanceVO();
+	            attendance.setEmpId(empId);
+	            attendance.setWorkDate(formattedDate);
+	            attendance.setWorkStartTime(formattedTime);
+	            attendance.setAttendanceStatus(now.toLocalTime().isBefore(LocalTime.of(9, 0)) ? "정상" : "지각");
+	            service.attendanceInsert(attendance);
+	            response.put("message", "출근 처리가 완료되었습니다.");
+	        }
+
+	        // ✅ QR 사용 완료 후 DB에서 삭제
+	        qrservice.deleteQR(uuid);
+
+	        // ✅ PC UI 실시간 업데이트를 위한 WebSocket 메시지 전송
+//	        WebSocketUtil.sendMessage(empId, "출근/퇴근이 완료되었습니다.");
+
+	        response.put("success", true);
+	    } else {
+	        response.put("success", false);
+	        response.put("message", "출근/퇴근 가능한 위치가 아닙니다.");
+	    }
+	    return response;
+	}
+
+	
+	@GetMapping("qrqr")
+	public String locationQR(
+		@RequestParam("uuid") String uuid, Model model
+	)  {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss"); // 원하는 형식 지정
+        String formattedTime = now.format(formatter);
+        model.addAttribute("checkInTime", formattedTime);
+		model.addAttribute("uuid",uuid);
+		return "qr/QRcheck";
+	}
+	
+	@GetMapping("generate-qr")
+	public String generateQRCode(Model model, HttpSession session, HttpServletRequest req) throws Exception {
+	    Authentication account = SecurityContextHolder.getContext().getAuthentication();
+	    String empId = account.getName(); // 로그인된 사용자 ID
+	    String uuid = UUID.randomUUID().toString(); // 랜덤 UUID 생성
+
+	    // QR 만료 시간 (예: 5분 후 만료)
+	    LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	    String formattedExpireAt = expiresAt.format(formatter);
+	    
+	    // DB에 QR 정보 저장 
+	    qrservice.saveQR(uuid, empId, formattedExpireAt);
+	    log.info("여기서 한번 저장할건데 또 있니?");
+	    String ip = Getip(); // 서버 IP 가져오기
+	    String qrData = "https://" + ip + req.getContextPath() + "/qrqr?uuid=" + uuid;
+
+	    try {
+	        // QR 코드 생성
+	        int size = 300; // QR 코드 사이즈 (유동적으로 변경 가능)
+	        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+	        Hashtable<EncodeHintType, Object> hints = new Hashtable<>();
+	        hints.put(EncodeHintType.MARGIN, 1); // QR 코드 여백 설정
+
+	        // QR 데이터로 QR 코드 생성
+	        BitMatrix bitMatrix = qrCodeWriter.encode(qrData, BarcodeFormat.QR_CODE, size, size, hints);
+
+	        // BitMatrix를 BufferedImage로 변환
+	        BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
+	        for (int x = 0; x < size; x++) {
+	            for (int y = 0; y < size; y++) {
+	                bufferedImage.setRGB(x, y, (bitMatrix.get(x, y)) ? 0x000000 : 0xFFFFFF); // 검정과 흰색으로 설정
+	            }
+	        }
+
+	        // 이미지를 ByteArray로 변환하여 Base64로 인코딩
+	        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	        ImageIO.write(bufferedImage, "PNG", byteArrayOutputStream);
+	        byte[] qrImageBytes = byteArrayOutputStream.toByteArray();
+	        String qrCodeImage = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(qrImageBytes);
+
+	        // 모델에 QR 코드 이미지 데이터 전달
+	        model.addAttribute("qrCode", qrCodeImage);
+	        
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
+
+	    return "qr/QRcode"; // QR 코드 페이지로 이동
+	}
+    
+    //IP 추출 해주는 메소드
+    public String Getip() throws SocketException {
+        String wifiIp = null;
+
+        for (NetworkInterface netIf : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+            String name = netIf.getDisplayName().toLowerCase();
+            if (name.contains("wi-fi") || name.contains("wlan") || name.contains("en0")) {
+                for (InetAddress addr : Collections.list(netIf.getInetAddresses())) {
+                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                        wifiIp = addr.getHostAddress(); // IP 주소 설정
+                        break; // 찾은 IP 주소가 있으면 더 이상 순회하지 않음
+                    }
+                }
+            }
+        }
+        return wifiIp; // IP 반환
+    }
+}

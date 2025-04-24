@@ -1,0 +1,10 @@
+package kr.or.ddit.advice;
+
+public class doo7 {
+	//ASDQFASDASD
+	public static void main(String[] args) {
+		System.out.println("123123");
+	}
+	
+	//QDASDASD
+}

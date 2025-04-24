@@ -1,0 +1,22 @@
+package kr.or.ddit.application.vo;
+
+import kr.or.ddit.recruitment.vo.RecruitmentVO;
+import lombok.Data;
+
+@Data
+public class ApplicationVO {
+	private Long appId;
+	private Long recruitId;
+	private String appName;
+	private Long appYeardate;
+	private String appEmail;
+	private String appGrade;
+	private String appCareer;
+	private String appPl;
+	private String appFile;
+	private String appGender;
+	
+	private ApplicationStatusVO applicationStatus;
+	private RecruitmentVO recruitment;
+	
+}

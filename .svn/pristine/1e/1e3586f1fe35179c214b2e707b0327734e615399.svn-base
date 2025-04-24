@@ -1,0 +1,22 @@
+package kr.or.ddit.salary.service;
+
+import java.util.List;
+
+import kr.or.ddit.salary.vo.SalaryVO;
+
+public interface SalaryService {
+	
+	/**
+	 * 직원의 급여리스트 조회
+	 * @return
+	 */
+	public List<SalaryVO>salaryList();
+	
+	/**
+	 * 선택한 직원의 급여 상세조회
+	 * @param salary
+	 * @return
+	 */
+	public SalaryVO salarySelected(String empId);
+
+}

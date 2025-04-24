@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.signature.SignatureMapper">
+
+	<resultMap type="signatureVO" id="SignatureResultMap" autoMapping="true">
+		<id property="signId" column="SIGNATURE_ID"/>
+		<association property="employee" javaType="EmployeeVO" autoMapping="true">
+		<id property="empId" column="EMP_ID"/>
+		</association>	
+	</resultMap>
+    <!--서명등록  -->	
+	<insert id="insertSign">
+		INSERT INTO SIGNATURE(
+			SIGN_ID, EMP_ID, SIGN_IMAGE_PATH, CREATED_AT
+		)VALUES(
+			SIGNATURE_SEQ.NEXTVAL, #{empId}, #{signImagePath}, SYSDATE
+		)	
+	</insert>
+	
+	<!--모든서명조회  -->
+	<select id="selectSign" resultMap="SignatureResultMap">
+		SELECT SIGN_ID, EMP_ID, SIGN_IMAGE_PATH, CREATED_AT		
+		FROM SIGNATURE
+		ORDER BY CREATED_AT DESC
+	</select>
+</mapper>

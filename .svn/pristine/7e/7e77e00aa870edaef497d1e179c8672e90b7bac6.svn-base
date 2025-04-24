@@ -1,0 +1,39 @@
+package kr.or.ddit.qr.controller;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.CloseStatus;
+
+public class QrWebSocket extends TextWebSocketHandler {
+
+    private static final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        String empId = (String) session.getAttributes().get("empId");
+        sessions.put(empId, session);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        String empId = (String) session.getAttributes().get("empId");
+        sessions.remove(empId);
+    }
+
+    public static void sendMessage(String empId, String message) {
+        WebSocketSession session = sessions.get(empId);
+        if (session != null && session.isOpen()) {
+            try {
+                session.sendMessage(new TextMessage(message));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+package kr.or.ddit.mybatis.mappers.attendance;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.attendance.vo.AttendanceVO;
+
+@Mapper
+public interface attendanceMapper {
+	public List<AttendanceVO> attendanceList();
+	public AttendanceVO attendanceDetail(String empId);
+	public void attendanceInsert(AttendanceVO attendance);
+	public AttendanceVO findTodayAttendance(String empId);
+	public void updateWorkEnd(AttendanceVO attendance);
+}

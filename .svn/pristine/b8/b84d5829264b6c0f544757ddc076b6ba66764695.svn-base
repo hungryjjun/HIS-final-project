@@ -1,0 +1,26 @@
+package kr.or.ddit.messenger.controller;
+
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+
+@Controller
+public class MessengerViewController {
+	
+	@GetMapping("/messenger/Main")
+	public String messengerMain() {
+		return "tiles:messenger/messengerMain";
+		
+	}
+	@GetMapping("/messenger/room")
+    public String enterChatRoom(@RequestParam("roomId") int roomId, Model model) {
+        model.addAttribute("roomId", roomId);
+        return "tiles:messenger/chatRoom"; 
+    }
+
+
+	
+}

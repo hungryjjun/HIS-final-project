@@ -1,0 +1,20 @@
+package kr.or.ddit.qr.controller;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+@Configuration
+@EnableWebSocket
+public class QrWebSocketConfig implements WebSocketConfigurer {
+	 @Override
+	    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+	        registry.addHandler(qrWebSocketHandler(), "/qr-websocket/{empId}")
+	                .setAllowedOrigins("*");
+	    }
+
+	    public WebSocketHandler qrWebSocketHandler() {
+	        return new QrWebSocket();
+	    }
+}

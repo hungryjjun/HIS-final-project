@@ -1,0 +1,14 @@
+package kr.or.ddit.approval.service;
+
+import java.util.List;
+
+import kr.or.ddit.approval.vo.DraftApproverVO;
+
+public interface ApproverService {
+
+	/**
+	 * 결재자 결재 문서 정보 
+	 */
+	public List<DraftApproverVO> getMyApprovalInfo(String aprId);
+	
+}

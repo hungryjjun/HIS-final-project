@@ -1,0 +1,13 @@
+package kr.or.ddit.empAppointment.service;
+
+import java.util.List;
+
+import kr.or.ddit.empAppointment.vo.AppointmentVO;
+
+public interface AppointmentService {
+
+	public List<AppointmentVO> readAppointList(); 
+	public AppointmentVO readApppoint(String appId);
+	public boolean createAppoint(AppointmentVO appoint);
+	public boolean modifyAppoint(AppointmentVO appoint);
+}

@@ -1,0 +1,12 @@
+package kr.or.ddit.position.vo;
+
+import lombok.Data;
+
+@Data
+public class PositionVO {
+	
+	private Long positionId;
+	private String positionName;
+	private String positionStatus;
+	
+}

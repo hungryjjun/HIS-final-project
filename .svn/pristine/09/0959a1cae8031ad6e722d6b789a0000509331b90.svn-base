@@ -1,0 +1,40 @@
+package kr.or.ddit.mybatis.mappers.attendance;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import kr.or.ddit.attendance.vo.AttendanceVO;
+import kr.or.ddit.department.vo.DepartmentVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+import kr.or.ddit.team.vo.TeamVO;
+
+@Mapper
+public interface attendanceMapper {
+	public List<AttendanceVO> attendanceList();
+	public List<AttendanceVO> attendanceList(
+			@Param("departmentId") String departmentId
+		, @Param("teamId") String teamId
+		, @Param("date")String date
+	);
+	
+	public List<AttendanceVO> attendanceDetail(
+		@Param("empId") String empId
+		,@Param("startDate") String startDate
+		,@Param("endDate") String endDate
+	);
+	public void attendanceInsert(AttendanceVO attendance);
+	
+	//QR controller에서 오늘 날짜기록을 불러 올때 사용 
+	public AttendanceVO findTodayAttendance(String empId);
+	//QR controller에서 퇴근 기록을 업데이트 할때 사용
+	public void updateWorkEnd(AttendanceVO attendance);
+	// 부서 목록을 조회시 사용
+	public List<DepartmentVO> departmentList();
+	// 팀 목록을 조회시 사용
+	public List<TeamVO> teamList();
+	public EmployeeVO Employee(String empId);
+	
+	
+}

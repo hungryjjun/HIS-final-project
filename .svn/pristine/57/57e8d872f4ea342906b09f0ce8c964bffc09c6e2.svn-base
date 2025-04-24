@@ -1,0 +1,46 @@
+
+package kr.or.ddit.salary.controller.deduction;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.salary.service.SalaryService;
+import kr.or.ddit.salary.vo.DeductionCodeVO;
+import kr.or.ddit.salary.vo.DeductionVO;
+
+//공제조회
+@Controller
+public class DeductionReadController {
+	
+	@Autowired
+	private SalaryService service;
+	
+	//공제에 등록된 직원리스트 조회
+//	@GetMapping("/Deduction/empList")
+//	public String DeductionEmpList(Model model){
+//		List<DeductionVO>deductionEmpList = service.EmpDeductionList();
+//		return "tiles:salary/DeductionList";
+//	}
+	
+	//공제에 등록된 특정 직원 조회
+//	@GetMapping("/Deduction/empList/{empId}")
+//	public String DeductionEmpSelected(Model model,@PathVariable("empId")String empId){
+//		DeductionVO deductionselected = service.EmpdeductionSelected(empId);
+//		return "tiles:salary/DeductionList";
+//	}
+//	
+	//공제항목리스트
+	@GetMapping("/Deduction/list")
+	public String DeductionList(Model model){
+		List<DeductionCodeVO>deductionList = service.DeductionList();
+		model.addAttribute("deductionList", deductionList);
+		return "tiles:salary/DeductionForm";
+	}
+
+}

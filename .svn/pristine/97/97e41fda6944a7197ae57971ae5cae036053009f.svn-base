@@ -1,0 +1,86 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<h4>지원서 Dummy Data</h4>
+<table class="table">
+	<tr>
+		<td colspan="2">
+			<button class="btn btn-primary" onclick="history.go(-1);">뒤로가기</button>
+		</td>
+	</tr>
+	<tr>
+		<th>이름</th>
+<%-- 		<td>${member.memId}</td> --%>
+		<td>a</td>
+	</tr>
+	<tr>
+		<th>생년월일</th>
+		<td>a</td>
+	</tr>
+	<tr>
+		<th>전화번호</th>
+		<td>a</td>
+	</tr>
+	<tr>
+		<th>이메일</th>
+		<td>a</td>
+	</tr>
+	<tr>
+		<th>학력</th>
+		<td>a</td>
+	</tr>
+	<tr>
+		<th>경력</th>
+		<td>a</td>
+	</tr>
+	<tr>
+		<th>자기소개서</th>
+		<td>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</td>
+	</tr>
+</table>
+
+<form>
+    <label>
+        <input type="radio" name="option" value="option1" id="option1"> 서류탈락
+    </label>
+    <br>
+    <label>
+        <input type="radio" name="option" value="option2" id="option2"> 면접예정
+    </label>
+    <!-- 면접예정 선택 시 보이게 할 캘린더 입력 필드 -->
+    <div id="datePickerContainer" style="display: none;">
+        <label for="interviewDate">면접 날짜:</label>
+        <input type="date" id="interviewDate" name="interviewDate">
+    </div>
+	<br><br>
+	<button type="submit" class="btn btn-primary" style="width:80px;">저장</button>
+</form>
+
+
+<br>
+<a href="${pageContext.request.contextPath }/recruit/applicant/list">
+    <button class="btn btn-primary" style="width:300px;">목록으로 이동하는 임시버튼</button>
+</a>
+
+<script>
+    // 라디오 버튼의 상태를 체크하여 캘린더를 표시하거나 숨김
+    document.getElementById('option1').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('datePickerContainer').style.display = 'none';
+        }
+    });
+
+    document.getElementById('option2').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('datePickerContainer').style.display = 'block';
+        }
+    });
+</script>
+
+
+
+
+
+
+
+

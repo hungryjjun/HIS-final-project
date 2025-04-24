@@ -1,0 +1,41 @@
+package kr.or.ddit.approval.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import kr.or.ddit.approval.vo.DraftApproverVO;
+import kr.or.ddit.employee.vo.EmployeeVO;
+
+public interface ApproverService {
+
+	/**
+	 * 결재자 결재 문서 정보 -> 결재 대기함 
+	 */
+	public List<DraftApproverVO> getMyApprovalInfo(String aprId);
+	
+	
+	
+	/**
+	 * 본인보다 직급이 높은 직원 결재라인 리스트 
+	 * @param empId
+	 * @return
+	 */
+	public List<EmployeeVO> getLineApprovers(String empId);
+	
+	
+	/**
+     * 여러 결재라인을 등록합니다.
+     */
+    public List<DraftApproverVO> insertApprovalLine(List<DraftApproverVO> approverList);
+	
+	/**
+	 * 결재자가 결재 대기 상세정보를 볼 때 
+	 * @param draftId
+	 * @return
+	 */
+	public List<DraftApproverVO>  getMyApprovalInfoDetail(Long draftId);
+	
+}

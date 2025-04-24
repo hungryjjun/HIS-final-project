@@ -1,0 +1,24 @@
+package kr.or.ddit.messenger.service;
+
+import java.util.List;
+
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.messenger.vo.ChatMessageVO;
+import kr.or.ddit.messenger.vo.ChatRoomVO;
+
+public interface ChatEmpService {
+	List<ChatEmpVO> chatempList();
+	
+	boolean updateEmpStatus(String empId, String Status);
+	
+	int selectOrinsertOneToOneRoom(String empId1, String empId2);
+	
+	int insertMessage(ChatMessageVO message);
+	
+	public List<ChatRoomVO> selectChatRoomByEmpId(String empId);
+
+	int insertGroupChatRoom(String roomName, List<String> empIdList);
+	
+	public int deleteChatMember(String empId, int roomId);
+	
+}

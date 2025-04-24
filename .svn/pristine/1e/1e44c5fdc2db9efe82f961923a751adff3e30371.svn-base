@@ -1,0 +1,34 @@
+package kr.or.ddit.departmentboard.service;
+
+import java.util.List;
+
+
+import kr.or.ddit.departmentboard.vo.DepartmentBoardVO;
+
+/**
+ * 
+ * @author LIG
+ * @since 2025. 3. 12.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 12.     	LIG	          최초 생성
+ *
+ * </pre>
+ */
+public interface DepartmentBoardService {
+  
+  public List<DepartmentBoardVO> boardList(DepartmentBoardVO pvo); // 부서게시판 목록 조회
+  
+  public int boardInsert(DepartmentBoardVO board); // 부서게시판 글 작성
+  
+  public DepartmentBoardVO boardDetail(Long deptnoticeId); // 부서게시판 상세 조회
+  
+  public void incrementViews(Long deptnoticeId); // 조회수 증가
+  
+  public boolean modifyBoard(DepartmentBoardVO deptnoticeId); // 부서 게시판 글 수정
+}

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>연차 신청서</title>
+    <!-- 의존성 라이브러리 로드 (jQuery, Backbone, Underscore, CKEditor, Axios 등) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.1/underscore-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone-min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
+</head>
+<body>
+
+<!-- 연차 신청서 폼 -->
+<form id="approvalForm">
+  <div id="editor">
+    <table class="__se_tbl" style="width: 800px; border-collapse: collapse; font-size: 12px; font-family: malgun gothic, dotum, arial, tahoma;">
+      <tbody>
+        <tr>
+          <td colspan="2" style="padding: 20px; height: 90px; font-size: 22px; font-weight: bold; text-align: center;">
+            연차신청서
+          </td>
+        </tr>
+        <!-- 기안정보 영역 -->
+        <tr>
+          <td style="width:300px; padding: 20px;">
+            <table style="margin: 20px 0; border: 1px solid black; border-collapse: collapse;">
+              <tbody>
+                <!-- 백엔드 데이터 자동 채우기를 위한 hidden 필드 -->
+                <input type="hidden" name="draftId" id="draftId" value=""/>
+                <input type="hidden" name="templateId" id="templateId" value=""/>
+                <input type="hidden" name="empId" id="empId" value=""/>
+                <input type="hidden" name="departmentId" id="departmentId" value=""/>
+                <input type="hidden" name="draftTitle" id="draftTitle" value=""/>
+                <!-- CKEditor가 적용될 textarea -->
+<!--                 <textarea name="draftContent" id="draftContent" rows="10" style="width: 100%;"></textarea> -->
+                <tr>
+                  <td style="padding: 10px; text-align: center;">기안자</td>
+                  <!-- 기안자 정보는 자동 채우기용. name이 draftUser로 지정 -->
+                  <td style="padding: 10px;"><input type="text" name="draftUser" class="form-control" readonly /></td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: center;">기안부서</td>
+                  <td style="padding: 10px;"><input type="text" name="draftDept" class="form-control" readonly /></td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: center;">기안일</td>
+                  <td style="padding: 10px;"><input type="date" name="draftDate" class="form-control" /></td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: center;">문서번호</td>
+                  <td style="padding: 10px;"><input type="text" name="docNo" class="form-control" readonly /></td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+          <td style="width:500px; padding: 20px; vertical-align: top;">
+            <!-- 신청자 및 승인자 정보 (정적 예시) -->
+            <table border="1" style="display: inline-block; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr><th style="padding: 5px; text-align: center;">신청자</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>신청자</td></tr>
+                <tr><td>신청대기</td></tr>
+              </tbody>
+            </table>
+            <table border="1" style="display: inline-block; margin-left:10px; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr><th style="padding: 5px; text-align: center;">승인자 1</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>승인자 1</td></tr>
+                <tr><td>결재대기</td></tr>
+              </tbody>
+            </table>
+            <table border="1" style="display: inline-block; margin-left:10px; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr><th style="padding: 5px; text-align: center;">승인자 2</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>승인자 2</td></tr>
+                <tr><td>결재대기</td></tr>
+              </tbody>
+            </table>
+            <!-- 여기서 오른쪽에 결재라인 추가 테이블을 배치 -->
+            <div style="display: inline-block; vertical-align: top; margin-left: 10px;">
+              <table id="dynamic_table1" border="1" style="border-collapse: collapse; font-size: 12px;">
+                <thead>
+                  <tr>
+                    <th style="padding: 5px; text-align: center;">승인자(결재 라인)</th>
+                  </tr>
+                </thead>
+                <tbody id="approverTable">
+                  <tr class="copyRow1">
+                    <td style="padding: 5px;">
+                      <input type="text" name="approverName" style="width:100%;" placeholder="승인자 이름" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="margin-top: 5px;">
+                <button type="button" id="plus1" class="btn btn-primary btn-sm">행 추가</button>
+                <button type="button" id="minus1" class="btn btn-primary btn-sm">행 삭제</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <!-- 연차 신청서 전용 항목 (휴가 정보) -->
+    <table style="width: 800px; border: 1px solid black; border-collapse: collapse; font-size: 12px;">
+      <tbody>
+        <tr>
+          <td style="padding: 5px; text-align: center;">휴가 종류</td>
+          <td style="padding: 5px;"><input type="text" name="vacationType" class="form-control"/></td>
+        </tr>
+        <tr>
+          <td style="padding: 5px; text-align: center;">기간 및 일시</td>
+          <td style="padding: 5px;">
+            <input type="date" name="startDate" class="form-control"/> ~ 
+            <input type="date" name="endDate" class="form-control"/>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 5px; text-align: center;">반차 여부</td>
+          <td style="padding: 5px;"><input type="checkbox" name="halfDay"/></td>
+        </tr>
+        <tr>
+          <td style="padding: 5px; text-align: center;">연차 일수</td>
+          <td style="padding: 5px;"><input type="number" name="vacationDays" class="form-control"/></td>
+        </tr>
+        <tr>
+          <td style="padding: 5px; text-align: center;"><b style="color:red;">*</b> 휴가 사유</td>
+          <td style="padding: 5px;"><textarea name="vacationReason" class="form-control" style="width: 100%; height: 80px;"></textarea></td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+<!--     동적 행 추가 예시 (여러 연차 항목을 추가하고 싶은 경우) -->
+<!--     <div class="row"> -->
+<!--   	<div class="col-md-9"> -->
+<!--     <table id="dynamic_table1" border="1" style="width: 800px; border-collapse: collapse; margin-top: 20px;"> -->
+<!--       <thead> -->
+<!--         <tr> -->
+<!--           <th>휴가 종류</th> -->
+<!--           <th>시작일</th> -->
+<!--           <th>종료일</th> -->
+<!--           <th>반차 여부</th> -->
+<!--           <th>연차 일수</th> -->
+<!--         </tr> -->
+<!--       </thead> -->
+<!--       <tbody> -->
+<!--         <tr class="copyRow1"> -->
+<!--           <td><input type="text" name="vacationType" style="width: 100%;"></td> -->
+<!--           <td><input type="date" name="startDate" style="width: 100%;"></td> -->
+<!--           <td><input type="date" name="endDate" style="width: 100%;"></td> -->
+<!--           <td><input type="checkbox" name="halfDay"></td> -->
+<!--           <td><input type="number" name="vacationDays" style="width: 80px;"></td> -->
+<!--         </tr> -->
+<!--       </tbody> -->
+<!--     </table> -->
+<!--     <div> -->
+<!--     	<button type="button" id="plus1" class="btn btn-primary">행 추가</button> -->
+<!--     	<button type="button"  id="minus1" class="btn btn-primary">행 삭제</button> -->
+<!--     </div> -->
+    
+  </div>
+  </div>
+  </div>
+</form>
+
+
+
+<script type="text/javascript" src="/resources/js/approval/approvalTemplate.js"></script>
+<script type="text/javascript" src="/resources/js/approval4.js"></script>
+<script type="text/javascript" src="/resources/js/approval/approvalDraft.js"></script>
+<script type="text/javascript">
+    // CKEditor 4를 사용하여 모든 textarea에 대해 편집기 적용
+    window.onload = function() {
+        // 모든 textarea에 대해 CKEditor를 적용
+        document.querySelectorAll("textarea").forEach((textarea) => {
+            CKEDITOR.replace(textarea, {
+                versionCheck: false
+            });
+        });
+    }
+ 
+</script>
+
+</body>
+</html>

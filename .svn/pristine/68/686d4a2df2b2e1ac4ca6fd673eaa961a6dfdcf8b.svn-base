@@ -1,0 +1,15 @@
+package kr.or.ddit.empResignation.vo;
+
+import lombok.Data;
+
+@Data
+public class ResignationVO {
+	private Long leaveId;
+	private String empId;
+	private Long departmentId;
+	private String leaveDate;
+	private String leaveReason;
+	private String leaveType;
+	private String createAt;
+	private String idStatus;
+}

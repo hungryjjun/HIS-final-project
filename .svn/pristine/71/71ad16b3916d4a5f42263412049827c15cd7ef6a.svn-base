@@ -1,0 +1,23 @@
+package kr.or.ddit.approval.service;
+
+import org.springframework.stereotype.Service;
+
+/**
+ * 
+ * @author CHOI
+ * @since 2025. 3. 18.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 18.     	CHOI	         결재 진행 
+ *
+ * </pre>
+ */
+@Service
+public class ApprovalProcessServiceImpl implements ApprovalProcessService {
+	
+}

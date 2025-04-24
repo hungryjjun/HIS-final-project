@@ -1,0 +1,14 @@
+package kr.or.ddit.salary.vo;
+
+import lombok.Data;
+import lombok.ToString;
+
+@ToString
+@Data
+public class AllowanceCodeVO {
+	
+	private Long allowanceCode; // 수당 코드(PK)
+	private String allowanceName; // 수당명
+	private String allowanceDesc; // 수당설명
+
+}

@@ -1,0 +1,94 @@
+
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+
+    var events = [
+        { 
+            title: '회의', 
+            start: '2025-03-10T10:00:00',  
+            end: '2025-03-11T11:00:00'
+        },
+        { 
+            title: '점심 회식', 
+            start: '2025-03-10T12:00:00', 
+            end: '2025-03-10T13:00:00'
+        },
+        { 
+            title: '프로젝트 발표', 
+            start: '2025-03-10T15:00:00', 
+            end: '2025-03-10T16:00:00'
+        }
+    ];
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', // 기본 보기 (월간 보기)
+		contentHeight: 600,  // 콘텐츠 높이도 설정
+        events: events,  // 초기 이벤트로 위의 events 사용
+        dateClick: function(info) {
+            var selectedDate = info.dateStr; // 클릭한 날짜
+
+            // 클릭한 날짜의 일정 목록을 가져오는 메서드 호출
+            getEventsByDate(selectedDate, events);  // 필터링할 events 배열을 넘겨줌
+        }
+    });
+
+    calendar.render();
+});
+
+// 날짜에 맞는 일정만 필터링해서 표시
+function getEventsByDate(date, events) {
+    var filteredEvents = events.filter(function(event) {
+        // 날짜가 일치하는 이벤트만 필터링
+        return event.start.startsWith(date);  // 날짜 기준으로 필터링
+    });
+
+    var eventList = document.getElementById('eventList');
+    eventList.innerHTML = ''; // 기존 내용을 비우기
+
+    if (filteredEvents.length > 0) {
+        // 필터링된 일정을 eventList에 추가
+		
+        filteredEvents.forEach(function(event) {
+			
+			   var startDateTime = event.start.split('T'); // ["2025-03-10", "10:00:00"]
+			   var endDateTime = event.end.split('T');     // ["2025-03-11", "11:00:00"]
+			   
+			   // 날짜 변환 (YYYY-MM-DD → M/D)
+			   var startDateParts = startDateTime[0].split('-'); // ["2025", "03", "10"]
+			   var endDateParts = endDateTime[0].split('-');     // ["2025", "03", "11"]
+			   
+			   var formattedStartDate = `${parseInt(startDateParts[1])}/${parseInt(startDateParts[2])}`; // "3/10"
+			   var formattedEndDate = `${parseInt(endDateParts[1])}/${parseInt(endDateParts[2])}`;       // "3/11"
+
+			   // 시간 변환 (HH:mm:ss → HH:mm)
+			   var startTime = startDateTime[1].substring(0, 5); // "10:00"
+			   var endTime = endDateTime[1].substring(0, 5);     // "11:00"
+
+			   // 날짜가 다르면 끝나는 시간에도 날짜 포함
+			   var formattedEnd = (formattedStartDate !== formattedEndDate) 
+			       ? `${formattedEndDate} ${endTime}` 
+			       : `${endTime}`;
+
+			   var eventItem = document.createElement('div');
+			   eventItem.className = 'event-item';
+			 
+			   eventItem.innerHTML = `
+			   <table class="table">
+				   		<td><span class="event-title">${event.title}</span></td>
+				   		<td> <span class="event-time">${formattedStartDate} ${startTime} ~ ${formattedEnd}</span></td>
+			   </table>
+			   			   
+			   `;
+			   
+			   eventList.appendChild(eventItem);
+			  
+			   
+        });
+    } else {
+        // 일정이 없는 경우 메시지 표시
+        eventList.innerHTML = '<p>해당 날짜에는 일정이 없습니다.</p>';
+    }
+	// 모달 열기
+	    var myModal = new bootstrap.Modal(document.getElementById('eventModal'));
+	    myModal.show();
+}

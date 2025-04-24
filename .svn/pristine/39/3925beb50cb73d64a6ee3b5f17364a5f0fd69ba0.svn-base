@@ -1,0 +1,22 @@
+package kr.or.ddit.salary.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+//전 직원리스트
+@Controller
+@RequestMapping("/salary")
+public class SalaryReadController {
+	
+	@GetMapping("list")
+	public String salaryList() {
+		return "tiles:salary/salaryList";
+		
+	}
+	
+	@GetMapping("detail")
+	public String salaryDetail() {
+		return"salary/salarDetail";
+	}
+}

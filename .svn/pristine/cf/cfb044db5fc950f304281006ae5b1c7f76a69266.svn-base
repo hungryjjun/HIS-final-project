@@ -1,0 +1,81 @@
+package kr.or.ddit.workstatus.controller;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+
+import kr.or.ddit.workstatus.service.WorkStatusService;
+import kr.or.ddit.workstatus.vo.WorkstautsVO;
+
+@Controller
+@RequestMapping("/workstauts")
+public class WorkstatusController {
+
+	@Autowired
+	WorkStatusService service;
+
+//	@Autowired
+//	private Map<String, WebSocketSession> wsSessions;
+
+	@GetMapping("list")
+	public String WorkStatusList(Model model) {
+//		wsSessions.values().forEach(s -> {
+//			TextMessage msg = new TextMessage("누군가가 사용자 전체 조회했네염.");
+//			try {
+//				s.sendMessage(msg);
+//			} catch (IOException e) {
+//				throw new RuntimeException(e);
+//			}
+//		});
+		model.addAttribute("workStatusManageList", service.workStatusManageList());
+		return "tiles:workstatus/workstatusMange";
+	}
+
+	@PostMapping("Insert")
+	@ResponseBody
+	public ResponseEntity<Map<String, String>> workStatusManageInsert(@RequestBody WorkstautsVO workstautsManage) {
+	    service.insertWorkStatusItem(workstautsManage);
+	    
+	    Map<String, String> response = new HashMap<>();
+	    response.put("status", "success");
+	    response.put("message", "Work status item inserted successfully.");
+	    
+	    return ResponseEntity.ok(response); 
+	}
+	
+	@PostMapping("Update")
+	@ResponseBody
+	public void workStatusManageUpdate(@RequestBody WorkstautsVO workstautsManage) {
+		service.updateWorkStatusItemStatus(workstautsManage);
+	}
+
+	@PostMapping("Delete")
+	@ResponseBody
+	public ResponseEntity<String> workStatusManageDelete(@RequestBody Map<String, String> workstautsCodeMap) {
+		String workstautsCode = workstautsCodeMap.get("statusId");
+		service.deleteWorkStatusItem(workstautsCode);
+		return ResponseEntity.ok("삭제 완료");
+	}
+
+	// 마스터가 업무상태 (등록 수정 상제 조회) 하는 메서드
+	// ------------------------------------------------------------------------------------------------
+	// 사용자가 업무상태 변경시 쓰이는 메서드
+	@PostMapping("updateWorkStatus")
+	@ResponseBody
+	public void updateWorkStatus(@RequestParam("statusId") String statusId, @RequestParam("empId") String empId, @RequestParam("workDate") String workDate) {
+		service.updateWorkStatus(statusId, empId ,workDate);
+	};
+}

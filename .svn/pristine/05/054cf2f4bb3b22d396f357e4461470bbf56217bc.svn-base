@@ -1,0 +1,209 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+<%-- ${empList} --%>
+<%-- ${departmentList }  --%>
+<%-- ${jobList }  --%>
+<%-- ${positionList }  --%>
+<%-- ${rankList }  --%>
+<%-- ${teamList }  --%>
+ 
+<form:form method="post" modelAttribute="appointment">
+
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<th>항목</th>
+				<th>값</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>직원 선택</td>
+				<td><select id="empSelect" class="form-control">
+						<option value="">직원을 선택하세요</option>
+						<c:forEach items="${empList}" var="x">
+							<option value="${x.empId}">${x.department.departmentName } ▶ ${x.name} ◀ (${x.empId})</option>
+						</c:forEach>
+				</select></td>
+			</tr>
+			<tr>
+				<td>인사발령고유번호</td>
+				<td><input type="number" class="form-control" name="appId"
+					id="appId" value=""></td>
+			</tr>
+			<tr>
+				<td>사번</td>
+				<td><input type="text" class="form-control" name="empId"
+					id="empId" value=""></td>
+			</tr>
+			<tr>
+				<td>이름</td>
+				<td><input type="text" class="form-control" name="name"
+					id="name" value=""></td>
+			</tr>
+			<tr>
+				<td>발령일자</td>
+				<td><input type="date" class="form-control" name="appDate"
+					id="appDate" value=""></td>
+			</tr>
+			<tr>
+				<td>발령구분</td>
+				<td><input type="text" class="form-control" name="appType"
+					id="appType" value=""></td>
+			</tr>
+			<tr>
+				<td>발령사유</td>
+				<td><input type="text" class="form-control" name="appReason"
+					id="appReason" value=""></td>
+			</tr>
+
+			<tr>
+			    <td>소속팀</td>
+			    <td>
+			    	<input type="text" class="form-control" id="prevTeamId" value="" readonly>
+					<input type="hidden" class="form-control" id="prevTeamName" name="prevTeamId" value="">
+			    </td>
+			</tr>
+			<tr>
+				<td>직책</td>
+				<td>
+					<input type="text" class="form-control" id="prevJobId" value="" readonly>
+					<input type="hidden" class="form-control" id="prevJobName" name="prevJobId" value="">
+				</td>
+			</tr>
+			<tr>															
+				<td>직급</td>						
+				<td>
+					<input type="text" class="form-control" id="prevRankId" value="" readonly>
+					<input type="hidden" class="form-control" name="prevRankId" id="prevRankName" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>부서</td>
+				<td>
+					<input type="text" class="form-control"  id="prevDepartmentId" value="" readonly>
+					<input type="hidden" class="form-control" name="prevDepartmentId" id="prevDepartmentName" value="">
+				</td>
+			</tr>
+			<tr>
+				<td>직무</td>
+				<td>
+					<input type="text" class="form-control" id="prevPositionId" value="" readonly>
+					<input type="hidden" class="form-control" name="prevPositionId" id="prevPositionName" value="">
+				</td>
+			</tr>
+
+			<tr>
+			    <td>발령 팀</td>
+			    <td>
+			        <select name="newTeamId" id="newTeamId" class="form-control">
+			            <option value="">팀을 선택하세요</option>
+			            <c:forEach items="${teamList}" var="x">
+			                <option value="${x.teamId}">${x.teamName}</option>
+			            </c:forEach>
+			        </select>
+			    </td>
+			</tr>
+			<tr>
+			    <td>발령 직책</td>
+			    <td>
+			        <select name="newJobId" id="newJobId" class="form-control">
+			            <option value="">직책을 선택하세요</option>
+			            <c:forEach items="${jobList}" var="x">
+			                <option value="${x.jobId}">${x.jobName}</option>
+			            </c:forEach>
+			        </select>
+			    </td>
+			</tr>
+			<tr>
+			    <td>발령 직급</td>
+			    <td>
+			        <select name="newRankId" id="newRankId" class="form-control">
+			            <option value="">직급을 선택하세요</option>
+			            <c:forEach items="${rankList}" var="x">
+			                <option value="${x.rankId}">${x.rankName}</option>
+			            </c:forEach>
+			        </select>
+			    </td>
+			</tr>
+			<tr>
+			    <td>발령 부서</td>
+			    <td>
+			        <select name="newDepartmentId" id="newDepartmentId" class="form-control">
+			            <option value="">부서를 선택하세요</option>
+			            <c:forEach items="${departmentList}" var="x">
+			                <option value="${x.departmentId}">${x.departmentName}</option>
+			            </c:forEach>
+			        </select>
+			    </td>
+			</tr>
+			<tr>
+			    <td>발령 직무</td>
+			    <td>
+			        <select name="newPositionId" id="newPositionId" class="form-control">
+			            <option value="">직무를 선택하세요</option>
+			            <c:forEach items="${positionList}" var="x">
+			                <option value="${x.positionId}">${x.positionName}</option>
+			            </c:forEach>
+			        </select>
+			    </td>
+			</tr>
+		</tbody>
+	</table>
+
+	<tr>
+		<td colspan="2">
+			<button type="submit" class="btn btn-primary">전송</button>
+		</td>
+	</tr>
+
+</form:form>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+var employeeInfoUrl = "/employee/appointFormUI/getEmployeeInfo"
+
+$(document).ready(function(){
+    $("#empSelect").change(function(){
+        let empId = $(this).val();
+        if(empId) {
+        	$.ajax({
+        	    url: employeeInfoUrl   
+        	    ,type: "GET"
+        	    ,data:  {empId : empId }
+        	    ,dataType: "json"
+        	    ,success: function(data) {
+        	        if(data) {
+        	            console.log("받은 데이터:", data);
+        	            $("#empId").val(data.empId);
+        	            $("#name").val(data.name);
+        	            $("#prevTeamId").val(data.team.teamName);
+        	            console.log(data.team.teamName)
+        	            $("#prevTeamName").val(data.team.teamId);
+        	            console.log(data.team.teamId)
+        	            $("#prevJobId").val(data.job.jobName);
+        	            $("#prevJobName").val(data.job.jobId);
+        	            $("#prevRankId").val(data.rank.rankName);
+        	            $("#prevRankName").val(data.rank.rankId);
+        	            $("#prevDepartmentId").val(data.department.departmentName);
+        	            $("#prevDepartmentName").val(data.department.departmentId);
+        	            $("#prevPositionId").val(data.position.positionName);
+        	            $("#prevPositionName").val(data.position.positionId);
+        	        }
+        	    },
+        	    error: function(xhr, status, error) {
+        	        console.error("에러 발생:", xhr.responseText);
+        	        alert("직원 정보를 불러오는 데 실패했습니다.");
+        	    }
+        	});
+        } else {
+            console.warn("선택된 사번이 없음.");
+        }
+    });
+});	
+</script>

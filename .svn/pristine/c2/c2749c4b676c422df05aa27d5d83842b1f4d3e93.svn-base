@@ -1,0 +1,89 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>내 근로계약서</title>
+</head>
+<body>
+	<h2>내 근로계약서</h2>
+	<table border="1">
+		<tr>
+			<th>직원 ID</th>
+			<td>${contract.empId}</td>
+		</tr>
+		<tr>
+			<th>직원명</th>
+			<td>${contract.employee.name}</td>
+		</tr>
+		<tr>
+			<th>근무장소</th>
+			<td>${contract.workPlace}</td>
+		</tr>
+		<tr>
+			<th>계약 유형</th>
+			<td>${contract.contractType}</td>
+		</tr>
+		<tr>
+			<th>시작일</th>
+			<td>${contract.startDate}</td>
+		</tr>
+		<tr>
+			<th>종료일</th>
+			<td>${contract.endDate}</td>
+		</tr>
+		<tr>
+			<th>근무 형태</th>
+			<td>${contract.workType}</td>
+		</tr>
+		<tr>
+			<th>기본 급여</th>
+			<td>${contract.baseSalary}</td>
+		</tr>
+		<tr>
+			<th>초과 근무 수당</th>
+			<td>${contract.overtimePay}</td>
+		</tr>
+		<tr>
+			<th>주간 근무 시간</th>
+			<td>${contract.weeklyHours}</td>
+		</tr>
+		<tr>
+			<th>계약 상태</th>
+			<td>${contract.contractStatus}</td>
+		</tr>
+		<tr>
+			<th>계약 생성일</th>
+			<td>${contract.createAt}</td>
+		</tr>
+		<tr>
+			<th>서명</th>
+			<td><c:if test="${not empty contract.signImagePath}">
+					<img
+						src="${pageContext.request.contextPath}${contract.signImagePath}"
+						alt="서명 이미지" width="150">
+				</c:if> <c:if test="${empty contract.signImagePath}">
+					<span>서명이 등록되지 않았습니다</span>
+				</c:if></td>
+		</tr>
+		<tr>
+
+		<c:choose>
+    <c:when test="${not empty contract}">
+        <h2>근로계약서 상세 정보</h2>
+        <p>사원 ID: ${contract.empId}</p>
+        <p>근로계약서 유형: ${contract.contractType}</p>
+    </c:when>
+    <c:otherwise>
+        <h2>🚨 계약서 데이터를 찾을 수 없습니다.</h2>
+    </c:otherwise>
+</c:choose>
+		</tr>
+
+	</table>
+	<br>
+	<a href="${pageContext.request.contextPath}/contract/List">목록으로</a>
+</body>
+</html>

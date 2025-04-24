@@ -1,0 +1,22 @@
+package kr.or.ddit.mybatis.mappers.team;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.team.vo.TeamVO;
+
+@Mapper
+public interface TeamMapper {
+	// 업무 항목 리스트 조회
+	public List<TeamVO> teamManageList();
+
+	// 항목 추가
+	public void insertTeamItem(TeamVO teamManage);
+
+	// 항목 상태 업데이트
+	public void updateTeamStatusItem(TeamVO teamManage);
+
+	// 업무 종류 항목 삭제
+	public void deleteTeamItem(String teamCode);
+}

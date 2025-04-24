@@ -1,0 +1,15 @@
+package kr.or.ddit.evaluation.exception;
+
+import java.util.List;
+
+public class DuplicateEvaluationCandidateException extends RuntimeException {
+	private final List<String> duplicateMessages;
+
+    public DuplicateEvaluationCandidateException(List<String> messages) {
+        this.duplicateMessages = messages;
+    }
+
+    public List<String> getDuplicateMessages() {
+        return duplicateMessages;
+    }
+}

@@ -1,0 +1,76 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결재 문서 상세보기</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+</head>
+<body>
+    <h2>결재 문서 상세보기</h2>
+    <div id="detailContainer">
+        <p>불러오는 중...</p>
+    </div>
+    <div>
+        <a href="${pageContext.request.contextPath}/approval/approverDrafts">목록으로 돌아가기</a>
+    </div>
+    <script type="text/javascript" src="${pageContext.request.contextPath}/resources/js/approval/approverProcess.js"></script>
+    <script>
+        // URL의 query parameter에서 draftId 추출 함수
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+        
+        // 상세 정보 로드 함수
+        function loadDraftDetail() {
+            const draftId = getQueryParam("draftId");
+            if (!draftId) {
+                document.getElementById("detailContainer").innerHTML = "<p>문서 ID가 없습니다.</p>";
+                return;
+            }
+            
+            // 먼저, JSP의 contextPath를 별도의 JavaScript 변수에 저장
+            const contextPath = "${pageContext.request.contextPath}";
+            // API URL을 명시적으로 구성
+            const apiUrl = contextPath + "/approval/draft/detail?draftId=" + draftId;
+            
+            axios.get(apiUrl)
+                .then(response => {
+                    const draftVO = response.data;
+                 // 백틱을 사용하지 않고 문자열 결합으로 detailHtml 생성
+                    var detailHtml = 
+                        '<div><strong>문서 ID:</strong> ' + draftVO.draftId + '</div>' +
+                        '<div><strong>제목:</strong> ' + draftVO.draftTitle + '</div>' +
+                        '<div><strong>기안일:</strong> ' + draftVO.draftDate + '</div>' +
+                        '<div><strong>문서 상태:</strong> ' + draftVO.draftStatus + '</div>' +
+                        '<div><strong>기안자:</strong> ' + draftVO.draftEmpName + ' (' + draftVO.draftDepartment + ')</div>' +
+                        '<hr/>' +
+                        '<h4>결재 라인</h4>' +
+                        '<div>' +
+                            '<div><strong>결재자:</strong> ' + draftVO.approverName + '</div>' +
+                            '<div><strong>결재 순번:</strong> ' + draftVO.aprSeq + '</div>' +
+                            '<div><strong>결재 상태:</strong> ' + draftVO.aprStatus + '</div>' +
+                            '<div><strong>승인 여부:</strong> ' + (draftVO.aprYn === 'N' ? '미결' : '완료') + '</div>' +
+                            '<div><strong>결재 사유:</strong> ' + (draftVO.aprReason || '-') + '</div>' +
+                            '<div><strong>결재 일시:</strong> ' + (draftVO.aprDate ? draftVO.aprDate : '-') + '</div>' +
+                        '</div>' +
+                        '<hr/>' +
+                        '<div><strong>문서 내용:</strong></div>' +
+                        '<div>' + (draftVO.draftContent || '-') + '</div>';
+
+                    document.getElementById("detailContainer").innerHTML = detailHtml;
+                })
+                .catch(error => {
+                    console.error("상세 정보 불러오기 실패:", error);
+                    document.getElementById("detailContainer").innerHTML = "<p>문서 상세 정보를 불러오는데 실패했습니다.</p>";
+                });
+        }
+        
+        // 페이지 로드 시 상세 정보 로드
+        document.addEventListener("DOMContentLoaded", loadDraftDetail);
+    </script>
+</body>
+</html>

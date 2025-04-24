@@ -1,0 +1,118 @@
+package kr.or.ddit.messenger.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import kr.or.ddit.messenger.service.ChatEmpService;
+import kr.or.ddit.messenger.vo.ChatEmpVO;
+import kr.or.ddit.messenger.vo.ChatRoomVO;
+import kr.or.ddit.mybatis.mappers.messenger.chatempMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RestController
+@RequestMapping(value="/messenger", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
+public class MessengerRestController {
+	@Autowired
+	private chatempMapper dao;
+	
+	@Autowired
+	private ChatEmpService service;
+
+	private final SimpMessagingTemplate msgTemplate;
+	//직원 목록
+	@GetMapping("empList")
+	public List<ChatEmpVO> chatemplist(){
+		List<ChatEmpVO>list = service.chatempList();
+		list.forEach(vo-> System.out.println("emp ID!@#!@#!@#!@#굿" + vo.getEmpId()));
+		System.out.println("직원목록 요청받음");
+		return service.chatempList();
+	}
+	
+	// 직원 상태 업데이트(온라인/오프라인) WebSocket 실시간 반영
+	@PostMapping("updateStatus")
+	public String updateEmpStatus(@RequestParam("empId")String empId,
+								  @RequestParam("status")String status) {
+		int result =dao.updateEmpStatus(empId, status);
+		if(result>0) {
+       
+			
+            msgTemplate.convertAndSend("/topic/onlineStatus", empId + "상태가" + status);
+            log.info("상태업데이트 뎌ㅐㅅ음?!@#!@#@!$!@$!@$@!$@!", status);		
+			return "상태 업데이트 성공";
+			
+			
+		}else {
+			return "상태 업데이트 실패";
+		}
+	}
+	//채팅방 생성 혹은 기존에 있는 채팅방 가져오기
+	 @PostMapping("/selectOrInsertRoom")
+	    public ResponseEntity<Integer> getOrCreateRoom(
+	            @RequestParam("empId1") String empId1,
+	            @RequestParam("empId2") String empId2) {
+
+	        int roomId = service.selectOrinsertOneToOneRoom(empId1, empId2);
+	        return ResponseEntity.ok(roomId); // 방 번호 리턴
+	    }
+	 //로그인한 사원의 채팅방 목록조회
+	 @GetMapping("/chatRoom")
+	 public List<ChatRoomVO>selectChatRoomByEmpId(@RequestParam("empId")String empId){
+		 return service.selectChatRoomByEmpId(empId);
+	 }
+	 
+	 //그룹채팅 생성
+	@PostMapping("/insertGroupChat")
+	public ResponseEntity<Integer> insertGroupChatRoom(@RequestBody ChatRoomVO room){
+		String roomName = room.getRoomName();
+		List<String> empIdList = room.getEmpIdList(); //참여자 목록
+		
+		if(empIdList == null || empIdList.size()<2) {
+			return ResponseEntity.badRequest().body(-1); // 참여자 2명미만이면 오류류류
+		}
+		
+		log.info("그룹채팅 생성 요청 : roomName={}, 참여자 ={}", roomName, empIdList);
+		
+		int roomId = service.insertGroupChatRoom(roomName, empIdList);
+		return ResponseEntity.ok(roomId);
+	}
+	
+	//채팅방에서 사원나가기
+	@PostMapping("/deleteChatMember")
+	public ResponseEntity<?> deleteChatMember(@RequestParam("empId") String empId,
+												   @RequestParam("roomId") int roomId){
+		Map<String, Object> map = new HashMap<>();
+		
+		System.out.println("========================deleteChatMember");
+		System.out.println("empId:"+empId);
+		System.out.println("roomId:"+roomId);
+		
+		int cnt =service.deleteChatMember(empId, roomId);
+		System.out.println("cnt:"+cnt);
+		map.put("cnt", cnt);
+		
+		if(cnt>0) {
+			System.out.println("======================== True ...");
+	        return ResponseEntity.ok(map);
+		} else {
+			System.out.println("======================== False ...");
+			return ResponseEntity.badRequest().body("실패");
+		}
+		
+				
+	}
+}

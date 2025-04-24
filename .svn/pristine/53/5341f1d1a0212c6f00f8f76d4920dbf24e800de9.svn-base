@@ -1,0 +1,89 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 19.     	CHOI            최초 생성
+ *
+ * </pre>
+ */
+$(document).ready(function () {
+	fetchMyDraftDocument();
+});
+
+function fetchMyDraftDocument(){
+	$.ajax({
+		url:"/approvalProcess/mydrafts",
+		type:"GET",
+		dataType: "json",
+		success : function (data){
+			console.log("기안문서 목록:", data);
+			readerDraftDocuments(data); //데이터 랜더링
+		},
+		error: function(xhr, status, error){
+			console.error("기안 문서 조회 실패:", error);
+		}
+	});
+}
+
+function readerDraftDocuments(data){
+    let html = `<table class="table">
+                   <thead>
+                       <tr>
+                           <th>문서 ID</th>
+                           <th>제목</th>
+                           <th>기안일</th>
+                           <th>상태</th>
+                           <th>기안자</th>
+                           <th>부서 코드</th>
+                           <th>최종 결재자</th>
+                           <th>승인 여부</th>
+                           <th>첨부파일</th>
+                       </tr>
+                   </thead>
+                   <tbody>`;
+
+	   data.forEach(function (doc) {
+	           let approvers = doc.draftapproverList.length > 0
+	               ? doc.draftapproverList.map(a => `${a.approverId} (${a.approverStatus})`).join(", ")
+	               : "결재 진행 중";
+
+	           html += `<tr>
+	                       <td>${doc.draftId || '-'}</td>  
+	                       <td>${doc.draftTitle || '-'}</td>  
+	                       <td>${formatDate(doc.draftDate) || '-'}</td>  
+	                       <td>${doc.draftStatus || '-'}</td>  
+	                       <td>${doc.employee ? doc.employee.name : '미등록'}</td>  
+	                       <td>${doc.employee ? doc.employee.departmentId : '미정'}</td>  
+	                       <td>${approvers}</td>  
+	                       <td>${doc.approvalStatus || '미정'}</td>  
+	                       <td>${doc.draftFile ? `<a href="/file/${doc.draftFile}" download>다운로드</a>` : 'N'}</td>  
+	                    </tr>`;
+	       });
+
+    html += "</tbody></table>";
+
+    $("#draftDocumentsContainer").html(html); // HTML 업데이트
+}
+
+// 날짜 포맷 변환 (YYYY-MM-DD 형식으로 출력)
+function formatDate(dateString) {
+    if (!dateString) return "-";
+
+    let date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        console.error("❌ Invalid date format:", dateString);
+        return "-";
+    }
+
+    let year = date.getFullYear();
+    let month = ('0' + (date.getMonth() + 1)).slice(-2);
+    let day = ('0' + date.getDate()).slice(-2);
+    let hours = ('0' + date.getHours()).slice(-2);
+    let minutes = ('0' + date.getMinutes()).slice(-2);
+    let seconds = ('0' + date.getSeconds()).slice(-2);
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   결재 진행 Mapper
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 18		  CHOI			  최초 생성
+ *
+-->
+<mapper namespace="kr.or.ddit.mybatis.mappers.approval.ApprovalProcessMapper">
+	
+	<resultMap id="draftManageMentMap" type="kr.or.ddit.approval.vo.DraftManageMentVO" >
+		<id property="draftId" column="DRAFT_ID"/>
+		<result property="templateId" column="TEMPLATE_ID"/>
+		<result property="empId" column="EMP_ID"/>
+		<result property="draftTitle" column="DRAFT_TITLE"/>
+		<result property="draftContent" column="DRAFT_CONTENT"/>
+		<result property="draftFile" column="DRAFT_FILE"/>
+		<result property="draftDate" column="DRAFT_DATE" jdbcType="DATE"/>
+		<result property="draftUrgent" column="DRAFT_URGENT"/>
+		<result property="departmentId" column="DEPARTMENT_ID"/>
+		<result property="draftStatus" column="DRAFT_STATUS"/>
+		<!-- 최종 결재자 정보 추가 -->
+	    <result property="finalApprover" column="FINAL_APPROVER"/>
+	    
+	    <!-- 첨부파일 여부 -->
+	    <result property="hasAttachment" column="HAS_ATTACHMENT"/>
+		
+		
+		<!-- 기안자 정보 -->
+	    <association property="employee" javaType="kr.or.ddit.employee.vo.EmployeeVO">
+	        <id property="empId" column="EMP_ID"/>
+	        <result property="name" column="DRAFT_EMP_NAME"/>
+	        <result property="departmentId" column="DRAFT_DEPARTMENT"/>
+	    </association>
+
+	    <!-- 문서함 목록 (1:N) -->
+	    <collection property="draftBoxList" ofType="kr.or.ddit.approval.vo.DraftBoxVO">
+	        <id property="boxId" column="BOX_ID"/>
+	    </collection>
+	
+	    <!-- 결재자 목록 (1:N) -->
+	    <collection property="draftapproverList" ofType="kr.or.ddit.approval.vo.DraftApproverVO">
+	        <id property="aprId" column="APR_ID"/>
+	    </collection>
+	
+	    <!-- 참조자/수신자 목록 (1:N) -->
+	    <collection property="draftParList" ofType="kr.or.ddit.approval.vo.DraftParVO">
+	        <id property="parId" column="PAR_ID"/>
+	    </collection>
+	</resultMap>
+
+	<!-- 기안자가 본인의 기안자 정보, 문서 카테고리, 최종 결재자, 첨부 파일 여부 볼 수 있음 -->
+	<select id="writeDraftMangeMent" resultMap="draftManageMentMap" parameterType="String">
+		SELECT
+		    dm.draft_id
+		  , dm.draft_title
+		  , dm.draft_date
+		  , dm.draft_status
+		  , emp.name          AS draft_emp_name
+		  , emp.department_id AS draft_department
+		  , (
+		        SELECT
+		            name
+		        FROM
+		            employee
+		        WHERE
+		            emp_id = (
+		                SELECT
+		                    approver_id
+		                FROM
+		                    draft_approver
+		                WHERE
+		                    draft_id = dm.draft_id
+		                ORDER BY
+		                    apr_seq DESC
+		                FETCH FIRST 1 ROWS ONLY
+		            )
+		    )                 AS final_approver
+		  , CASE
+		          WHEN dm.draft_file IS NOT NULL THEN
+		              1
+		          ELSE
+		              0
+		      END               AS has_attachment
+		FROM
+		         draft_management dm
+		    JOIN employee emp ON dm.emp_id = emp.emp_id
+		WHERE
+		    dm.emp_id = #{empId}
+		ORDER BY
+		    dm.draft_date DESC
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- 기안된 문서 전체 리스트 조회 -> 기안자 정보, 문서 카테고리, 최종 결재자, 첨부 파일 여부  -->
+	<select id="writeDraftMangeMentList" resultMap="draftManageMentMap">
+		SELECT
+		    dm.draft_id
+		  , dm.draft_title
+		  , dm.draft_date
+		  , dm.draft_status
+		  , emp.name AS draft_emp_name
+		  , dt.template_category
+		  , coalesce(to_char(emp.department_id)
+		             , '미지정') AS draft_department
+		  , (
+		        SELECT
+		            name
+		        FROM
+		            employee
+		        WHERE
+		            emp_id = (
+		                SELECT
+		                    approver_id
+		                FROM
+		                    draft_approver
+		                WHERE
+		                    draft_id = dm.draft_id
+		                ORDER BY
+		                    apr_seq DESC
+		                FETCH FIRST 1 ROWS ONLY
+		            )
+		    )        AS final_approver
+		  , CASE
+		          WHEN dm.draft_file IS NOT NULL THEN
+		              1
+		          ELSE
+		              0
+		      END      AS has_attachment
+		FROM
+		         draft_management dm
+		    JOIN employee       emp ON dm.emp_id = emp.emp_id
+		    JOIN draft_template dt ON dm.template_id = dt.template_id
+		ORDER BY
+		    dm.draft_date DESC
+	
+	</select>
+</mapper>

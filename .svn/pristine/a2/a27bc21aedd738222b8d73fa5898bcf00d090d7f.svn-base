@@ -1,0 +1,213 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   수정일      	수정자      	수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 25.    youngjun         최초 생성
+ * </pre>
+ */
+
+document.addEventListener("DOMContentLoaded", () => {
+	console.log("명세서모달");
+
+	document.addEventListener("click", (e) => {
+		if (e.target.classList.contains("open-detail-modal")) {
+			const empId = e.target.getAttribute("data-empid");
+			const payYear = e.target.getAttribute("data-payyear");
+			const payMonth = e.target.getAttribute("data-paymonth");
+
+			console.log("모달확인", empId, payYear, payMonth);
+
+			$.ajax({
+				url: `/salary/detail/${empId}/${payYear}/${payMonth}`,
+				type: "GET",
+				success: function (html) {
+					document.querySelector("#exampleModal .modal-body").innerHTML = html;
+					const modal = new bootstrap.Modal(document.getElementById("exampleModal"));
+					modal.show();
+				},
+				error: function () {
+					alert("급여 명세서 불러오기 실패");
+				}
+			});
+		}
+	});
+});
+
+function allSuccess(obj){
+	const rows = document.querySelectorAll("#table1 tbody tr");
+	const salaryList = [];
+	console.log("rows",rows);
+
+	rows.forEach(row => {
+		const salaryBtn = row.querySelector("button[onclick*='salaryFinal']");
+		const status = salaryBtn?.innerText.trim();
+		
+		if (status === "확정대기") {
+			const empId = row.querySelector("td[data-salaryid]")?.textContent.trim();
+			const salaryId = row.querySelector("td[data-salaryid]")?.getAttribute("data-salaryid");
+
+			if (empId && salaryId) {
+				salaryList.push({
+					empId: empId,
+					salaryId: salaryId
+				});
+			}
+		}
+	});
+				console.log("salaryList",salaryList);
+	$.ajax({
+		url:"/salary/final/all",
+		type:"POST",
+		data: JSON.stringify(salaryList),
+		contentType:"application/json",
+		success : function(res){
+			alert("일괄확정완료");
+			location.reload();
+		},
+		error:function(){
+			alert("일괄확정 요청실패");
+		}
+	});
+	
+}
+
+
+
+function salaryFinal(obj) {
+	let str_before = obj.innerText.trim();
+	let str_after = "";
+
+	const tr = obj.closest("tr");
+	const empId = tr.querySelector("td[data-salaryid]").textContent.trim();
+	const salaryId = tr.querySelector("td[data-salaryid]").getAttribute("data-salaryid");
+	
+//	const empIds = tr.querySelectorAll("td[data-salaryid]").textContent.trim();
+//	console.log("empIds",empIds);
+	
+//	const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+//	modal.show();
+	
+//	tempFinalTarget = obj;
+		
+		const fixRequest = tr.querySelector("button[onclick*='salaryRequest']"); //요청확인
+		const fixReqStatus = fixRequest.innerText.trim();
+		
+		if (str_before === "확정" && fixReqStatus === "요청완료") {
+			alert("확정취소불가. 요청완료건입니다.");
+			return;
+		}
+		
+		console.log("str_before",str_before);
+		console.log("str_after",str_after);
+	
+	if (str_before === "확정대기") {
+		str_after = "확정";
+		obj.classList.remove("btn-primary");
+		obj.classList.add("btn-danger");
+	} else {
+		str_after = "확정대기";
+		obj.classList.remove("btn-danger");
+		obj.classList.add("btn-primary");
+	}
+
+	const parentTd = obj.closest("td");
+	const confirmDateDiv = parentTd.querySelector(".confirm-date");
+	console.log("parentTd",parentTd);
+	console.log("confirmDateDiv",confirmDateDiv);
+
+	
+	$.ajax({
+		url: "/salary/final",
+		type: "POST",
+		data: {
+			empId: empId,
+			salaryId: salaryId
+		},
+		success: function (res) {
+			console.log("res")
+			if (res.cnt === "1") {
+				obj.innerHTML = str_after;
+				document.querySelector("#confirmCount").innerText = `${res.finalCount}명`;
+
+				if (res.finalDate !== null) {
+					confirmDateDiv.innerText = res.finalDate;
+				} else {
+					confirmDateDiv.innerText = "";
+				}
+			} else {
+				alert("확정/확정대기 처리 중 문제가 발생했습니다.");
+			}
+		},
+		error: function () {
+			alert("급여 확정 처리 실패");
+		}
+	});
+}
+
+function salaryRequest(obj){
+	const tr = obj.closest("tr");
+	console.log("요청버튼활성?");
+	
+	const empId = tr.querySelector("td[data-salaryid]").textContent.trim();
+	const salaryId = tr.querySelector("td[data-salaryid]").getAttribute("data-salaryid");
+	
+	console.log("data값확인",empId,salaryId);
+	
+	const fixFinal = tr.querySelector("button[onclick*='salaryFinal']"); //확정확인
+	const fixStatus = fixFinal.innerText.trim();
+	
+	if(fixStatus !== "확정"){
+		alert("지급 요청은 급여가 확정된 이후 가능합니다.");
+		return;
+	}
+	
+	let str_before = obj.innerText.trim();
+	let str_after = "";
+
+	if(str_before === "요청대기") {
+		str_after = "요청완료";
+		obj.classList.remove("btn-primary");
+		obj.classList.add("btn-danger");
+	} else {
+		str_after = "요청대기";
+		obj.classList.remove("btn-danger");
+		obj.classList.add("btn-primary");
+	}
+	
+	$.ajax({
+	   url:"/salary/request",
+	   type:"POST",
+	   data:{
+		empId:empId,
+		salaryId:salaryId 
+	   },
+	   success(res){
+		console.log("res값확인 요청쪽",res);
+		console.log("요청쪽cnt",res.cnt);
+		console.log("요청쪽reqDate",res.reqDate);
+		
+		if(res.cnt === 1){
+			obj.innerHTML = str_after
+			//나중에 인원수 카운트
+		}else{
+			alert("지급요청오류");
+		}
+		
+	   },
+	   error: function(){
+		alert("급여지급요청 실패");
+	   }	
+	});
+}
+
+
+
+
+
+
+
+
+
+
+

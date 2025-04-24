@@ -1,0 +1,22 @@
+package kr.or.ddit.messenger.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+
+import kr.or.ddit.messenger.vo.ChatMessageVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class chatMessageController {
+		
+	@Autowired SimpMessagingTemplate msgTemplate;
+	
+	 @MessageMapping("/chat.send")
+	 public void sendMessage(ChatMessageVO message){
+		 log.info("메시지 수신 : {}", message);
+		 msgTemplate.convertAndSend("/topic/chat/" + message.getRoomId(),message);
+	 }
+}

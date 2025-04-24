@@ -1,0 +1,36 @@
+package kr.or.ddit.salary.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.salary.service.SalaryService;
+import kr.or.ddit.salary.vo.SalaryVO;
+
+//전 직원리스트
+@Controller
+@RequestMapping("/salary")
+public class SalaryReadController {
+	
+	@Autowired
+	private SalaryService service;
+	
+	@GetMapping("list")
+	public String salaryList(Model model){
+		List<SalaryVO>salaryList = service.salaryList();
+		model.addAttribute("salaryList", salaryList);
+		return "tiles:salary/salaryList";
+	}
+	
+	@GetMapping("detail/{empId}")
+	public String salaryDetail(Model model, @PathVariable("empId") String empId){
+		SalaryVO salarySelected = service.salarySelected(empId);
+		model.addAttribute("salarySelected", salarySelected);
+		return"salary/salarDetail";
+	}
+}

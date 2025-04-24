@@ -1,0 +1,24 @@
+package kr.or.ddit.messenger.vo;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+
+import javax.validation.constraints.NotBlank;
+
+import lombok.Data;
+/**
+ * 채팅방을 관리하는 VO
+ */
+@Data
+public class ChatRoomVO implements Serializable{
+
+	@NotBlank
+	private long roomId;
+	@NotBlank
+	private String empId;
+	@NotBlank
+	private String roomType;
+	@NotBlank
+	private String roomName;
+	private LocalDate createRoom;
+}

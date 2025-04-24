@@ -1,0 +1,286 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 21.     	CHOI            최초 생성
+ * 2025. 3. 23.     	CHOI            시퀀스 기반 동적 id 처리 추가
+ * </pre>
+ */
+
+/**  1. 모달에서 결재 양식 HTML 로드 (AJAX 캐시 방지) */
+async function openApprovalForm(templateId, templateTitle) {
+    if (!templateId) {
+        alert("템플릿 ID가 올바르지 않습니다.");
+        return;
+    }
+
+    // 모달 타이틀 설정
+    document.getElementById('approvalFormModalLabel').textContent = templateTitle + ' 결재 양식';
+
+    // 로딩 UI 표시
+    document.getElementById('approvalFormContainer').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">결재 양식을 불러오는 중입니다...</p>
+        </div>
+    `;
+
+    // 모달 표시
+    var modal = new bootstrap.Modal(document.getElementById('approvalFormModal'));
+    modal.show();
+
+    try {
+        // 캐시 방지를 위해 timestamp 추가
+        let timestamp = new Date().getTime();
+        let response = await fetch(`/approval/templates/${templateId}?t=${timestamp}`);
+        let htmlContent = await response.text();
+
+        // 기존 요소 제거 후 새로운 HTML 삽입
+        document.getElementById('approvalFormContainer').outerHTML = `<div id="approvalFormContainer">${htmlContent}</div>`;
+		
+		// (중요) 동적 테이블 초기화
+		initDynamicTable();
+		
+		// ※ openApprovalForm에서는 annualTypes를 직접 호출하지 않음.
+		
+        // 결재 데이터 불러오기 (자동 채우기)
+        await loadDraftData(templateId);
+
+    } catch (error) {
+        console.error("템플릿 로드 실패:", error);
+        alert("결재 양식을 불러오는 데 실패했습니다.");
+    }
+}
+
+/** 2. 모달이 닫힐 때 기존 HTML 삭제 (최신 반영) */
+document.getElementById('approvalFormModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('approvalFormContainer').innerHTML = "";
+});
+
+/**  3. 기안 문서 데이터 불러오기 */
+async function loadDraftData(draftId) {
+    try {
+        const response = await axios.get(`/approval/draft/${draftId}`);
+        const draft = response.data;
+
+        console.log("불러온 문서 데이터:", draft);
+
+        // 데이터 필드 채우기
+        document.querySelector("#draftId").value = draft.draftId || ""; // 기안자 ID 자동 채우기
+        document.querySelector("#templateId").value = draft.templateId || "";
+        document.querySelector("#empId").value = draft.empId || "";
+        document.querySelector("#draftTitle").value = draft.draftTitle || "";
+        document.querySelector("#draftContent").value = draft.draftContent || "";
+        document.querySelector("#draftUrgent").checked = draft.draftUrgent === "Y";
+        document.querySelector("#departmentId").value = draft.departmentId || "";
+
+        // `기안자`와 `문서번호` 자동 채우기
+        document.querySelector("input[name='draftId']").value = draft.draftId || "";
+        document.querySelector("input[name='docNo']").value = draft.docNo || "";
+		
+		// 연차 타입 옵션 채우기 (서버 응답 draft에 annualTypes가 포함되어 있다고 가정)
+		if (draft.annualTypes && Array.isArray(draft.annualTypes)) {
+           populateAnnualSelect(draft.annualTypes);
+		}
+		
+        // ✅ 결재자 목록 동적 추가
+        fillApproverTable(draft.draftapproverList);
+
+    } catch (error) {
+        console.error("🚨 문서 불러오기 실패:", error);
+        alert("문서 정보를 불러오는 데 실패했습니다.");
+    }
+}
+
+/**  4. 결재자 목록 동적 추가 (시퀀스 기반 ID 처리) */
+function fillApproverTable(approvers) {
+    let table = document.querySelector("#approverTable");
+    table.innerHTML = ""; // 기존 데이터 초기화
+
+    approvers.forEach((approver, index) => {
+        let row = table.insertRow();
+        row.classList.add("approverRow");
+
+        let cell1 = row.insertCell(0);
+        let cell2 = row.insertCell(1);
+        let cell3 = row.insertCell(2);
+        let cell4 = row.insertCell(3);
+        let cell5 = row.insertCell(4);
+
+        const rowIdPrefix = `approverRow_${index}`; // 시퀀스를 기반으로 ID 생성
+
+        cell1.innerHTML = `<input type="text" id="${rowIdPrefix}_aprId" class="aprId" value="${approver.aprId}" readonly>`;
+        cell2.innerHTML = `<input type="text" id="${rowIdPrefix}_approverId" class="approverId" value="${approver.approverId}" readonly>`;
+        cell3.innerHTML = `<input type="number" id="${rowIdPrefix}_aprSeq" class="aprSeq" value="${approver.aprSeq}" readonly>`;
+        cell4.innerHTML = `<input type="text" id="${rowIdPrefix}_aprStatus" class="aprStatus" value="${approver.aprStatus}" readonly>`;
+        cell5.innerHTML = `<input type="text" id="${rowIdPrefix}_aprReason" class="aprReason" value="${approver.aprReason}" readonly>`;
+    });
+}
+
+/** <select id="annualCode">에 연차타입 옵션 넣기 */
+function populateAnnualSelect(annualTypes) {
+    console.log("populateAnnualSelect 호출됨, 데이터:", annualTypes);
+    
+    const selectElem = document.querySelector("#annualCode");
+    if (!selectElem) {
+        console.error("ID가 'annualCode'인 select 요소를 찾을 수 없습니다.");
+        return;
+    }
+
+    // 기존 옵션 초기화
+    selectElem.innerHTML = `<option value="">선택하세요</option>`;
+
+    annualTypes.forEach(type => {
+        // 데이터 형식 확인
+        if (!type.annualCode || !type.annualName) {
+            console.error("올바르지 않은 데이터 형식:", type);
+            return;
+        }
+        let option = document.createElement("option");
+        option.value = type.annualCode;
+        option.textContent = type.annualName;
+        selectElem.appendChild(option);
+    });
+}
+
+/** ✅ 5. 결재 상신 */
+async function submitApprovalForm() {
+    const formElement = document.querySelector("#approvalFormContainer form");
+
+    if (!formElement) {
+        alert("제출할 양식을 찾을 수 없습니다.");
+        return;
+    }
+	
+	
+	// 기안 이유 값: CKEditor에서 가져오되, 빈 값이면 기본값 지정
+     let draftContentValue = document.querySelector("#draftContent").value;
+    if(draftContentValue.trim() === ""){
+        draftContentValue = "기안상신합니다."; // DB의 not null 제약을 만족하는 기본값
+    }
+	
+
+    let draftData = {
+        draftId: document.querySelector("#draftId")?.value || null,  
+        templateId: document.querySelector("#templateId")?.value || "",
+        empId: document.querySelector("#empId")?.value || "",
+        draftTitle: document.querySelector("input[name='draftTitle']").value,
+        draftContent: draftContentValue,
+        draftUrgent: document.querySelector("#draftUrgent")?.checked ? "Y" : "N",
+        departmentId: document.querySelector("#departmentId")?.value || "",
+        draftapproverList: []
+    };
+
+    // 결재자 목록 동적 추가
+	document.querySelectorAll(".approverRow").forEach((row) => {
+	  let approver = {
+	    aprId:     row.querySelector(".aprId")?.value || "",
+	    approverId:row.querySelector(".approverId")?.value || "",
+	    aprSeq:    row.querySelector(".aprSeq")?.value || "",
+	    aprYn:     "N",
+	    aprStatus: row.querySelector(".aprStatus")?.value || "대기",
+	    aprReason: row.querySelector(".aprReason")?.value || "",
+	    approverName: row.querySelector(".approverName")?.value || ""
+	  };
+	  draftData.draftapproverList.push(approver);
+	});
+	
+	// ★ 연차 신청서 필드 (프론트에서 name이나 id를 맞춰두어야 함)
+    const leaveDateValue = document.querySelector("#leaveDate")?.value;    // "2025-03-26" 형태
+    const leaveEndDateValue = document.querySelector("#leaveEndDate")?.value;
+	// CKEditor 인스턴스에서 연차 사유 값을 가져옴
+    const reasonValue = CKEDITOR.instances.reason ? CKEDITOR.instances.reason.getData() : "";
+    const annualCodeValue = document.querySelector("#annualCode")?.value;
+
+    // annualHistory 객체 추가
+    if (leaveDateValue || leaveEndDateValue || annualCodeValue) {
+       draftData.annualHistory = {
+           leaveDate: leaveDateValue,
+           leaveEndDate: leaveEndDateValue,
+           reason: reasonValue,
+           annualCode: annualCodeValue
+       };
+    }
+	
+    console.log("전송할 데이터:", JSON.stringify(draftData, null, 2)); 
+
+    axios.post("/approval/draft/submit", draftData)
+        .then(resp => {
+            alert("결재 상신 완료!");
+            location.reload();
+        })
+        .catch(error => {
+            console.error("결재 상신 실패:", error.response ? error.response.data : error);
+            alert("결재 등록에 실패했습니다. 서버 로그를 확인하세요.");
+        });
+}
+
+/* 6. `상신` 버튼 이벤트 리스너 추가 */
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector("#submitApprovalBtn").addEventListener("click", submitApprovalForm);
+	
+	// CKEditor가 적용된 draftContent 인스턴스가 있다면 삭제하고, 해당 요소를 숨김 처리
+    if (CKEDITOR.instances.draftContent) {
+        CKEDITOR.instances.draftContent.destroy(true);
+    }
+    document.getElementById("draftContent").style.display = "none";
+	
+	
+});
+
+// 추가적으로 모달이 열릴 때마다 다시 숨겨주기
+$('#approvalFormModal').on('shown.bs.modal', function () {
+    document.getElementById("draftContent").style.display = "none";
+});
+
+
+/// 승인자 추가 버튼 클릭 시
+$(document).on('click', '#plus1', function() {
+    const $tableBody = $('#approverTable tbody');
+    if (!$tableBody.length) return;
+
+    // 새 순번 계산
+    let maxSeq = 0;
+    $tableBody.find('tr').each(function() {
+        const seqVal = parseInt($(this).find('.aprSeq').val(), 10) || 0;
+        if (seqVal > maxSeq) {
+            maxSeq = seqVal;
+        }
+    });
+    const nextSeq = maxSeq + 1;
+
+    // 새로운 행 추가
+    const newRow = `
+        <tr class="approverRow">
+            <td><input type="text" class="form-control approverId" placeholder="승인자 ID" /></td>
+            <td><input type="text" class="form-control approverName" placeholder="승인자명" /></td>
+            <td><input type="number" class="form-control aprSeq" value="${nextSeq}" readonly /></td>
+            <td>
+                <select class="form-control aprStatus">
+                    <option value="대기">대기</option>
+                    <option value="승인">승인</option>
+                    <option value="반려">반려</option>
+                </select>
+            </td>
+            <td><input type="text" class="form-control aprReason" placeholder="사유" /></td>
+            <td><button type="button" class="btn btn-danger remove-row">삭제</button></td>
+        </tr>
+    `;
+    $tableBody.append(newRow);
+});
+
+// 승인자 삭제 버튼 클릭 시
+$(document).on('click', '.remove-row', function() {
+    $(this).closest('tr').remove();
+});
+
+// 승인자 삭제 버튼 전체 클릭 이벤트 처리
+$(document).on('click', '#minus1', function() {
+    const $tableBody = $('#approverTable tbody');
+    if ($tableBody.find('tr').length > 0) {
+        $tableBody.find('tr').last().remove();
+    }
+});
+

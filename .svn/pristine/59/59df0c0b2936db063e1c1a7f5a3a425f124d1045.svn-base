@@ -1,0 +1,49 @@
+package kr.or.ddit.contract.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.contract.service.Contractservice;
+import kr.or.ddit.contract.vo.ContractVO;
+
+
+@Controller
+public class ContractController {
+	@Autowired
+	private Contractservice service;
+	
+	// 근로계약서 조회
+	@GetMapping("/contract/List")
+	public String ContractList(Model model) {
+		List<ContractVO> contractList = service.ContractList();
+		model.addAttribute("contractList", contractList);
+		return "tiles:contract/contractList";
+		}
+	// 특정 사원의 근로계약서 조회
+	@GetMapping("/contract/detail")
+	public String ContractDetail(@RequestParam("empId")String empId, Model model) {
+		ContractVO contract = service.selectContract(empId);
+		model.addAttribute("contract", contract);
+		return "tiles:contract/contractDetail";
+	}
+	// 근로계약서 등록 폼
+    @GetMapping("/contract/registerForm")
+    public String registerForm(Model model) {
+    	List<ContractVO> unContractList =service.unContractList(); // 근로계약서가 없는 사원 조회
+    	model.addAttribute("unContractList", unContractList);
+    	model.addAttribute("contract", new ContractVO());
+    	return "tiles:contract/contractRegister";
+    }
+    // 근로계약서 등록
+    @PostMapping("/contract/register")
+    public String reister(ContractVO contract) {
+    	service.insertContract(contract);
+    	return "redirect:/contract/List";
+    }
+}

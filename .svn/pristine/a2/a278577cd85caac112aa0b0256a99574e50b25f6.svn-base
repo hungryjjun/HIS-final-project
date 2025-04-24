@@ -1,0 +1,39 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 3. 14.     	정태우            최초 생성
+ *
+ * </pre>
+ */
+// 일한 시간 업데이트
+	function updateWorkedTime() {
+		document.querySelectorAll(".workDuration").forEach(span => {
+			let workStart = span.dataset.workstart;  // 출근 시간 (HH24:MI:SS 형식)
+			let workEnd = span.dataset.workend;      // 퇴근 시간 (HH24:MI:SS 형식)
+			// 출근 시간이 없거나, 퇴근 시간이 있으면 계산 안 함
+			if (!workStart || workStart.trim() === "" || (workEnd && workEnd.trim() !== "")) {
+				return;
+			}
+
+			let now = new Date();
+			let [startHour, startMinute, startSecond] = workStart.split(":").map(Number);
+
+			let startTime = new Date();
+			startTime.setHours(startHour, startMinute, startSecond, 0);  // 출근 시간 설정
+
+			let workedSeconds = Math.floor((now - startTime) / 1000);  // 경과 시간(초 단위)
+			console.log("console.log(startTime)", startTime)
+			console.log("console.log(workedSeconds)", workedSeconds)
+
+			if (workedSeconds >= 0) {
+				let hours = String(Math.floor(workedSeconds / 3600)).padStart(1, "0");
+				let minutes = String(Math.floor((workedSeconds % 3600) / 60)).padStart(2, "0");
+				span.innerText = `${hours}시간 ${minutes}분 `;
+			} else {
+				span.innerText = "";
+			}
+		});
+	}

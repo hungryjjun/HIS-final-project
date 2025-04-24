@@ -1,0 +1,141 @@
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인사 평가 기준 입력</title>
+    <script type="text/javascript">
+    let titleCount = 0; // 평가 제목 번호
+
+    function addEvaluationTitle() {
+        titleCount++;
+        let sectionId = `section${titleCount}`;
+        let newTitle = `
+            <div class="evaluation-section" id="${sectionId}">
+                <div class="evaluation-header">
+                    <label>평가 제목 ${titleCount}</label>
+                    <input type="text" name="title${titleCount}" required>
+                    <label>가중치</label>
+                    <input type="number" name="titleWeight${titleCount}" min="0" max="100" required>% 
+                    <button type="button" onclick="addEvaluationItem('${sectionId}', 1)">평가 항목 추가</button>
+                    <button type="button" onclick="removeEvaluationSection('${sectionId}')">삭제</button>
+                </div>
+                <div class="evaluation-items" id="items-${titleCount}"></div>
+            </div>
+        `;
+        document.getElementById('evaluation-sections').insertAdjacentHTML('beforeend', newTitle);
+    }
+
+    function addEvaluationItem(sectionId, itemCount = null) {
+        let sectionNum = sectionId.replace('section', '');
+        let itemsContainer = document.getElementById(`items-${sectionNum}`);
+        let currentCount = itemsContainer.getElementsByClassName('evaluation-item').length;
+        let newItemCount = itemCount !== null ? itemCount : currentCount + 1;
+
+        let newItem = `
+            <div class="evaluation-item">
+                <label>평가 항목 ${sectionNum}-${newItemCount}</label>
+                <input type="text" name="item${sectionNum}_${newItemCount}" required>
+                <label>가중치</label>
+                <input type="number" name="weight${sectionNum}_${newItemCount}" min="0" max="100" required>% 
+                <button type="button" onclick="removeEvaluationItem(this, '${sectionId}')">삭제</button>
+            </div>
+        `;
+        itemsContainer.insertAdjacentHTML('beforeend', newItem);
+    }
+
+    function removeEvaluationItem(button, sectionId) {
+        button.parentElement.remove();
+        updateItemNumbers(sectionId);
+    }
+
+    function removeEvaluationSection(sectionId) {
+        document.getElementById(sectionId).remove();
+        updateTitleNumbers();
+    }
+
+    function updateItemNumbers(sectionId) {
+        let sectionNum = sectionId.replace('section', '');
+        let items = document.getElementById(`items-${sectionNum}`).getElementsByClassName('evaluation-item');
+
+        for (let i = 0; i < items.length; i++) {
+            let itemNum = i + 1;
+            items[i].querySelector('label').innerText = `평가 항목 ${sectionNum}-${itemNum}`;
+            items[i].querySelector('input[name^="item"]').name = `item${sectionNum}_${itemNum}`;
+            items[i].querySelector('input[name^="weight"]').name = `weight${sectionNum}_${itemNum}`;
+        }
+    }
+
+    function updateTitleNumbers() {
+        let sections = document.getElementsByClassName('evaluation-section');
+        for (let i = 0; i < sections.length; i++) {
+            let sectionNum = i + 1;
+            let oldSectionNum = sections[i].id.replace('section', '');
+            sections[i].id = `section${sectionNum}`;
+            sections[i].querySelector('.evaluation-header label').innerText = `평가 제목 ${sectionNum}`;
+            sections[i].querySelector('.evaluation-header input[name^="title"]').name = `title${sectionNum}`;
+            sections[i].querySelector('.evaluation-header input[name^="titleWeight"]').name = `titleWeight${sectionNum}`;
+            sections[i].querySelector('.evaluation-items').id = `items-${sectionNum}`;
+
+            let items = sections[i].getElementsByClassName('evaluation-item');
+            for (let j = 0; j < items.length; j++) {
+                let itemNum = j + 1;
+                items[j].querySelector('label').innerText = `평가 항목 ${sectionNum}-${itemNum}`;
+                items[j].querySelector('input[name^="item"]').name = `item${sectionNum}_${itemNum}`;
+                items[j].querySelector('input[name^="weight"]').name = `weight${sectionNum}_${itemNum}`;
+            }
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('evaluation-form').reset();
+        document.getElementById('evaluation-sections').innerHTML = '';
+        titleCount = 0;
+    }
+
+    function validateForm() {
+        let sections = document.getElementsByClassName('evaluation-section');
+        if (sections.length === 0) {
+            alert("최소 한 개 이상의 평가 제목을 입력해야 합니다.");
+            return false;
+        }
+
+        for (let section of sections) {
+            let titleInput = section.querySelector('input[name^="title"]');
+            let titleWeight = section.querySelector('input[name^="titleWeight"]');
+
+            if (!titleInput.value.trim() || !titleWeight.value.trim()) {
+                alert("평가 제목과 가중치를 입력해 주세요.");
+                return false;
+            }
+
+            let items = section.getElementsByClassName('evaluation-item');
+            for (let item of items) {
+                let itemInput = item.querySelector('input[name^="item"]');
+                let itemWeight = item.querySelector('input[name^="weight"]');
+
+                if (!itemInput.value.trim() || !itemWeight.value.trim() || itemWeight.value < 0 || itemWeight.value > 100) {
+                    alert("평가 항목의 이름과 가중치는 필수이며, 가중치는 0~100 사이여야 합니다.");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    </script>
+</head>
+<body>
+    <h2>인사 평가 기준 입력</h2>
+    <form id="evaluation-form" action="saveEvaluation" method="post" onsubmit="return validateForm()">
+        <div id="evaluation-sections"></div>
+        <button type="button" onclick="addEvaluationTitle()">평가 제목 추가</button><br><br>
+        <div class="bottom-buttons">
+            <button type="submit">저장</button>
+            <button type="button" onclick="resetForm()">초기화</button>
+        </div>
+    </form>
+</body>
+</html>

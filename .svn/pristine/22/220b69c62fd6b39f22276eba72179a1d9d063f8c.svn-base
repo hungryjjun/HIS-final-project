@@ -1,0 +1,27 @@
+package kr.or.ddit.department.controller;
+
+import java.util.List;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.department.service.DepartmentService;
+import kr.or.ddit.department.vo.DepartmentVO;
+import lombok.RequiredArgsConstructor;
+
+@Controller
+@RequestMapping("/department")
+@RequiredArgsConstructor
+public class DepartmentItemController {
+
+    private final DepartmentService service;
+
+    @GetMapping("item")
+    public String departmentList(Model model) {
+        List<DepartmentVO> departmentList = service.getDepartmentList();
+        model.addAttribute("departmentList", departmentList);
+        return "tiles:department/departmentItem";
+    }
+}

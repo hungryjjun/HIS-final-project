@@ -1,0 +1,26 @@
+package kr.or.ddit.approval.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class ApprovalViewController {
+	
+	/**
+	 * 기안자 기준 Page
+	 * @return
+	 */
+	@GetMapping("/approval/mydrafts")
+	public String approvalProcessPage() {
+		return "tiles:approval/approvalProcess"; 
+	}
+	
+	/**
+	 * 결재자 기준 Page
+	 * @return
+	 */
+	@GetMapping("/approval/approverDrafts")
+	public String approverProcessPage() {
+		return "tiles:approval/approverProcess";
+	}
+}

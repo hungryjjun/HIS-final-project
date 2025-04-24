@@ -1,0 +1,47 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>공지글 등록</title>
+    <!-- CKEditor CDN -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/34.2.0/classic/ckeditor.js"></script>
+</head>
+<body>
+    <form:form method="post" modelAttribute="board" action="${pageContext.request.contextPath}/board/register/commit" >
+        <h3>공지글 등록</h3>
+        <table class="table">
+            <tr>
+                <th>공지사항 제목 (1~30글자 제한)</th>
+                <td><form:input path="title" class="form-control" /></td>
+            </tr>
+            <tr>
+                <th>공지사항 내용 (1~200자 제한)</th>
+                <td><form:textarea path="content" class="form-control" id="contentEditor" /></td>
+            </tr>
+            <tr>
+                <th>공지 카테고리 (기본값: 기타)</th>
+                <td><form:input path="category" class="form-control" /></td>
+            </tr>
+            <tr>
+                <th>중요 공지 여부 (Y, N)</th>
+                <td><form:input path="importance" class="form-control" /></td>
+            </tr>
+<!--             <tr> -->
+<!--                 <th>파일 첨부</th> -->
+<%--                 <td><form:input path="noticeFile" type="file" class="form-control" /></td> --%>
+<!--             </tr> -->
+        </table>
+        <button type="submit" class="btn btn-primary">등록</button>
+    </form:form>
+    
+    <!-- CKEditor 초기화 스크립트 -->
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#contentEditor'))
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+</body>
+</html>

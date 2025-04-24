@@ -1,0 +1,98 @@
+package kr.or.ddit.contract.controller;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.account.vo.AccountVO;
+import kr.or.ddit.contract.service.Contractservice;
+import kr.or.ddit.contract.vo.ContractVO;
+import kr.or.ddit.security.SecurityUtil;
+import kr.or.ddit.signature.service.SignatureService;
+import kr.or.ddit.signature.vo.SignatureVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+public class ContractController {
+	@Autowired
+	private Contractservice service;
+	
+	@Autowired
+	private SignatureService Signservice;
+	
+	// 근로계약서 조회
+	@GetMapping("/contract/List")
+	public String ContractList(Model model) {
+		List<ContractVO> contractList = service.ContractList();
+		model.addAttribute("contractList", contractList);
+		return "tiles:contract/contractList";
+		}
+	// 특정 사원의 근로계약서 조회
+	@GetMapping("/contract/detail")
+	public String ContractDetail(@RequestParam("empId")String empId, Model model) {
+		ContractVO contract = service.selectContract(empId);
+		model.addAttribute("contract", contract);
+		return "tiles:contract/contractDetail";
+	}
+	// 근로계약서 등록 폼
+    @GetMapping("/contract/registerForm")
+    public String registerForm(Model model) {
+    	List<ContractVO> unContractList =service.unContractList(); // 근로계약서가 없는 사원 조회
+    	model.addAttribute("unContractList", unContractList);
+    	model.addAttribute("contract", new ContractVO());
+    	return "tiles:contract/contractRegister";
+    }
+    // 근로계약서 등록
+    @PostMapping("/contract/register")
+    public String reister(ContractVO contract) {
+    	service.insertContract(contract);
+    	return "redirect:/contract/List";
+    }
+    //직원의 서명정보 가져오기
+    @PostMapping("/contract/sign")
+    public String signContract(@RequestParam("contractId") int contractId, @Param("empId") String empId) {
+    	SignatureVO sign = Signservice.getSignature(empId);
+    	
+    	if (sign != null) {
+    		 
+    		service.updateContractSign(contractId, sign.getSignId());
+    	}
+    	return "redirect:/contract/detail?empId=" + empId;
+    }
+    //내 근로계약서 조회
+    @GetMapping("/contract/myContract")
+    public String myContract(Model model) {
+    	AccountVO account = SecurityUtil.getrealUser();
+    	System.out.println("📌 현재 로그인한 사용자 정보: " + account);
+
+    	if (account != null) {
+    	    String empId = account.getEmpId();
+    	    System.out.println("📌 가져온 empId: " + empId);
+    	} else {
+    	    System.out.println("🚨 로그인된 사용자 정보가 없습니다!");
+    	}
+    	String empId = account.getEmpId();
+    	
+    	log.info("empId123123123123123123123123", empId);
+    	
+    	ContractVO myContract = service.selectMyContract(empId);
+    	if (myContract == null) {
+    	    System.out.println("🚨 계약서 데이터 없음: empId = " + empId);
+    	} else {
+    	    System.out.println("📌 조회된 계약서 데이터: " + myContract);
+    	}
+    	 
+    	log.info("myContractssssssssssss", myContract);
+    	model.addAttribute("contarct", myContract);
+    	
+    	return "tiles:contract/myContract";		
+    }
+    
+}

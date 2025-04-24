@@ -1,0 +1,28 @@
+package kr.or.ddit.qr.service;
+
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.mybatis.mappers.qr.qrMapper;
+import kr.or.ddit.qr.vo.QrVO;
+
+@Service
+public class QrServiceImpl implements QrService {
+	
+	@Autowired
+	private qrMapper dao;
+
+	public void saveQR(String uuid, String empId, String expiresAt) {
+		dao.saveQR(uuid, empId, expiresAt);
+	}
+
+	public QrVO getQRInfo(String uuid) {
+		return dao.getQRInfo(uuid);
+	}
+
+	public void deleteQR(String uuid) {
+		dao.deleteQR(uuid);
+	}
+}

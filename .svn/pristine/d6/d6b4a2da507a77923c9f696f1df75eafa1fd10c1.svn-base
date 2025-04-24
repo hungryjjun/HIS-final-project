@@ -1,0 +1,9 @@
+# MB \u314E\u314E
+maxFileSize=1000
+maxRequestSize=5000
+
+fileImages=/resources/fileImages/
+fileUploads=/resources/uploads/
+
+
+

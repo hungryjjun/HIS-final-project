@@ -1,0 +1,24 @@
+package kr.or.ddit.team.vo;
+
+import java.util.List;
+
+import lombok.Data;
+
+@Data
+public class TeamVO {
+	
+	private Long teamId;
+	private String teamName;
+	private String teamStatus;
+	
+	private Long departmentId;
+	private String departmentName;
+	
+	private Long tmId;
+	private String tmHr;
+	
+	private String empName;
+	
+	// 1팀이 여러 팀원을 가질 수 있으므로 List로 TeamMemberVO를 포함
+	private List<TeamMemberVO> teamMembers;  // 팀원들 리스트
+}

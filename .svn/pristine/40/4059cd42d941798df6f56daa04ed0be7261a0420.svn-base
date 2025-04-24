@@ -1,0 +1,8 @@
+package kr.or.ddit.empAppointment.exception;
+
+public class AppointNotFoundException extends RuntimeException {
+	
+	public AppointNotFoundException(String appId) {
+		super(String.format("%s 사원이 존재하지 않습니다.", appId));
+	}
+}

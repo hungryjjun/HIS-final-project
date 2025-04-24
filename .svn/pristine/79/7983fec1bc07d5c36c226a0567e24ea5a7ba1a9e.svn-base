@@ -1,0 +1,82 @@
+package kr.or.ddit.attendance.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.attendance.service.AttendanceService;
+import kr.or.ddit.attendance.vo.AttendanceVO;
+import kr.or.ddit.employee.service.EmployeeService;
+import kr.or.ddit.team.vo.TeamVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author 정태우
+ * @since 2025. 3. 12.
+ * @see
+ *
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 3. 12.     	정태우	          최초 생성
+ *
+ * </pre>
+ */
+@Controller
+@Slf4j
+public class AttendanceReadController {
+	
+	@Autowired
+	AttendanceService service;
+	
+	@GetMapping("/attendance/list")
+	public String AttendanceList() {
+		return "tiles:attendance/attendanceList";
+		
+	}
+	
+	@GetMapping("/attendance/Detail")
+	public String AttendanceDetail() {
+		return "tiles:attendance/attendanceDetail";
+		
+	}
+	
+	@GetMapping("/check/list")
+	public String CheckList(Model model,HttpSession session) {
+		model.addAttribute("departmentList",service.departmentList());
+		model.addAttribute("teamList",service.teamList());
+		model.addAttribute("attendanceList",service.attendanceList());
+		return "tiles:attendance/checkInOut";
+		
+	}
+	@GetMapping("/filter")
+    @ResponseBody
+    public List<AttendanceVO> filterAttendance(
+        @RequestParam(value = "departmentId", required = false) String departmentId,
+        @RequestParam(value = "teamId", required = false) String teamId,
+        @RequestParam(value = "date", required = false) String date
+    ) {
+        return service.FilteredAttendance(departmentId, teamId, date);
+    }
+    
+    
+	@GetMapping("/check/Detail")
+	public String CheckDetail(Model model,
+		@RequestParam("empId") String empId
+	) {
+		model.addAttribute("employeeList",service.attendanceDetail(empId));
+		return "tiles:attendance/checkInOutDetail";
+		
+	}
+}

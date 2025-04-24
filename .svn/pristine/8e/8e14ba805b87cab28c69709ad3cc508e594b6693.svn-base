@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일       			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 3. 12.     	LIG            최초 생성
+ *
+-->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mybatis.mappers.departmentboard.DepartmentBoardMapper">
+
+    <resultMap type="DepartmentBoardVO" id="DepartmentBoardMAP" autoMapping="true">
+        <id property="deptnoticeId" column="DEPTNOTICE_ID" />
+        <association property="department" javaType="DepartmentVO" autoMapping="true" />
+    </resultMap>
+
+	<!-- 공지글 조회 쿼리문 -->
+   <select id="boardList" resultMap="DepartmentBoardMAP">
+   <!-- select
+      DN.DEPTNOTICE_ID,
+      D.DEPARTMENT_NAME,
+      DN.TITLE,
+      E.NAME as AUTHOR,
+      DN.VIEW_COUNT,
+      DN.NOTICE_DATE
+   from department_notice DN
+      join DEPARTMENT D on D.DEPARTMENT_ID = DN.DEPARTMENT_ID
+      join EMPLOYEE E on DN.DEPARTMENT_ID = E.DEPARTMENT_ID -->
+      
+	SELECT
+	    dn.deptnotice_id,
+	    d.department_name,
+	    dn.title,
+	    e.name AS author,
+	    dn.view_count,
+	    dn.notice_date
+	FROM
+	    department_notice dn
+	    JOIN department d ON d.department_id = dn.department_id
+	    JOIN employee   e ON dn.department_id = e.department_id
+	    JOIN account    a ON a.department_id = d.department_id
+	where
+		1 = 1 
+		and dn.department_id = #{departmentId}
+      
+	 <!-- where DN.DEPARTMENT_ID = #{A.DEPARTMENT_ID} -->
+      
+   </select>
+   
+   <!-- 공지글 작성 쿼리문 --> 
+    <insert id="boardInsert" parameterType="DepartmentBoardVO">  
+    insert into department_notice ( 
+       DEPTNOTICE_ID,  
+       DEPARTMENT_ID, 
+       TITLE, 
+       CONTENT,  
+       AUTHOR,  
+       VIEW_COUNT,  
+       NOTICE_DATE 
+      ) values ( 
+        deptnotice_seq.NEXTVAL,  
+        #{departmentId},  
+        #{title},  
+        #{content},  
+        #{author},  
+        0,  
+        SYSDATE 
+         ) 
+    </insert> 
+
+	<!-- 공지글 상세조회 쿼리문 -->
+   <select id="boardDetail"
+       resultMap="DepartmentBoardMAP">
+      select
+      DN.DEPTNOTICE_ID,
+      DN.DEPARTMENT_ID,
+      D.DEPARTMENT_NAME,
+      DN.TITLE,
+      E.NAME as AUTHOR,
+      DN.VIEW_COUNT,
+      DN.NOTICE_DATE,
+      DN.CONTENT,
+      DN.DEPT_FILE
+   from department_notice DN
+      join DEPARTMENT D on D.DEPARTMENT_ID = DN.DEPARTMENT_ID
+      join EMPLOYEE E on DN.DEPARTMENT_ID = E.DEPARTMENT_ID
+   where
+      DN.DEPTNOTICE_ID = #{deptnoticeId}
+   </select>
+   
+   
+   
+   <!-- 조회수 업데이트 -->
+    <update id="updateViews">
+        UPDATE department_notice
+        SET VIEW_COUNT = VIEW_COUNT + 1
+        WHERE DEPTNOTICE_ID = #{deptnoticeId}
+    </update>
+    
+    <!-- 공지글 수정 -->
+    <update id="updateBoard">
+    UPDATE department_notice
+	SET 
+    	TITLE = #{title}
+    	, CONTENT = #{content}
+	WHERE DEPTNOTICE_ID = #{deptnoticeId}
+    </update>
+
+    <!-- 게시글 추가
+    <insert id="boardInsert">
+        insert into department_notice 
+            (DEPTNOTICE_ID, DEPARTMENT_ID, TITLE, CONTENT, AUTHOR, VIEW_COUNT, DEPT_FILE, NOTICE_DATE) 
+        values
+            (#{deptnoticeId}, #{departmentId}, #{title}, #{content}, #{author}, #{viewCount}, #{deptFile}, #{noticeDate})
+    </insert> -->
+
+</mapper>
